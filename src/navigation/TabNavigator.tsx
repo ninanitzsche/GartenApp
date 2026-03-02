@@ -5,7 +5,7 @@ import Colors from '../theme/colors';
 
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
-import PlantListScreen from '../screens/PlantListScreen';
+import PlantsStackNavigator from './PlantsStackNavigator';
 import TaskListScreen from '../screens/TaskListScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import MoreMenuScreen from '../screens/MoreMenuScreen';
@@ -45,10 +45,11 @@ export default function TabNavigator() {
       
       <Tab.Screen
         name="Plants"
-        component={PlantListScreen}
+        component={PlantsStackNavigator}
         options={{
           title: 'Pflanzen',
           tabBarLabel: 'Inventar',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="eco" size={size} color={color} />
           ),
