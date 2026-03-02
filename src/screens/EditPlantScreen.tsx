@@ -116,6 +116,7 @@ export default function EditPlantScreen({ navigation, route }: EditPlantScreenPr
   };
 
   const handleDelete = () => {
+    console.log('🔴 DELETE BUTTON PRESSED - NEW CODE RUNNING!');
     Alert.alert(
       'Pflanze löschen',
       'Möchten Sie diese Pflanze wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
@@ -125,13 +126,15 @@ export default function EditPlantScreen({ navigation, route }: EditPlantScreenPr
           text: 'Löschen',
           style: 'destructive',
           onPress: async () => {
+            console.log('🔴 DELETE CONFIRMED, deleting plant:', plantId);
             try {
               await deletePlant(plantId);
+              console.log('🔴 DELETE SUCCESS, navigating to PlantList');
               // Navigate back to plant list (2 screens back: Edit -> Detail -> List)
               navigation.navigate('PlantList');
               Alert.alert('Erfolg', 'Pflanze wurde gelöscht.');
             } catch (error) {
-              console.error('Error deleting plant:', error);
+              console.error('🔴 DELETE ERROR:', error);
               Alert.alert('Fehler', 'Pflanze konnte nicht gelöscht werden.');
             }
           },

@@ -8,6 +8,7 @@ export default function MoreMenuScreen() {
   const { user, signOut } = useAuth();
 
   const handleLogout = () => {
+    console.log('🔵 LOGOUT BUTTON PRESSED - NEW CODE RUNNING!');
     Alert.alert(
       'Abmelden',
       'Möchten Sie sich wirklich abmelden?',
@@ -17,10 +18,12 @@ export default function MoreMenuScreen() {
           text: 'Abmelden',
           style: 'destructive',
           onPress: async () => {
+            console.log('🔵 LOGOUT CONFIRMED, signing out...');
             try {
               await signOut();
+              console.log('🔵 LOGOUT SUCCESS');
             } catch (error) {
-              console.error('Logout error:', error);
+              console.error('🔵 LOGOUT ERROR:', error);
               Alert.alert('Fehler', 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
             }
           },
