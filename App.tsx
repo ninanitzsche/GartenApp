@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
-import RootNavigator from './src/navigation/RootNavigator';
+import TabNavigator from './src/navigation/TabNavigator';
 import AuthScreen from './src/screens/AuthScreen';
 import Colors from './src/theme/colors';
 
@@ -21,7 +21,7 @@ function AppContent() {
 
   return (
     <NavigationContainer>
-      {user ? <RootNavigator /> : <AuthScreen />}
+      {user ? <TabNavigator /> : <AuthScreen />}
       <StatusBar style="light" />
     </NavigationContainer>
   );

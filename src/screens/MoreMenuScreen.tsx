@@ -17,7 +17,12 @@ export default function MoreMenuScreen() {
           text: 'Abmelden',
           style: 'destructive',
           onPress: async () => {
-            await signOut();
+            try {
+              await signOut();
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Fehler', 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+            }
           },
         },
       ]

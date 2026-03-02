@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
-import { Plant } from '../types/plant';
-import { fetchPlants } from '../services/plantService';
+import { Plant, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
+import { fetchPlants, getUniqueLocations, PlantFilters } from '../services/plantService';
 
 interface PlantListScreenProps {
   navigation: any;
@@ -23,16 +25,33 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string | undefined>();
+  const [filterLocation, setFilterLocation] = useState<string | undefined>();
+  const [filterType, setFilterType] = useState<string | undefined>();
+  const [locations, setLocations] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       loadPlants();
+      loadLocations();
     }, [])
   );
 
+  useEffect(() => {
+    loadPlants();
+  }, [searchQuery, filterStatus, filterLocation, filterType]);
+
   const loadPlants = async () => {
     try {
-      const data = await fetchPlants();
+      const filters: PlantFilters = {
+        searchQuery: searchQuery || undefined,
+        status: filterStatus,
+        location: filterLocation,
+        type: filterType,
+      };
+      const data = await fetchPlants(filters);
       setPlants(data);
     } catch (error) {
       console.error('Error loading plants:', error);
@@ -40,6 +59,15 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const loadLocations = async () => {
+    try {
+      const data = await getUniqueLocations();
+      setLocations(data);
+    } catch (error) {
+      console.error('Error loading locations:', error);
     }
   };
 
@@ -55,6 +83,15 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
   const handlePlantPress = (plantId: string) => {
     navigation.navigate('PlantDetail', { plantId });
   };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setFilterStatus(undefined);
+    setFilterLocation(undefined);
+    setFilterType(undefined);
+  };
+
+  const hasActiveFilters = searchQuery || filterStatus || filterLocation || filterType;
 
   const getStatusColor = (status: string): string => {
     switch (status) {
