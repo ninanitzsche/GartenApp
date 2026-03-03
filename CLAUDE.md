@@ -9,22 +9,48 @@
 
 ## 🎯 PROJECT CONTEXT
 
-**Current Status:** Sprint 4 Ready
-- Completed: Sprint 1-3 (34 pts, all approved)
-- Planned: Sprint 4 (10 pts)
+**Current Status:** Sprint 4 Complete, Sprint 5 Ready
+- Completed: Sprint 1-4 (44 pts, all approved)
+- Planned: Sprint 5+
 - Tech Stack: React Native, Expo, Supabase, TypeScript
 
 **Key Files:**
 - `/docs/Sprint-4-Plan.md` - Current sprint details
 - `/COST-GUIDELINES.md` - Cost control checklist (MANDATORY before work)
 - `.portkey.json` - AI routing configuration (Haiku/Sonnet/Opus)
+- **MEMORY.md** - Cross-sprint learnings (auto-loaded at sprint start)
 
 ---
 
 ## 💰 COST MANAGEMENT (CRITICAL)
 
-**Mode:** Active Cost Control
+**Mode:** Active Cost Control + Continuous Learning
 **Tool:** Portkey (70-80% cost reduction via intelligent routing)
+
+### Memory-Driven Development (Option C + Learning Mode)
+
+**How I use MEMORY.md:**
+
+1. **At Sprint Start** (Automatic)
+   - Read MEMORY.md automatically
+   - Load proven patterns into context
+   - Identify relevant learnings for current sprint
+   - No action needed from you
+
+2. **During Task Execution** (Silent)
+   - Use patterns from MEMORY.md without asking
+   - Copy code templates where applicable
+   - Apply proven solutions to known problems
+   - Batch similar tasks based on memory patterns
+
+3. **Cost Optimization Alerts** (Proactive)
+   - If I spot a potential cost saving opportunity → **I'll mention it**
+   - Examples of alerts you'll see:
+     ```
+     💡 Cost Tip: This could be batched with the previous task
+     💡 Reuse Opportunity: Similar pattern in shoppingService.ts
+     💡 Debounce Reminder: This search should use 300ms debounce
+     ```
 
 ### MANDATORY Pre-Task Checklist
 
@@ -48,6 +74,55 @@
 - `docs/PORTKEY-SETUP.md` - Setup and usage guide
 - `docs/COST-OPTIMIZATION.md` - Detailed strategy
 - `scripts/track-costs.sh` - Daily cost monitoring
+
+---
+
+## 🎓 Cost Learning & Optimization Alerts
+
+**I will proactively alert you when I spot:**
+
+### 1. Batching Opportunities
+```
+💡 Reuse Opportunity: "These 3 password-related tasks
+   could be batched into 1 Haiku call (save $0.15)"
+```
+
+### 2. Pattern Matches in MEMORY.md
+```
+💡 Pattern Found: "Search debouncing pattern already
+   documented in MEMORY.md line 89 - copying from there"
+```
+
+### 3. Model Selection Improvements
+```
+💡 Model Tip: "This task is perfect for Haiku (cost $0.50)
+   not Sonnet - switching routing"
+```
+
+### 4. Avoided AI Calls via MEMORY
+```
+💡 Saved Cost: "Used Service Layer template from MEMORY.md
+   instead of asking AI - saved $0.30"
+```
+
+### 5. Sprint Cost Projections
+```
+💡 Budget Alert: "Current trajectory: $0.23 after Task 2
+   of 4. On pace for $0.35 total (well under $10 budget)"
+```
+
+### 6. New Patterns Worth Documenting
+```
+💡 Memory Update Candidate: "This password reset pattern
+   is cleaner than the old one - worth updating MEMORY.md
+   after sprint completes"
+```
+
+### 7. Cost-Saving Insights
+```
+💡 Cost Win: "By batching these 3 unit tests instead of
+   separate calls, we'll save ~$0.60 this sprint"
+```
 
 ---
 
@@ -147,6 +222,34 @@ gartenplaner-app/
 ├── COST-GUIDELINES.md    (THIS CHECKLIST)
 ├── CLAUDE.md             (THIS FILE)
 └── .portkey.json         (AI routing config)
+```
+
+---
+
+## 📢 When You'll See Cost Alerts
+
+**Sprint Start:**
+```
+"I've loaded MEMORY.md with [X] proven patterns.
+Found [Y] cost optimization opportunities for this sprint."
+```
+
+**During Task Execution:**
+```
+"💡 Cost Tip: [Specific savings opportunity]"
+(appears naturally as I work, not interrupting)
+```
+
+**Mid-Sprint (if cost tracking shows patterns):**
+```
+"📊 Cost Checkpoint: Currently at $[X].
+[Suggestion for next task batching/optimization]"
+```
+
+**Sprint End:**
+```
+"✅ Sprint Complete: $[total] spent (vs $10 budget)
+Updated MEMORY.md with [new patterns/learnings]"
 ```
 
 ---

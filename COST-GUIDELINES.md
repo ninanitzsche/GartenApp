@@ -127,12 +127,47 @@ Q: Budget set?
 
 ---
 
+## 🧠 Cross-Sprint Memory Management (Option C)
+
+**How Memory Works for Cost Optimization:**
+
+1. **Automatic Loading at Sprint Start**
+   - I load MEMORY.md automatically
+   - No action needed from you
+   - Patterns ready to use immediately
+
+2. **Silent Usage During Execution**
+   - I reference patterns without asking
+   - Copy templates where applicable
+   - No interruptions or questions
+
+3. **Proactive Cost Alerts**
+   - I mention cost optimization opportunities as I work
+   - Examples: "💡 This could be batched for $0.15 savings"
+   - Help you stay aware of cost-saving decisions
+
+4. **Continuous Learning**
+   - New patterns added to MEMORY.md after each sprint
+   - Cost insights documented for next sprint
+   - Velocity and patterns improve over time
+
+**Example Flow:**
+```
+Sprint 5 Start: Load MEMORY.md → See auth patterns
+Task 1: "💡 Using Service Layer from MEMORY - saved $0.30"
+Task 2: "💡 Batching opportunity with Task 3 found"
+Task 3: "💡 Debounce pattern applied from MEMORY"
+Sprint 5 End: Update MEMORY.md with new learnings
+```
+
+---
+
 ## 🎯 Pre-Sprint Kickoff Template
 
 **Use this format before starting any sprint:**
 
 ```markdown
-## Sprint 4 Pre-Task Checklist
+## Sprint 5 Pre-Task Checklist
 
 **Date:** 2026-03-03
 **Tasks:** STORY-033b, STORY-INF-001b, TESTING-P1
