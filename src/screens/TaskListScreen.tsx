@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { TabParamList } from '../types/navigation';
 
-export default function TaskListScreen() {
+type Props = BottomTabScreenProps<TabParamList, 'Tasks'>;
+
+export default function TaskListScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>✅ Aufgaben</Text>

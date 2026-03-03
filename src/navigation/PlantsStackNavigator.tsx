@@ -1,13 +1,17 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Colors from '../theme/colors';
+import { RootStackParamList } from '../types/navigation';
 
 import PlantListScreen from '../screens/PlantListScreen';
 import AddPlantScreen from '../screens/AddPlantScreen';
 import EditPlantScreen from '../screens/EditPlantScreen';
 import PlantDetailScreen from '../screens/PlantDetailScreen';
+import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
+import PhotoUploadScreen from '../screens/PhotoUploadScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function PlantsStackNavigator() {
   return (
@@ -49,6 +53,21 @@ export default function PlantsStackNavigator() {
         component={EditPlantScreen}
         options={{
           title: 'Pflanze bearbeiten',
+        }}
+      />
+      <Stack.Screen
+        name="PhotoGallery"
+        component={PhotoGalleryScreen}
+        options={{
+          title: 'Fotos',
+        }}
+      />
+      <Stack.Screen
+        name="PhotoUpload"
+        component={PhotoUploadScreen}
+        options={{
+          title: 'Foto hochladen',
+          presentation: 'modal',
         }}
       />
     </Stack.Navigator>

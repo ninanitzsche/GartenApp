@@ -10,14 +10,18 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
+import { AuthStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 
-interface RegisterScreenProps {
-  onSwitchToLogin: () => void;
+type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+
+interface RegisterScreenProps extends Props {
+  onSwitchToLogin?: () => void;
 }
 
-export default function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
+export default function RegisterScreen({ onSwitchToLogin, navigation }: RegisterScreenProps) {
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

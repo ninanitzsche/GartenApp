@@ -10,17 +10,16 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { PlantFormData, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { fetchPlant, updatePlant, deletePlant } from '../services/plantService';
 
-interface EditPlantScreenProps {
-  navigation: any;
-  route: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'EditPlant'>;
 
-export default function EditPlantScreen({ navigation, route }: EditPlantScreenProps) {
+export default function EditPlantScreen({ navigation, route }: Props) {
   const { plantId } = route.params;
   const [formData, setFormData] = useState<PlantFormData>({
     name: '',

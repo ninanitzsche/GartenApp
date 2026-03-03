@@ -13,7 +13,9 @@ import {
   SectionListData,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { ShoppingItem, SHOPPING_CATEGORIES } from '../types/shopping_item';
 import { fetchShoppingItems, markAsPurchased, markAsNotPurchased } from '../services/shoppingService';
@@ -26,11 +28,9 @@ interface ShoppingItemsGrouped {
   estimatedTotal: number;
 }
 
-interface ShoppingDashboardScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'ShoppingDashboard'>;
 
-export default function ShoppingDashboardScreen({ navigation }: ShoppingDashboardScreenProps) {
+export default function ShoppingDashboardScreen({ navigation }: Props) {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [groupedItems, setGroupedItems] = useState<ShoppingItemsGrouped[]>([]);
   const [loading, setLoading] = useState(true);

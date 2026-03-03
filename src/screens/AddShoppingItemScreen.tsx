@@ -10,16 +10,16 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { ShoppingItemFormData, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import { createShoppingItem } from '../services/shoppingService';
 
-interface AddShoppingItemScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'AddShoppingItem'>;
 
-export default function AddShoppingItemScreen({ navigation }: AddShoppingItemScreenProps) {
+export default function AddShoppingItemScreen({ navigation }: Props) {
   const [formData, setFormData] = useState<ShoppingItemFormData>({
     item_name: '',
     category: 'sonstiges',

@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 
-interface MoreMenuScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'MoreMenu'>;
 
-export default function MoreMenuScreen({ navigation }: MoreMenuScreenProps) {
+export default function MoreMenuScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
 
   const handleLogout = () => {
@@ -41,6 +41,19 @@ export default function MoreMenuScreen({ navigation }: MoreMenuScreenProps) {
       <View style={styles.userInfo}>
         <MaterialIcons name="account-circle" size={60} color={Colors.primary} />
         <Text style={styles.email}>{user?.email}</Text>
+      </View>
+
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>Konto</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Profile')}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="account-circle" size={24} color={Colors.primary} />
+          <Text style={styles.menuItemText}>Mein Profil</Text>
+          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.menuSection}>

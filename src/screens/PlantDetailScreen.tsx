@@ -70,6 +70,10 @@ export default function PlantDetailScreen() {
     navigation.navigate('EditPlant', { plantId });
   };
 
+  const handleViewGallery = () => {
+    navigation.navigate('PhotoGallery', { plantId });
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -198,9 +202,20 @@ export default function PlantDetailScreen() {
         )}
 
         {/* Photos Section */}
-        {photos.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Fotos ({photos.length})</Text>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              📸 Fotos {photos.length > 0 ? `(${photos.length})` : ''}
+            </Text>
+            <TouchableOpacity
+              style={styles.galleryButton}
+              onPress={handleViewGallery}
+            >
+              <MaterialIcons name="photo-library" size={20} color={Colors.primary} />
+              <Text style={styles.galleryButtonText}>Galerie</Text>
+            </TouchableOpacity>
+          </View>
+          {photos.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.photosContainer}>
                 {photos.map((photo) => (
@@ -214,8 +229,20 @@ export default function PlantDetailScreen() {
                 ))}
               </View>
             </ScrollView>
-          </View>
-        )}
+          )}
+          {photos.length === 0 && (
+            <View style={styles.noPhotosContainer}>
+              <Text style={styles.noPhotosText}>Noch keine Fotos hochgeladen</Text>
+              <TouchableOpacity
+                style={styles.uploadPhotoButton}
+                onPress={() => navigation.navigate('PhotoUpload', { plantId })}
+              >
+                <MaterialIcons name="add-a-photo" size={18} color="#fff" />
+                <Text style={styles.uploadPhotoButtonText}>Foto hinzufügen</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         {/* Metadata Section */}
         <View style={styles.section}>
@@ -363,6 +390,26 @@ const styles = StyleSheet.create({
     color: Colors.text,
     lineHeight: 20,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  galleryButton: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primaryLight,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    gap: 6,
+  },
+  galleryButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
   photosContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -375,6 +422,34 @@ const styles = StyleSheet.create({
   photoThumbnail: {
     width: 120,
     height: 120,
+  },
+  noPhotosContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  noPhotosText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    fontStyle: 'italic',
+  },
+  uploadPhotoButton: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+    gap: 6,
+  },
+  uploadPhotoButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   editButton: {
     position: 'absolute',

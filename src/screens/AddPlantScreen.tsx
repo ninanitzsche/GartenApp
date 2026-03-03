@@ -10,16 +10,16 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { PlantFormData, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { createPlant } from '../services/plantService';
 
-interface AddPlantScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'AddPlant'>;
 
-export default function AddPlantScreen({ navigation }: AddPlantScreenProps) {
+export default function AddPlantScreen({ navigation }: Props) {
   const [formData, setFormData] = useState<PlantFormData>({
     name: '',
     latin_name: '',

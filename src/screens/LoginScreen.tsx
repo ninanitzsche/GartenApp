@@ -10,14 +10,18 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
+import { AuthStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 
-interface LoginScreenProps {
-  onSwitchToRegister: () => void;
+type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+
+interface LoginScreenProps extends Props {
+  onSwitchToRegister?: () => void;
 }
 
-export default function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
+export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScreenProps) {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,6 +86,16 @@ export default function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
           ) : (
             <Text style={styles.buttonText}>Anmelden</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.linkButton}
+          onPress={() => navigation?.navigate('ForgotPassword')}
+          disabled={loading}
+        >
+          <Text style={styles.linkText}>
+            Passwort vergessen?
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity

@@ -1,13 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Colors from '../theme/colors';
+import { RootStackParamList } from '../types/navigation';
 
 // Import Screens
 import ShoppingListScreen from '../screens/ShoppingListScreen';
 import AddShoppingItemScreen from '../screens/AddShoppingItemScreen';
 import EditShoppingItemScreen from '../screens/EditShoppingItemScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function ShoppingStackNavigator() {
   return (

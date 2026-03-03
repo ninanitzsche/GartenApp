@@ -1,11 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Colors from '../theme/colors';
+import { RootStackParamList } from '../types/navigation';
 
 import MoreMenuScreen from '../screens/MoreMenuScreen';
 import ShoppingDashboardScreen from '../screens/ShoppingDashboardScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function MoreMenuStackNavigator() {
   return (
@@ -33,6 +37,20 @@ export default function MoreMenuStackNavigator() {
         component={ShoppingDashboardScreen}
         options={{
           title: 'Einkaufsliste',
+        }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

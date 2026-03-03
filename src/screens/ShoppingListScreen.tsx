@@ -12,7 +12,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { ShoppingItem, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import {
@@ -23,11 +25,9 @@ import {
   ShoppingItemFilters,
 } from '../services/shoppingService';
 
-interface ShoppingListScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'ShoppingList'>;
 
-export default function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
+export default function ShoppingListScreen({ navigation }: Props) {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,7 +35,7 @@ export default function ShoppingListScreen({ navigation }: ShoppingListScreenPro
   const [filterCategory, setFilterCategory] = useState<string | undefined>();
   const [filterPriority, setFilterPriority] = useState<string | undefined>();
   const [showFilters, setShowFilters] = useState(false);
-  const searchDebounceRef = useRef<NodeJS.Timeout>();
+  const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useFocusEffect(
     useCallback(() => {

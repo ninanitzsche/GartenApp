@@ -12,16 +12,16 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { Plant, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { fetchPlants, getUniqueLocations, PlantFilters } from '../services/plantService';
 
-interface PlantListScreenProps {
-  navigation: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
-export default function PlantListScreen({ navigation }: PlantListScreenProps) {
+export default function PlantListScreen({ navigation }: Props) {
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

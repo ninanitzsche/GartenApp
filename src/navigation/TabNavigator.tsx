@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
+import { TabParamList } from '../types/navigation';
 
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -11,7 +12,7 @@ import MoreMenuStackNavigator from './MoreMenuStackNavigator';
 import TaskListScreen from '../screens/TaskListScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 export default function TabNavigator() {
   return (
@@ -43,7 +44,7 @@ export default function TabNavigator() {
           ),
         }}
       />
-      
+
       <Tab.Screen
         name="Plants"
         component={PlantsStackNavigator}
@@ -56,7 +57,7 @@ export default function TabNavigator() {
           ),
         }}
       />
-      
+
       <Tab.Screen
         name="Tasks"
         component={TaskListScreen}
@@ -68,7 +69,7 @@ export default function TabNavigator() {
           ),
         }}
       />
-      
+
       <Tab.Screen
         name="Photos"
         component={PhotoGalleryScreen}

@@ -4,11 +4,13 @@
 
 export interface Photo {
   id: string;
-  file_url: string;
+  file_url?: string;
+  photo_url?: string;
   thumbnail_url?: string;
   date?: string;
   location?: string;
   notes?: string;
+  plant_id: string;
   user_id: string;
   created_at?: string;
   updated_at?: string;

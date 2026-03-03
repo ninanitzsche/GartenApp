@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { TabParamList } from '../types/navigation';
 
-export default function HomeScreen() {
+type Props = BottomTabScreenProps<TabParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🌱 Gartenplaner</Text>

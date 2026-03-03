@@ -9,17 +9,16 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { ShoppingItemFormData, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import { fetchShoppingItem, updateShoppingItem, deleteShoppingItem } from '../services/shoppingService';
 
-interface EditShoppingItemScreenProps {
-  navigation: any;
-  route: any;
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'EditShoppingItem'>;
 
-export default function EditShoppingItemScreen({ navigation, route }: EditShoppingItemScreenProps) {
+export default function EditShoppingItemScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
   const [formData, setFormData] = useState<ShoppingItemFormData>({
     item_name: '',
