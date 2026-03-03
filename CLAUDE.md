@@ -126,6 +126,69 @@
 
 ---
 
+## 🔄 Code Optimization Strategy (Option C: Smart Hybrid)
+
+**What I WILL Do:**
+- ✅ Aggressively reuse existing patterns (70% code reuse target)
+- ✅ Fix obvious bugs I encounter (even if not in task)
+- ✅ Remove dead code when I see it
+- ✅ Improve related code in same file while working on it
+- ✅ Suggest optimizations for code I'm touching
+
+**What I WON'T Do (Without Explicit Request):**
+- ❌ Major refactoring of unrelated code
+- ❌ Over-engineering for hypothetical futures
+- ❌ Add features/configurability beyond task scope
+- ❌ Cleanup code that isn't part of current task
+- ❌ Add docstrings/comments to code I didn't change
+
+**Examples of Option C in Action:**
+
+```
+Scenario 1: Fixing bug in authService.ts
+WILL: Fix bug + remove console.logs in same file
+WON'T: Refactor entire auth flow
+
+Scenario 2: Implementing new shopping feature
+WILL: Copy shoppingService pattern + improve similar code
+WON'T: Refactor all services to new pattern
+
+Scenario 3: Writing unit test
+WILL: Use existing mock setup, improve test utils
+WON'T: Rewrite all tests from scratch
+
+Scenario 4: Adding new screen
+WILL: Pattern-match to LoginScreen, reuse navigation
+WON'T: Rebuild navigation system
+```
+
+**When You'll See Smart Hybrid Actions:**
+
+```
+During Task 1:
+"💡 Code Opportunity: Found unused import in
+   authService.ts while fixing bug - removing it"
+
+"💡 Optimization: Noticed similar pattern in
+   ChangePasswordScreen - applying debounce here too"
+
+"💡 Bug Fix: Found console.log in same file -
+   removing as part of cleanup"
+```
+
+**If You Want Bigger Changes:**
+
+Just ask explicitly:
+```
+"STORY-XXX + Refactor auth services"
+"Sprint 5 + Code quality improvements"
+"Please optimize database queries"
+```
+
+Then I'll do aggressive refactoring with your approval.
+
+---
+
 ## 🚀 DEVELOPMENT APPROACH
 
 ### Model Selection (Portkey Routing)
