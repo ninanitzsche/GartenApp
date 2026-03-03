@@ -32,7 +32,7 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
   const [filterEssbar, setFilterEssbar] = useState(false);
   const [locations, setLocations] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const searchDebounceRef = useRef<NodeJS.Timeout>();
+  const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useFocusEffect(
     useCallback(() => {
@@ -41,8 +41,21 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
     }, [])
   );
 
+  // Debounce search, filters, and type with 300ms delay
   useEffect(() => {
-    loadPlants();
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    searchDebounceRef.current = setTimeout(() => {
+      loadPlants();
+    }, 300);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
   }, [searchQuery, filterStatusList, filterLocationList, filterType, filterEssbar]);
 
   const loadPlants = async () => {
@@ -81,10 +94,6 @@ export default function PlantListScreen({ navigation }: PlantListScreenProps) {
 
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
-    // Debounce the search
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
   };
 
   const handleAddPlant = () => {
