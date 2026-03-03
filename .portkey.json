@@ -1,0 +1,192 @@
+{
+  "version": "1.0",
+  "project_name": "gartenplaner-app",
+  "description": "Cost-optimized AI routing for Gartenplaner mobile app",
+  "created": "2026-03-03",
+  "portkey_api_key": "${PORTKEY_API_KEY}",
+
+  "routing_config": {
+    "default": {
+      "strategy": "priority",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-opus-4-6",
+          "weight": 100,
+          "fallback": true
+        }
+      ]
+    },
+
+    "sprint-planning": {
+      "strategy": "cost-optimized",
+      "description": "Complex architecture and sprint planning",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-opus-4-6",
+          "weight": 100,
+          "max_tokens": 8000
+        }
+      ],
+      "cost_limit": "$5.00",
+      "use_case": "sprint-planning, architecture-review, complex-analysis"
+    },
+
+    "dev-story": {
+      "strategy": "cost-optimized",
+      "description": "Implementation of features (most frequent task)",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-haiku-4-5-20251001",
+          "weight": 80,
+          "max_tokens": 4000
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "weight": 20,
+          "max_tokens": 6000,
+          "fallback": true
+        }
+      ],
+      "cost_limit": "$2.00",
+      "use_case": "feature-implementation, bug-fixes, code-generation",
+      "note": "Haiku for routine code, Sonnet for complex logic"
+    },
+
+    "code-review": {
+      "strategy": "quality-focused",
+      "description": "Code quality and performance analysis",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "weight": 100,
+          "max_tokens": 3000
+        }
+      ],
+      "cost_limit": "$1.50",
+      "use_case": "code-quality, security-review, performance-optimization"
+    },
+
+    "testing": {
+      "strategy": "cost-optimized",
+      "description": "Test writing and validation (repetitive)",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-haiku-4-5-20251001",
+          "weight": 100,
+          "max_tokens": 2000
+        }
+      ],
+      "cost_limit": "$1.00",
+      "use_case": "unit-tests, integration-tests, test-documentation"
+    },
+
+    "documentation": {
+      "strategy": "cost-optimized",
+      "description": "Documentation generation (non-critical)",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-haiku-4-5-20251001",
+          "weight": 90,
+          "max_tokens": 3000
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "weight": 10,
+          "max_tokens": 4000,
+          "fallback": true
+        }
+      ],
+      "cost_limit": "$0.75",
+      "use_case": "api-docs, guide-writing, summary-generation"
+    },
+
+    "debugging": {
+      "strategy": "quality-focused",
+      "description": "Bug analysis and troubleshooting",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "weight": 70,
+          "max_tokens": 4000
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-haiku-4-5-20251001",
+          "weight": 30,
+          "max_tokens": 2000,
+          "fallback": true
+        }
+      ],
+      "cost_limit": "$1.50",
+      "use_case": "error-diagnosis, performance-debugging, security-issues"
+    },
+
+    "brainstorming": {
+      "strategy": "cost-optimized",
+      "description": "Creative ideation and planning",
+      "targets": [
+        {
+          "provider": "anthropic",
+          "model": "claude-haiku-4-5-20251001",
+          "weight": 100,
+          "max_tokens": 2000
+        }
+      ],
+      "cost_limit": "$0.50",
+      "use_case": "feature-ideation, ux-brainstorm, naming-suggestions"
+    }
+  },
+
+  "global_settings": {
+    "timeout": 30000,
+    "retries": 2,
+    "cache_enabled": true,
+    "cache_ttl": 3600,
+    "monitoring": {
+      "enabled": true,
+      "log_tokens": true,
+      "log_costs": true,
+      "alert_threshold": "$10.00"
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 60,
+      "tokens_per_minute": 90000
+    }
+  },
+
+  "cost_tracking": {
+    "enabled": true,
+    "budget_per_sprint": "$15.00",
+    "warning_threshold": 80,
+    "export_format": "csv",
+    "export_path": "docs/cost-reports"
+  },
+
+  "team_settings": {
+    "team_size": 1,
+    "role": "solo-developer",
+    "sprint_length": "2-weeks",
+    "expected_tasks_per_sprint": 12
+  },
+
+  "notes": {
+    "optimization_strategy": "Balance cost and quality - use Haiku for routine tasks (70%), Sonnet for complex analysis (25%), Opus for architecture only (5%)",
+    "estimated_monthly_cost": "$30-40",
+    "cost_savings_vs_direct": "70% reduction compared to using Opus for everything",
+    "model_capabilities": {
+      "haiku": "Great for: code generation, simple debugging, documentation - Cost: $0.80/1M tokens",
+      "sonnet": "Great for: complex logic, code review, debugging - Cost: $3-4/1M tokens",
+      "opus": "Great for: architecture, planning, complex analysis - Cost: $15/1M tokens"
+    }
+  }
+}
