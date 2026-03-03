@@ -4,7 +4,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import Colors from '../theme/colors';
 
-export default function MoreMenuScreen() {
+interface MoreMenuScreenProps {
+  navigation: any;
+}
+
+export default function MoreMenuScreen({ navigation }: MoreMenuScreenProps) {
   const { user, signOut } = useAuth();
 
   const handleLogout = () => {
@@ -40,11 +44,16 @@ export default function MoreMenuScreen() {
       </View>
 
       <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Kommende Funktionen</Text>
-        <View style={styles.menuItem}>
-          <MaterialIcons name="shopping-cart" size={24} color={Colors.textLight} />
+        <Text style={styles.sectionTitle}>Funktionen</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('ShoppingDashboard')}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="shopping-cart" size={24} color={Colors.primary} />
           <Text style={styles.menuItemText}>Einkaufsliste</Text>
-        </View>
+          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
+        </TouchableOpacity>
         <View style={styles.menuItem}>
           <MaterialIcons name="map" size={24} color={Colors.textLight} />
           <Text style={styles.menuItemText}>Garten-Pläne</Text>
@@ -102,6 +111,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textLight,
     marginLeft: 15,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
   },
   logoutButton: {
     backgroundColor: Colors.error,

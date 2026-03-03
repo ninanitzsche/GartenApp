@@ -125,6 +125,32 @@ See `docs/architecture-gartenplaner-2026-03-02.md` for complete database schema.
 
 All tables have RLS policies to ensure users can only access their own data.
 
+## Seed Data - Garten2026
+
+Die App wird automatisch mit Garten-Daten aus Garten2026/Pflanzen_Inventar_und_Pflege.md vorausgefüllt.
+
+### Verfügbare Seed-Daten
+
+**Etablierte Pflanzen (7):**
+- Weinreben, Schnittlauch, Erdbeeren, Federnelke, Sonnenhut, Günsel, Vogelmiere
+
+**Geplante/Bestellte Pflanzen (50+):**
+- Kartoffeln: 5 Sorten (Innovator, Laura, Agria, Spunta, Cara)
+- Tomaten: 4 Sorten (Zuckertraube, Matina, Marmande, Tom Red)
+- Drei-Schwestern: Mais, Bohnen, Hokkaido Kürbis
+- Gemüse: Gurke, Kohlrabi, Zwiebeln, Porree, Salate
+- Kräuter: Basilikum, Thymian, Bärlauch, Petersilie
+- Bodendecker: Neuseeländer Spinat, Rotklee, Weißklee, Phacelia
+- Blumen: Blaukissen, Lavendel, Katzenminze, Wildblumenmischung, Rittersporn, Ringelblume, Sonnenblume
+
+### Manueller Import (Script)
+
+```bash
+ts-node scripts/seed-garden.ts
+```
+
+Synchronisiert alle Pflanzen mit Supabase (idempotent via upsert).
+
 ## Roadmap
 
 See `docs/sprint-plan-gartenplaner-2026-03-02.md` for detailed sprint plan.

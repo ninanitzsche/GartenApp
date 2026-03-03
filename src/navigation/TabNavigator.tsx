@@ -6,9 +6,10 @@ import Colors from '../theme/colors';
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
 import PlantsStackNavigator from './PlantsStackNavigator';
+import ShoppingStackNavigator from './ShoppingStackNavigator';
+import MoreMenuStackNavigator from './MoreMenuStackNavigator';
 import TaskListScreen from '../screens/TaskListScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
-import MoreMenuScreen from '../screens/MoreMenuScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -79,13 +80,27 @@ export default function TabNavigator() {
           ),
         }}
       />
-      
+
+      <Tab.Screen
+        name="Shopping"
+        component={ShoppingStackNavigator}
+        options={{
+          title: 'Einkaufsliste',
+          tabBarLabel: 'Einkaufen',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="shopping-cart" size={size} color={color} />
+          ),
+        }}
+      />
+
       <Tab.Screen
         name="More"
-        component={MoreMenuScreen}
+        component={MoreMenuStackNavigator}
         options={{
           title: 'Mehr',
           tabBarLabel: 'Mehr',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="menu" size={size} color={color} />
           ),

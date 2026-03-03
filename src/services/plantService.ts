@@ -7,34 +7,52 @@ import { Plant, PlantFormData } from '../types/plant';
 
 export interface PlantFilters {
   searchQuery?: string;
+  statuses?: string[];
   status?: string;
+  locations?: string[];
   location?: string;
   type?: string;
+  essbar?: boolean;
 }
 
 /**
  * Fetch all plants for current user with optional filters
+ * Supports multiple statuses and locations (OR within same type, AND between types)
  */
 export async function fetchPlants(filters?: PlantFilters): Promise<Plant[]> {
   let query = supabase
     .from('plants')
     .select('*');
 
-  // Apply filters if provided
+  // Apply search filter (substring match, case-insensitive)
   if (filters?.searchQuery) {
     query = query.or(`name.ilike.%${filters.searchQuery}%,latin_name.ilike.%${filters.searchQuery}%`);
   }
 
-  if (filters?.status) {
+  // Apply multiple statuses filter (OR logic)
+  if (filters?.statuses && filters.statuses.length > 0) {
+    query = query.in('status', filters.statuses);
+  } else if (filters?.status) {
+    // Fallback for single status
     query = query.eq('status', filters.status);
   }
 
-  if (filters?.location) {
+  // Apply multiple locations filter (OR logic)
+  if (filters?.locations && filters.locations.length > 0) {
+    query = query.in('location', filters.locations);
+  } else if (filters?.location) {
+    // Fallback for single location
     query = query.eq('location', filters.location);
   }
 
+  // Apply type filter
   if (filters?.type) {
     query = query.eq('type', filters.type);
+  }
+
+  // Apply essbar filter
+  if (filters?.essbar === true) {
+    query = query.eq('essbar', true);
   }
 
   query = query.order('created_at', { ascending: false });
