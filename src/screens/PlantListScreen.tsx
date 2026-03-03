@@ -18,6 +18,7 @@ import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { Plant, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { fetchPlants, getUniqueLocations, PlantFilters } from '../services/plantService';
+import EmptyState from '../components/EmptyState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
@@ -214,22 +215,24 @@ export default function PlantListScreen({ navigation }: Props) {
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <MaterialIcons name="eco" size={80} color={Colors.border} />
-      <Text style={styles.emptyTitle}>
-        {hasActiveFilters ? 'Keine Pflanzen gefunden' : 'Noch keine Pflanzen'}
-      </Text>
-      <Text style={styles.emptyText}>
-        {hasActiveFilters
-          ? 'Passen Sie Ihre Filter an, um weitere Pflanzen zu finden.'
-          : 'Fügen Sie Ihre erste Pflanze hinzu, um Ihr Garten-Inventar zu verwalten.'}
-      </Text>
-      <TouchableOpacity style={styles.emptyButton} onPress={handleAddPlant}>
-        <MaterialIcons name="add" size={24} color="#fff" />
-        <Text style={styles.emptyButtonText}>Pflanze hinzufügen</Text>
-      </TouchableOpacity>
-    </View>
+  const renderEmptyState = useCallback(
+    () => (
+      <EmptyState
+        icon="eco"
+        title={hasActiveFilters ? 'Keine Pflanzen gefunden' : 'Noch keine Pflanzen'}
+        message={
+          hasActiveFilters
+            ? 'Passen Sie Ihre Filter an, um weitere Pflanzen zu finden.'
+            : 'Fügen Sie Ihre erste Pflanze hinzu, um Ihr Garten-Inventar zu verwalten.'
+        }
+        action={{
+          label: 'Pflanze hinzufügen',
+          onPress: handleAddPlant,
+        }}
+        containerStyle={styles.emptyContainer}
+      />
+    ),
+    [handleAddPlant, hasActiveFilters]
   );
 
   if (loading) {

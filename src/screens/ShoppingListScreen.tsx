@@ -24,6 +24,7 @@ import {
   markAsNotPurchased,
   ShoppingItemFilters,
 } from '../services/shoppingService';
+import EmptyState from '../components/EmptyState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ShoppingList'>;
 
@@ -337,11 +338,16 @@ export default function ShoppingListScreen({ navigation }: Props) {
 
       {/* Items List */}
       {items.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <MaterialIcons name="shopping-cart" size={64} color={Colors.textDisabled} />
-          <Text style={styles.emptyText}>Keine Artikel vorhanden</Text>
-          <Text style={styles.emptySubText}>Fügen Sie einen Artikel hinzu, um zu beginnen</Text>
-        </View>
+        <EmptyState
+          icon="shopping-cart"
+          title="Einkaufsliste leer"
+          message="Fügen Sie einen Artikel hinzu, um zu beginnen"
+          action={{
+            label: 'Artikel hinzufügen',
+            onPress: handleAddItem,
+          }}
+          containerStyle={styles.emptyContainer}
+        />
       ) : (
         <FlatList
           data={items}

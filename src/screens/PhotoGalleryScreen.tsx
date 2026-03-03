@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { RootStackParamList } from '../types/navigation';
 import { Photo } from '../types/photo';
 import Colors from '../theme/colors';
 import { fetchPhotos, deletePhoto } from '../services/photoService';
+import EmptyState from '../components/EmptyState';
 
 type PhotoGalleryRouteProp = RouteProp<RootStackParamList, 'PhotoGallery'>;
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoGallery'>;
@@ -118,44 +119,65 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
     });
   };
 
-  const renderPhotoItem = ({ item }: { item: PhotoGridItem }) => (
-    <TouchableOpacity
-      style={styles.photoItem}
-      onPress={() => handlePhotoPress(item)}
-      activeOpacity={0.7}
-    >
-      <Image
-        source={{ uri: item.file_url || item.photo_url }}
-        style={styles.photoImage}
-        resizeMode="cover"
-      />
-      <View style={styles.photoOverlay}>
-        <MaterialIcons name="zoom-in" size={32} color="#fff" />
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyStateContainer}>
-      <MaterialIcons name="image-not-supported" size={64} color={Colors.textLight} />
-      <Text style={styles.emptyStateTitle}>Keine Fotos vorhanden</Text>
-      <Text style={styles.emptyStateSubtitle}>
-        Fügen Sie ein Foto hinzu, um diese Pflanze zu dokumentieren
-      </Text>
+  // Memoized photo item renderer for better performance
+  const renderPhotoItem = useCallback(
+    ({ item }: { item: PhotoGridItem }) => (
       <TouchableOpacity
-        style={styles.addPhotoButtonSmall}
-        onPress={handleUploadPhoto}
+        style={styles.photoItem}
+        onPress={() => handlePhotoPress(item)}
+        activeOpacity={0.7}
       >
-        <MaterialIcons name="add-a-photo" size={20} color={Colors.primary} />
-        <Text style={styles.addPhotoButtonText}>Foto hochladen</Text>
+        <Image
+          source={{ uri: item.file_url || item.photo_url }}
+          style={styles.photoImage}
+          resizeMode="cover"
+          defaultSource={require('../../assets/placeholder.png')}
+        />
+        <View style={styles.photoOverlay}>
+          <MaterialIcons name="zoom-in" size={32} color="#fff" />
+        </View>
       </TouchableOpacity>
-    </View>
+    ),
+    []
   );
 
-  const gridData: PhotoGridItem[] = photos.map((photo) => ({
-    ...photo,
-    key: photo.id,
-  }));
+  const renderEmptyState = useCallback(
+    () => (
+      <EmptyState
+        icon="image-not-supported"
+        title="Keine Fotos vorhanden"
+        message="Fügen Sie ein Foto hinzu, um diese Pflanze zu dokumentieren"
+        action={{
+          label: 'Foto hochladen',
+          onPress: handleUploadPhoto,
+        }}
+        containerStyle={styles.emptyStateContainer}
+      />
+    ),
+    [handleUploadPhoto]
+  );
+
+  const gridData: PhotoGridItem[] = useMemo(
+    () =>
+      photos.map((photo) => ({
+        ...photo,
+        key: photo.id,
+      })),
+    [photos]
+  );
+
+  // Item height calculation for 2-column grid (170 = item size + margin + gap)
+  const PHOTO_ITEM_HEIGHT = 170;
+  const PHOTO_GRID_ROW_HEIGHT = PHOTO_ITEM_HEIGHT + 8; // item height + margin
+
+  const getItemLayout = useCallback(
+    (_data: PhotoGridItem[] | null, index: number) => ({
+      length: PHOTO_GRID_ROW_HEIGHT,
+      offset: Math.floor(index / 2) * PHOTO_GRID_ROW_HEIGHT,
+      index,
+    }),
+    []
+  );
 
   if (loading && photos.length === 0) {
     return (
@@ -201,6 +223,11 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
               colors={[Colors.primary]}
             />
           }
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={4}
+          getItemLayout={getItemLayout}
         />
       ) : (
         <FlatList

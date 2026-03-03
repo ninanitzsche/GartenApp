@@ -8,10 +8,14 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  ProgressBarAndroid,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { uploadPhoto } from '../services/photoService';
@@ -22,6 +26,62 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
   const { plantId } = route.params;
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadCancelled, setUploadCancelled] = useState(false);
+
+  /**
+   * Compress image to reduce file size by ~70%
+   * Target: 1200x1200 max, 70% quality JPEG
+   */
+  const compressImage = async (uri: string): Promise<string> => {
+    try {
+      const result = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 1200, height: 1200 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      return result.uri;
+    } catch (error: any) {
+      console.error('Error compressing image:', error);
+      throw new Error(`Bildkomprimierung fehlgeschlagen: ${error.message}`);
+    }
+  };
+
+  /**
+   * Store upload state in AsyncStorage for resume capability
+   */
+  const storeUploadState = async (
+    plantId: string,
+    imageUri: string,
+    fileName: string
+  ) => {
+    try {
+      const uploadState = {
+        plantId,
+        imageUri,
+        fileName,
+        timestamp: Date.now(),
+        status: 'in_progress',
+      };
+      await AsyncStorage.setItem(
+        `upload_${fileName}`,
+        JSON.stringify(uploadState)
+      );
+    } catch (error) {
+      console.error('Error storing upload state:', error);
+    }
+  };
+
+  /**
+   * Clear upload state after successful upload
+   */
+  const clearUploadState = async (fileName: string) => {
+    try {
+      await AsyncStorage.removeItem(`upload_${fileName}`);
+    } catch (error) {
+      console.error('Error clearing upload state:', error);
+    }
+  };
 
   const requestPermissions = async () => {
     const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
@@ -84,9 +144,31 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
     }
 
     setLoading(true);
+    setUploadProgress(0);
+    setUploadCancelled(false);
+    const fileName = `photo-${Date.now()}.jpg`;
+
     try {
-      const fileName = `photo-${Date.now()}.jpg`;
-      await uploadPhoto(plantId, selectedImage, fileName);
+      // Step 1: Compress image (simulated progress 0-30%)
+      setUploadProgress(10);
+      const compressedUri = await compressImage(selectedImage);
+      setUploadProgress(30);
+
+      if (uploadCancelled) return;
+
+      // Step 2: Store upload state for resume capability
+      await storeUploadState(plantId, compressedUri, fileName);
+
+      // Step 3: Upload image (30-90%)
+      setUploadProgress(40);
+      await uploadPhoto(plantId, compressedUri, fileName);
+      setUploadProgress(90);
+
+      if (uploadCancelled) return;
+
+      // Step 4: Clear upload state (90-100%)
+      await clearUploadState(fileName);
+      setUploadProgress(100);
 
       Alert.alert('Erfolg', 'Foto erfolgreich hochgeladen!', [
         {
@@ -95,10 +177,31 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
         },
       ]);
     } catch (error: any) {
-      Alert.alert('Fehler', `Foto konnte nicht hochgeladen werden: ${error.message}`);
+      // Store for retry/resume on error
+      if (!uploadCancelled) {
+        Alert.alert(
+          'Fehler',
+          `Foto konnte nicht hochgeladen werden: ${error.message}`,
+          [
+            { text: 'Abbrechen', style: 'cancel' },
+            {
+              text: 'Erneut versuchen',
+              onPress: handleUpload,
+            },
+          ]
+        );
+      }
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
+  };
+
+  const handleCancelUpload = () => {
+    setUploadCancelled(true);
+    setLoading(false);
+    setUploadProgress(0);
+    Alert.alert('Abgebrochen', 'Upload wurde abgebrochen. Sie können es später erneut versuchen.');
   };
 
   return (
@@ -155,28 +258,62 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
         </View>
       </ScrollView>
 
-      {/* Upload Button */}
+      {/* Upload Button & Progress */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.uploadButton,
-            (!selectedImage || loading) && styles.uploadButtonDisabled,
-          ]}
-          onPress={handleUpload}
-          disabled={!selectedImage || loading}
-        >
-          {loading ? (
-            <>
-              <ActivityIndicator color="#fff" size="small" />
-              <Text style={styles.uploadButtonText}>Wird hochgeladen...</Text>
-            </>
-          ) : (
-            <>
-              <MaterialIcons name="cloud-upload" size={24} color="#fff" />
-              <Text style={styles.uploadButtonText}>Hochladen</Text>
-            </>
+        {loading && uploadProgress > 0 && (
+          <View style={styles.progressContainer}>
+            {Platform.OS === 'android' ? (
+              <ProgressBarAndroid
+                styleAttr="Horizontal"
+                indeterminate={false}
+                progress={uploadProgress / 100}
+                color={Colors.primary}
+              />
+            ) : (
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${uploadProgress}%` },
+                  ]}
+                />
+              </View>
+            )}
+            <Text style={styles.progressText}>{uploadProgress}%</Text>
+          </View>
+        )}
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[
+              styles.uploadButton,
+              (!selectedImage || loading) && styles.uploadButtonDisabled,
+            ]}
+            onPress={handleUpload}
+            disabled={!selectedImage || loading}
+          >
+            {loading ? (
+              <>
+                <ActivityIndicator color="#fff" size="small" />
+                <Text style={styles.uploadButtonText}>Wird hochgeladen...</Text>
+              </>
+            ) : (
+              <>
+                <MaterialIcons name="cloud-upload" size={24} color="#fff" />
+                <Text style={styles.uploadButtonText}>Hochladen</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {loading && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancelUpload}
+            >
+              <MaterialIcons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -282,7 +419,31 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+  },
+  progressText: {
+    fontSize: 12,
+    color: Colors.textLight,
+    textAlign: 'right',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   uploadButton: {
+    flex: 1,
     backgroundColor: Colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 24,
@@ -300,5 +461,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: Colors.error,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

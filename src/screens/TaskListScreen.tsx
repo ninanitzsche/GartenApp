@@ -1,17 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { TabParamList } from '../types/navigation';
+import Colors from '../theme/colors';
+import EmptyState from '../components/EmptyState';
 
 type Props = BottomTabScreenProps<TabParamList, 'Tasks'>;
 
 export default function TaskListScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>✅ Aufgaben</Text>
-      <Text style={styles.placeholder}>
-        Hier kommt die Aufgabenliste
-      </Text>
+      <EmptyState
+        icon="assignment"
+        title="Keine Aufgaben"
+        message="Planen Sie Ihre Gartenpflege mit Aufgaben"
+        containerStyle={styles.emptyContainer}
+      />
     </View>
   );
 }
@@ -19,18 +23,12 @@ export default function TaskListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafa',
-    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  placeholder: {
-    fontSize: 14,
-    color: '#999',
+    alignItems: 'center',
+    paddingHorizontal: 32,
   },
 });

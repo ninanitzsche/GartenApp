@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -66,24 +66,43 @@ export default function PlantDetailScreen() {
     }
   };
 
-  const handleEdit = () => {
+  // Memoized callbacks to prevent unnecessary re-renders
+  const handleEdit = useCallback(() => {
     navigation.navigate('EditPlant', { plantId });
-  };
+  }, [navigation, plantId]);
 
-  const handleViewGallery = () => {
+  const handleViewGallery = useCallback(() => {
     navigation.navigate('PhotoGallery', { plantId });
-  };
+  }, [navigation, plantId]);
 
-  const formatDate = (dateString?: string) => {
+  const handleUploadPhoto = useCallback(() => {
+    navigation.navigate('PhotoUpload', { plantId });
+  }, [navigation, plantId]);
+
+  // Memoized format functions
+  const formatDate = useCallback((dateString?: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('de-DE');
-  };
+  }, []);
 
-  const formatBoolean = (value?: boolean) => {
+  const formatBoolean = useCallback((value?: boolean) => {
     if (value === undefined || value === null) return '-';
     return value ? 'Ja' : 'Nein';
-  };
+  }, []);
+
+  // Memoized status color function
+  const getStatusColor = useCallback((status: string): string => {
+    const statusColors: { [key: string]: string } = {
+      etabliert: Colors.success,
+      geplant: Colors.info,
+      bestellt: Colors.warning,
+      gepflanzt: Colors.primaryLight,
+      geerntet: Colors.accent,
+      entfernt: Colors.textLight,
+    };
+    return statusColors[status.toLowerCase()] || Colors.textLight;
+  }, []);
 
   if (loading) {
     return (
@@ -235,7 +254,7 @@ export default function PlantDetailScreen() {
               <Text style={styles.noPhotosText}>Noch keine Fotos hochgeladen</Text>
               <TouchableOpacity
                 style={styles.uploadPhotoButton}
-                onPress={() => navigation.navigate('PhotoUpload', { plantId })}
+                onPress={handleUploadPhoto}
               >
                 <MaterialIcons name="add-a-photo" size={18} color="#fff" />
                 <Text style={styles.uploadPhotoButtonText}>Foto hinzufügen</Text>
@@ -268,18 +287,6 @@ export default function PlantDetailScreen() {
     </View>
   );
 }
-
-const getStatusColor = (status: string): string => {
-  const statusColors: { [key: string]: string } = {
-    etabliert: Colors.success,
-    geplant: Colors.info,
-    bestellt: Colors.warning,
-    gepflanzt: Colors.primaryLight,
-    geerntet: Colors.accent,
-    entfernt: Colors.textLight,
-  };
-  return statusColors[status.toLowerCase()] || Colors.textLight;
-};
 
 const styles = StyleSheet.create({
   container: {
