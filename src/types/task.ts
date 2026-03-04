@@ -34,5 +34,13 @@ export interface PlantTask {
   plant_id: string;
 }
 
+// Sort options for task list
+export type TaskSortOption = 'priority' | 'created_at' | 'category' | 'title';
+
+export interface TaskSortPreference {
+  sortBy: TaskSortOption;
+  ascending: boolean;
+}
+
 // Import Plant type for plant_tasks
 import { Plant } from './plant';

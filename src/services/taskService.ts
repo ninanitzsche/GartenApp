@@ -425,3 +425,82 @@ export function getPriorityLabel(priority: string): string {
   };
   return labels[priority] || 'Unbekannt';
 }
+
+/**
+ * Get priority numeric value for sorting
+ */
+export function getPriorityValue(priority: string): number {
+  const values: Record<string, number> = {
+    'hoch': 3,
+    'mittel': 2,
+    'niedrig': 1,
+  };
+  return values[priority] || 0;
+}
+
+/**
+ * Get sort label for display
+ */
+export function getSortLabel(sortBy: string): string {
+  const labels: Record<string, string> = {
+    'priority': 'Nach Priorität',
+    'created_at': 'Nach Erstellungsdatum',
+    'category': 'Nach Kategorie',
+    'title': 'Nach Titel',
+  };
+  return labels[sortBy] || 'Sortierung';
+}
+
+/**
+ * Sort tasks based on selected option
+ */
+export function sortTasks(
+  tasks: TaskListItem[],
+  sortBy: string = 'priority'
+): TaskListItem[] {
+  const sorted = [...tasks];
+
+  switch (sortBy) {
+    case 'priority':
+      // Sort: high→medium→low priority, then by created_at
+      sorted.sort((a, b) => {
+        const aPriority = getPriorityValue(a.priority);
+        const bPriority = getPriorityValue(b.priority);
+        if (aPriority !== bPriority) {
+          return bPriority - aPriority; // Descending
+        }
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+      break;
+
+    case 'created_at':
+      // Sort: newest first
+      sorted.sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+      break;
+
+    case 'category':
+      // Sort: by category A-Z
+      sorted.sort((a, b) => a.category.localeCompare(b.category));
+      break;
+
+    case 'title':
+      // Sort: by title A-Z
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+
+    default:
+      // Default: priority sort
+      sorted.sort((a, b) => {
+        const aPriority = getPriorityValue(a.priority);
+        const bPriority = getPriorityValue(b.priority);
+        if (aPriority !== bPriority) {
+          return bPriority - aPriority;
+        }
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+  }
+
+  return sorted;
+}

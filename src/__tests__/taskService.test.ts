@@ -768,4 +768,155 @@ describe('taskService', () => {
       });
     });
   });
+
+  describe('Sorting utility functions', () => {
+    describe('getPriorityValue', () => {
+      it('should return correct numeric values for priorities', () => {
+        expect(taskService.getPriorityValue('hoch')).toBe(3);
+        expect(taskService.getPriorityValue('mittel')).toBe(2);
+        expect(taskService.getPriorityValue('niedrig')).toBe(1);
+      });
+
+      it('should return 0 for unknown priority', () => {
+        expect(taskService.getPriorityValue('unknown')).toBe(0);
+      });
+    });
+
+    describe('getSortLabel', () => {
+      it('should return correct German labels for sort options', () => {
+        expect(taskService.getSortLabel('priority')).toBe('Nach Priorität');
+        expect(taskService.getSortLabel('created_at')).toBe('Nach Erstellungsdatum');
+        expect(taskService.getSortLabel('category')).toBe('Nach Kategorie');
+        expect(taskService.getSortLabel('title')).toBe('Nach Titel');
+      });
+
+      it('should return default label for unknown sort option', () => {
+        expect(taskService.getSortLabel('unknown')).toBe('Sortierung');
+      });
+    });
+
+    describe('sortTasks', () => {
+      const createTaskListItem = (overrides?: any) => ({
+        ...mockTask(),
+        plant_names: [],
+        ...overrides,
+      });
+
+      describe('sort by priority (default)', () => {
+        it('should sort by priority descending (hoch → mittel → niedrig)', () => {
+          const tasks = [
+            createTaskListItem({ id: 'task-1', priority: 'niedrig', created_at: '2026-03-04T10:00:00Z' }),
+            createTaskListItem({ id: 'task-2', priority: 'hoch', created_at: '2026-03-04T11:00:00Z' }),
+            createTaskListItem({ id: 'task-3', priority: 'mittel', created_at: '2026-03-04T09:00:00Z' }),
+          ];
+
+          const sorted = taskService.sortTasks(tasks, 'priority');
+
+          expect(sorted[0].id).toBe('task-2'); // hoch
+          expect(sorted[1].id).toBe('task-3'); // mittel
+          expect(sorted[2].id).toBe('task-1'); // niedrig
+        });
+
+        it('should sort by created_at ascending when priorities are equal', () => {
+          const tasks = [
+            createTaskListItem({ id: 'task-1', priority: 'mittel', created_at: '2026-03-04T11:00:00Z' }),
+            createTaskListItem({ id: 'task-2', priority: 'mittel', created_at: '2026-03-04T09:00:00Z' }),
+            createTaskListItem({ id: 'task-3', priority: 'mittel', created_at: '2026-03-04T10:00:00Z' }),
+          ];
+
+          const sorted = taskService.sortTasks(tasks, 'priority');
+
+          expect(sorted[0].id).toBe('task-2'); // earliest
+          expect(sorted[1].id).toBe('task-3'); // middle
+          expect(sorted[2].id).toBe('task-1'); // latest
+        });
+      });
+
+      describe('sort by created_at', () => {
+        it('should sort by created_at descending (newest first)', () => {
+          const tasks = [
+            createTaskListItem({ id: 'task-1', created_at: '2026-03-04T09:00:00Z' }),
+            createTaskListItem({ id: 'task-2', created_at: '2026-03-04T11:00:00Z' }),
+            createTaskListItem({ id: 'task-3', created_at: '2026-03-04T10:00:00Z' }),
+          ];
+
+          const sorted = taskService.sortTasks(tasks, 'created_at');
+
+          expect(sorted[0].id).toBe('task-2'); // newest
+          expect(sorted[1].id).toBe('task-3'); // middle
+          expect(sorted[2].id).toBe('task-1'); // oldest
+        });
+      });
+
+      describe('sort by category', () => {
+        it('should sort alphabetically by category (A-Z)', () => {
+          const tasks = [
+            createTaskListItem({ id: 'task-1', category: 'Pflanzen' }),
+            createTaskListItem({ id: 'task-2', category: 'Aussaat' }),
+            createTaskListItem({ id: 'task-3', category: 'Gartenarbeiten' }),
+          ];
+
+          const sorted = taskService.sortTasks(tasks, 'category');
+
+          expect(sorted[0].category).toBe('Aussaat');
+          expect(sorted[1].category).toBe('Gartenarbeiten');
+          expect(sorted[2].category).toBe('Pflanzen');
+        });
+      });
+
+      describe('sort by title', () => {
+        it('should sort alphabetically by title (A-Z)', () => {
+          const tasks = [
+            createTaskListItem({ id: 'task-1', title: 'Zebra Task' }),
+            createTaskListItem({ id: 'task-2', title: 'Apple Task' }),
+            createTaskListItem({ id: 'task-3', title: 'Banana Task' }),
+          ];
+
+          const sorted = taskService.sortTasks(tasks, 'title');
+
+          expect(sorted[0].title).toBe('Apple Task');
+          expect(sorted[1].title).toBe('Banana Task');
+          expect(sorted[2].title).toBe('Zebra Task');
+        });
+      });
+
+      it('should return a new array without mutating the original', () => {
+        const originalTasks = [
+          createTaskListItem({ id: 'task-1', priority: 'niedrig' }),
+          createTaskListItem({ id: 'task-2', priority: 'hoch' }),
+        ];
+        const originalOrder = originalTasks.map(t => t.id);
+
+        const sorted = taskService.sortTasks(originalTasks, 'priority');
+
+        expect(originalTasks.map(t => t.id)).toEqual(originalOrder); // unchanged
+        expect(sorted[0].id).toBe('task-2'); // sorted differently
+      });
+
+      it('should handle empty task list', () => {
+        const sorted = taskService.sortTasks([], 'priority');
+        expect(sorted).toEqual([]);
+      });
+
+      it('should handle single task', () => {
+        const tasks = [createTaskListItem({ id: 'task-1' })];
+        const sorted = taskService.sortTasks(tasks, 'priority');
+        expect(sorted).toHaveLength(1);
+        expect(sorted[0].id).toBe('task-1');
+      });
+
+      it('should default to priority sort when sortBy is invalid', () => {
+        const tasks = [
+          createTaskListItem({ id: 'task-1', priority: 'niedrig' }),
+          createTaskListItem({ id: 'task-2', priority: 'hoch' }),
+        ];
+
+        const sorted = taskService.sortTasks(tasks, 'invalid-option');
+
+        // Should default to priority sort
+        expect(sorted[0].id).toBe('task-2'); // hoch
+        expect(sorted[1].id).toBe('task-1'); // niedrig
+      });
+    });
+  });
 });

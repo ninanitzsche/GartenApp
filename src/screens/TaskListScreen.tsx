@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
-import { fetchTasks, toggleTaskCompletion, getCategoryColor, getPriorityColor } from '../services/taskService';
+import { fetchTasks, toggleTaskCompletion, getCategoryColor, getPriorityColor, sortTasks, getSortLabel } from '../services/taskService';
 import EmptyState from '../components/EmptyState';
 import TaskListItem as TaskListItemComponent from '../components/TaskListItem';
 
@@ -22,14 +23,24 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TaskList'>;
 
 export default function TaskListScreen({ navigation }: Props) {
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
+  const [sortedTasks, setSortedTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>('priority');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Load tasks on mount
+  // Load tasks and sort preference on mount
   useEffect(() => {
     loadTasks();
+    loadSortPreference();
   }, []);
+
+  // Apply sorting when tasks or sortBy changes
+  useEffect(() => {
+    const sorted = sortTasks(tasks, sortBy);
+    setSortedTasks(sorted);
+  }, [tasks, sortBy]);
 
   // Listen for navigation events to reload tasks when coming back
   useEffect(() => {
@@ -62,6 +73,27 @@ export default function TaskListScreen({ navigation }: Props) {
       setRefreshing(false);
     }
   }, [loadTasks]);
+
+  const loadSortPreference = useCallback(async () => {
+    try {
+      const saved = await AsyncStorage.getItem('taskSortBy');
+      if (saved) {
+        setSortBy(saved);
+      }
+    } catch (error) {
+      // Silently fail - use default sort if load fails
+      console.warn('Failed to load sort preference:', error);
+    }
+  }, []);
+
+  const saveSortPreference = useCallback(async (sortOption: string) => {
+    try {
+      await AsyncStorage.setItem('taskSortBy', sortOption);
+    } catch (error) {
+      // Silently fail - preference still works in session
+      console.warn('Failed to save sort preference:', error);
+    }
+  }, []);
 
   const handleAddTask = () => {
     navigation.navigate('AddTask');
@@ -150,11 +182,58 @@ export default function TaskListScreen({ navigation }: Props) {
 
       {/* Task List */}
       <FlatList
-        data={tasks}
+        data={sortedTasks}
         renderItem={renderTaskItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
+        ListHeaderComponent={
+          <View style={styles.sortHeader}>
+            <TouchableOpacity
+              style={styles.sortButton}
+              onPress={() => setShowSortMenu(!showSortMenu)}
+            >
+              <MaterialIcons name="sort" size={20} color={Colors.primary} />
+              <Text style={styles.sortButtonText}>{getSortLabel(sortBy)}</Text>
+              <MaterialIcons
+                name={showSortMenu ? 'expand-less' : 'expand-more'}
+                size={20}
+                color={Colors.primary}
+              />
+            </TouchableOpacity>
+
+            {showSortMenu && (
+              <View style={styles.sortMenu}>
+                {['priority', 'created_at', 'category', 'title'].map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.sortOption,
+                      sortBy === option && styles.sortOptionActive,
+                    ]}
+                    onPress={() => {
+                      setSortBy(option);
+                      saveSortPreference(option);
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.sortOptionText,
+                        sortBy === option && styles.sortOptionTextActive,
+                      ]}
+                    >
+                      {getSortLabel(option)}
+                    </Text>
+                    {sortBy === option && (
+                      <MaterialIcons name="check" size={18} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -221,5 +300,54 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+  },
+  sortHeader: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  sortButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+    flex: 1,
+  },
+  sortMenu: {
+    marginTop: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  sortOptionActive: {
+    backgroundColor: '#f0f0f0',
+  },
+  sortOptionText: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  sortOptionTextActive: {
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });
