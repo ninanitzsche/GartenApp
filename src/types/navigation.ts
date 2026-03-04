@@ -33,10 +33,10 @@ export type RootStackParamList = {
   PhotoGallery: { plantId?: string };
   PhotoUpload: { plantId: string };
 
-  // Task Stack
-  TaskList: { plantId?: string };
-  AddTask: { plantId: string };
-  EditTask: { taskId: string };
+  // Task Stack (Sprint 6)
+  TaskList: undefined;
+  AddTask: { taskId?: string };
+  TaskDetail: { taskId: string };
 
   // More Menu
   MoreMenu: undefined;

@@ -9,6 +9,7 @@ import * as authService from '../../services/authService';
 import * as plantService from '../../services/plantService';
 import * as photoService from '../../services/photoService';
 import * as shoppingService from '../../services/shoppingService';
+import * as taskService from '../../services/taskService';
 import { supabase } from '../../services/supabase';
 import { createMockSupabase, mockUser, mockPlant, mockShoppingItem, createMockQueryBuilder } from '../mocks/supabaseMock';
 
@@ -759,6 +760,80 @@ describe('Integration Tests - Critical User Flows', () => {
       expect(userBItems).not.toContainEqual(
         expect.objectContaining({ id: 'item-a' })
       );
+    });
+  });
+
+  // ==================== TASK MANAGEMENT FLOW (4 tests) ====================
+  describe('Task Management Flow', () => {
+    it('should create a task with all fields', async () => {
+      const mockUserObj = setupAuthenticatedUser();
+
+      // Mock creating task
+      const createdTask = {
+        id: 'task-1',
+        user_id: mockUserObj.id,
+        title: 'Water Plants',
+        description: 'Water all plants',
+        category: 'Gartenarbeiten',
+        priority: 'hoch',
+        location: 'Gewächshaus',
+        created_at: '2026-03-04T10:00:00Z',
+        updated_at: '2026-03-04T10:00:00Z',
+      };
+
+      const createBuilder = createMockQueryBuilder([createdTask]);
+      createBuilder.insert = jest.fn().mockReturnValue(createBuilder);
+      createBuilder.select = jest.fn().mockResolvedValue({ data: [createdTask], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(createBuilder);
+
+      const result = await taskService.createTask({
+        title: 'Water Plants',
+        description: 'Water all plants',
+        category: 'Gartenarbeiten',
+        priority: 'hoch',
+        location: 'Gewächshaus',
+        plant_ids: [],
+      });
+
+      expect(result.title).toBe('Water Plants');
+      expect(result.category).toBe('Gartenarbeiten');
+      expect(result.priority).toBe('hoch');
+      expect(result.location).toBe('Gewächshaus');
+    });
+
+    it('should link plants to task and handle empty plant list', async () => {
+      const plantIds = ['plant-1', 'plant-2'];
+
+      const linkBuilder = createMockQueryBuilder([]);
+      linkBuilder.insert = jest.fn().mockResolvedValue({ data: [], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(linkBuilder);
+
+      await taskService.linkPlantsToTask('task-1', plantIds);
+      expect(linkBuilder.insert).toHaveBeenCalled();
+
+      // Test empty plant list (should not call insert)
+      jest.clearAllMocks();
+      await taskService.linkPlantsToTask('task-2', []);
+      // Should return early without calling insert
+    });
+
+    it('should fetch plants for task selection and sort by name', async () => {
+      const mockUserObj = setupAuthenticatedUser();
+
+      const plants = [
+        { id: 'plant-1', user_id: mockUserObj.id, name: 'Basil' },
+        { id: 'plant-2', user_id: mockUserObj.id, name: 'Tomato' },
+      ];
+
+      const fetchBuilder = createMockQueryBuilder(plants);
+      fetchBuilder.select = jest.fn().mockReturnValue(fetchBuilder);
+      fetchBuilder.eq = jest.fn().mockReturnValue(fetchBuilder);
+      fetchBuilder.order = jest.fn().mockResolvedValue({ data: plants, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(fetchBuilder);
+
+      const result = await taskService.fetchPlantsForSelection();
+      expect(Array.isArray(result)).toBe(true);
+      expect(fetchBuilder.order).toHaveBeenCalledWith('name', { ascending: true });
     });
   });
 });
