@@ -1,0 +1,653 @@
+{
+  "plants": [
+    {
+      "name": "Weinreben",
+      "latin_name": "Vitis vinifera",
+      "location": "Pergola",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": true,
+      "notes": "Winterhart, im November schneiden, rankend",
+      "tags": ["rankend", "winterhart", "obst"]
+    },
+    {
+      "name": "Schnittlauch",
+      "latin_name": "Allium schoenoprasum",
+      "location": "Beete",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": true,
+      "notes": "Immer wieder ernten, fördert Wachstum",
+      "tags": ["kräuter", "essbar", "mehrjährig"]
+    },
+    {
+      "name": "Erdbeeren",
+      "latin_name": "Fragaria",
+      "location": "Hochbeet",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": true,
+      "notes": "Alte Blätter im Frühjahr entfernen, Bodendecker, winterhart",
+      "tags": ["obst", "bodendecker", "mehrjährig"]
+    },
+    {
+      "name": "Federnelke Rosa",
+      "latin_name": "Dianthus plumarius",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": false,
+      "notes": "Bodendeckend, pflegeleicht, Austrieb sichtbar im Frühjahr",
+      "tags": ["blumen", "bodendecker", "mehrjährig"]
+    },
+    {
+      "name": "Sonnenhut",
+      "latin_name": "Echinacea",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": false,
+      "notes": "Winterhart, für Bienen, Blattrosette sichtbar",
+      "tags": ["blumen", "bienenfreundlich", "mehrjährig"]
+    },
+    {
+      "name": "Günsel",
+      "latin_name": "Ajuga reptans",
+      "location": "Beete",
+      "type": "mehrjährig",
+      "status": "etabliert",
+      "winterhart": true,
+      "essbar": true,
+      "notes": "Wintergrün, blaue Blüten (April-Juni), kriechend, bildet Teppiche, essbar!",
+      "tags": ["bodendecker", "essbar", "wichtig", "mehrjährig"]
+    },
+    {
+      "name": "Vogelmiere",
+      "latin_name": "Stellaria media",
+      "location": "Beete",
+      "type": "einjährig",
+      "status": "etabliert",
+      "winterhart": false,
+      "essbar": true,
+      "notes": "Selbstaussaat, aktiv, essbar",
+      "tags": ["essbar", "wildkraut", "einjährig"]
+    },
+    {
+      "name": "Kartoffel Innovator",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 10,
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-09-15",
+      "notes": "Reihe 1 Nord, mittelfrüh-spät, Pflanztiefe 10cm, 30-40cm Abstand",
+      "tags": ["gemüse", "kartoffel", "starkzehrer"]
+    },
+    {
+      "name": "Kartoffel Laura",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 20,
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-08-30",
+      "notes": "Reihe 2 (doppelte Reihe), mittelfrüh, Doppelreihe für mehr Ertrag",
+      "tags": ["gemüse", "kartoffel", "starkzehrer"]
+    },
+    {
+      "name": "Kartoffel Agria",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 10,
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-09-01",
+      "notes": "Reihe 3, mittelspät, vielseitig verwendbar",
+      "tags": ["gemüse", "kartoffel", "starkzehrer"]
+    },
+    {
+      "name": "Kartoffel Spunta",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 10,
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-09-05",
+      "notes": "Reihe 4, mittelfrüh, hoher Ertrag",
+      "tags": ["gemüse", "kartoffel", "starkzehrer"]
+    },
+    {
+      "name": "Kartoffel Cara",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 10,
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-09-20",
+      "notes": "Reihe 5 Süd, spät, besonders lagerfähig",
+      "tags": ["gemüse", "kartoffel", "starkzehrer"]
+    },
+    {
+      "name": "Mais",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 8,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-09-15",
+      "notes": "Quadrat-Formation (3x3) für Windbestäubung, 40x40cm Abstand, Hinterreihe",
+      "tags": ["gemüse", "starkzehrer", "mais"]
+    },
+    {
+      "name": "Tomate Zuckertraube",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-20",
+      "notes": "Kirsch-Tomate, süß, knackig, viele kleine Früchte",
+      "tags": ["gemüse", "tomate", "starkzehrer", "gewächshaus"]
+    },
+    {
+      "name": "Tomate Matina",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-20",
+      "notes": "Stabtomate, würzig, robust",
+      "tags": ["gemüse", "tomate", "starkzehrer", "gewächshaus"]
+    },
+    {
+      "name": "Tomate Marmande",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-20",
+      "notes": "Fleischtomate, groß, aromatisch",
+      "tags": ["gemüse", "tomate", "starkzehrer", "gewächshaus"]
+    },
+    {
+      "name": "Tomate Tom Red",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-20",
+      "notes": "Stabtomate, kräftig rot, hoher Ertrag",
+      "tags": ["gemüse", "tomate", "starkzehrer", "gewächshaus"]
+    },
+    {
+      "name": "Basilikum",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 5,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-10-01",
+      "notes": "Kräuter, regelmäßig ernten fördert Wachstum",
+      "tags": ["kräuter", "essbar", "basilikum", "gewächshaus"]
+    },
+    {
+      "name": "Neuseeländer Spinat",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-03-15",
+      "harvest_date": "2026-10-15",
+      "notes": "Lebender Mulch überall dazwischen, hält Feuchtigkeit, unterdrückt Unkraut",
+      "tags": ["gemüse", "spinat", "mulch", "essbar"]
+    },
+    {
+      "name": "Boschbohne Saxa",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 5,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-01",
+      "notes": "Zwischen Kartoffel-Reihen 1-2, Stickstoffsammler, 40cm Abstand",
+      "tags": ["gemüse", "bohnen", "stickstoffsammler"]
+    },
+    {
+      "name": "Sojabohne Dame Hanaé",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 4,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-09-01",
+      "notes": "Zwischen Kartoffel-Reihen 2-3, Stickstoffsammler, 50cm Abstand",
+      "tags": ["gemüse", "bohnen", "stickstoffsammler"]
+    },
+    {
+      "name": "Rotklee",
+      "location": "Hauptbeet",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "planted_date": "2026-04-15",
+      "harvest_date": null,
+      "notes": "Zwischen Kartoffel-Reihen 3-4, bleibt nach Ernte stehen (Überwinterung), Gründünger",
+      "tags": ["gründünger", "stickstoffsammler", "wildblumen"]
+    },
+    {
+      "name": "Phacelia",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "planted_date": "2026-04-15",
+      "harvest_date": "2026-07-01",
+      "notes": "Zwischen Kartoffel-Reihen 4-5, Bienenfreund, nach Blüte unterharken = Gründünger",
+      "tags": ["gründünger", "bienenfreundlich", "wildblumen"]
+    },
+    {
+      "name": "Wildblumenmischung",
+      "location": "Zaunseite",
+      "type": "einjährig",
+      "status": "bestellt",
+      "planted_date": "2026-03-15",
+      "harvest_date": null,
+      "notes": "Zaunseite überblühbar machen statt mähen, dick aufs gemähte Gras säen",
+      "tags": ["wildblumen", "zaunseite", "bodendecker"]
+    },
+    {
+      "name": "Blaukissen",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "quantity": 10,
+      "planted_date": "2026-09-01",
+      "harvest_date": null,
+      "notes": "Balkon-Kindergarten vorziehen (März), auspflanzen September, Bodendecker",
+      "tags": ["blumen", "bodendecker", "balkon-kindergarten"]
+    },
+    {
+      "name": "Lavendel",
+      "location": "Pergola",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "quantity": 2,
+      "planted_date": "2026-09-01",
+      "harvest_date": null,
+      "notes": "Balkon-Kindergarten, auspflanzen September, sonnige Seite Pergola, trockenresistent",
+      "tags": ["blumen", "kräuter", "balkon-kindergarten"]
+    },
+    {
+      "name": "Thymian",
+      "location": "Pergola",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "quantity": 6,
+      "planted_date": "2026-09-01",
+      "harvest_date": null,
+      "notes": "Balkon-Kindergarten, unter Pergola 25-30cm Abstand, kriechend, Bodendecker",
+      "tags": ["kräuter", "essbar", "bodendecker", "balkon-kindergarten"]
+    },
+    {
+      "name": "Katzenminze",
+      "location": "Pergola",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "quantity": 3,
+      "planted_date": "2026-09-01",
+      "harvest_date": null,
+      "notes": "Balkon-Kindergarten, unter Pergola 40-50cm Abstand, buschig, Nützlingsmagnet",
+      "tags": ["kräuter", "essbar", "balkon-kindergarten", "bienenfreundlich"]
+    },
+    {
+      "name": "Riesenzwiebel The Kelsae",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "quantity": 3,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-08-30",
+      "notes": "Vorderreihe, vorziehen März im Lichtregal, braucht viel Platz, 40cm Abstand",
+      "tags": ["gemüse", "zwiebel", "starkzehrer"]
+    },
+    {
+      "name": "Zwiebel Stuttgarter Riesen",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "quantity": 10,
+      "planted_date": "2026-05-01",
+      "harvest_date": "2026-08-15",
+      "notes": "Vorderreihe, Direktsaat Mai, 30cm Abstand",
+      "tags": ["gemüse", "zwiebel"]
+    },
+    {
+      "name": "Lauchzwiebel Red Toga",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "quantity": 8,
+      "planted_date": "2026-05-01",
+      "harvest_date": "2026-07-01",
+      "notes": "Vorderreihe, Direktsaat Mai, laufende Ernte",
+      "tags": ["gemüse", "lauchzwiebel"]
+    },
+    {
+      "name": "Kohlrabi",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "quantity": 4,
+      "planted_date": "2026-05-01",
+      "harvest_date": "2026-07-01",
+      "notes": "Vorderreihe Süd, schnelle Ernte (8-10 Wochen), danach Nachkultur möglich",
+      "tags": ["gemüse", "kohlrabi"]
+    },
+    {
+      "name": "Bärlauch",
+      "location": "Hochbeet",
+      "type": "mehrjährig",
+      "status": "bestellt",
+      "quantity": 5,
+      "planted_date": "2026-03-15",
+      "harvest_date": null,
+      "notes": "Aus Kühlschrank vorkeimen März, mehrjährig, wird nach Ernte beobachtet",
+      "tags": ["kräuter", "essbar", "mehrjährig"]
+    },
+    {
+      "name": "Petersilie",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 5,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-10-01",
+      "notes": "Kräuter, regelmäßig ernten fördert Wachstum",
+      "tags": ["kräuter", "essbar", "petersilie"]
+    },
+    {
+      "name": "Gurke",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 2,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-09-01",
+      "notes": "An Ranktürmen 150-180cm (nicht an Pergola!), stüzen und lenken",
+      "tags": ["gemüse", "gurke", "starkzehrer"]
+    },
+    {
+      "name": "Kürbis",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 2,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-09-20",
+      "notes": "Im Hauptbeet bei Drei Schwestern (Mais+Bohnen+Kürbis), nicht an Pergola!",
+      "tags": ["gemüse", "kürbis", "starkzehrer"]
+    },
+    {
+      "name": "Melone",
+      "location": "Gewächshaus",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "quantity": 2,
+      "planted_date": "2026-05-15",
+      "harvest_date": "2026-09-01",
+      "notes": "Hauptbeet oder Gewächshaus bei Kälte, warm halten nötig",
+      "tags": ["gemüse", "melone", "starkzehrer"]
+    },
+    {
+      "name": "Rittersporn",
+      "location": "Zaunseite",
+      "type": "einjährig",
+      "status": "bestellt",
+      "planted_date": "2026-05-01",
+      "harvest_date": null,
+      "notes": "Einjährige Blume, Direktsaat Mai",
+      "tags": ["blumen", "wildblumen"]
+    },
+    {
+      "name": "Ringelblume",
+      "location": "Zaunseite",
+      "type": "einjährig",
+      "status": "bestellt",
+      "essbar": true,
+      "planted_date": "2026-05-01",
+      "harvest_date": null,
+      "notes": "Einjährige Blume, essbar, Direktsaat Mai",
+      "tags": ["blumen", "wildblumen", "essbar"]
+    },
+    {
+      "name": "Sonnenblume",
+      "location": "Zaunseite",
+      "type": "einjährig",
+      "status": "bestellt",
+      "planted_date": "2026-05-01",
+      "harvest_date": null,
+      "notes": "Einjährige Blume, Direktsaat Mai, Bienenfreund",
+      "tags": ["blumen", "wildblumen", "bienenfreundlich"]
+    },
+    {
+      "name": "Blaue Glockenblume",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "geplant",
+      "winterhart": true,
+      "planted_date": null,
+      "notes": "Zu überprüfen bis Mai: Blattrosette + Blüten (Mai-Juli) oder Unkraut?",
+      "tags": ["blumen", "mehrjährig"]
+    },
+    {
+      "name": "Orangerote Habichtblume",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "geplant",
+      "winterhart": true,
+      "planted_date": null,
+      "notes": "Zu überprüfen bis Mai: Behaarte Rosette + Blüten (Mai-Aug) oder Unkraut?",
+      "tags": ["blumen", "mehrjährig"]
+    },
+    {
+      "name": "Taubnessel",
+      "location": "Hauptbeet",
+      "type": "einjährig",
+      "status": "vorhanden",
+      "essbar": false,
+      "planted_date": null,
+      "notes": "Februar: wächst aktuell im Hauptbeet, wird beobachtet",
+      "tags": ["wildkraut"]
+    },
+    {
+      "name": "Brombeere",
+      "location": "Zaunseite",
+      "type": "mehrjährig",
+      "status": "vorhanden",
+      "essbar": true,
+      "planted_date": null,
+      "notes": "Februar: beobachtet an der Zaunseite, wild wachsend",
+      "tags": ["obst", "wildwuchs", "mehrjährig"]
+    },
+    {
+      "name": "Knoblauch",
+      "location": "Hochbeet",
+      "type": "mehrjährig",
+      "status": "geplant",
+      "essbar": true,
+      "quantity": 15,
+      "planted_date": "2026-10-01",
+      "harvest_date": "2027-07-01",
+      "notes": "WICHTIG: Nicht in Bestellung, nachkaufen! Schachbrett-Muster mit Erdbeeren, vertreibt Schnecken",
+      "tags": ["gemüse", "knoblauch", "mehrjährig"]
+    }
+  ],
+  "photos": [
+    {
+      "filename": "gewaechshaus_2024_archiv.jpg",
+      "location": "Gewächshaus",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Gewächshaus 2024",
+      "linked_plants": []
+    },
+    {
+      "filename": "gewaechshaus_und_hauptbeet_2024_archiv.jpg",
+      "location": "Hauptbeet",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Gewächshaus und Hauptbeet 2024",
+      "linked_plants": []
+    },
+    {
+      "filename": "gewaechshaus_und_hauptbeet_erdbeeren_2024_archiv.jpeg",
+      "location": "Hauptbeet",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto mit Erdbeeren 2024",
+      "linked_plants": ["Erdbeeren"]
+    },
+    {
+      "filename": "hauptbeet_2024_archiv.jpg",
+      "location": "Hauptbeet",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Hauptbeet Übersicht 2024",
+      "linked_plants": []
+    },
+    {
+      "filename": "hauptbeet_2024_vogelmiere_archiv.jpg",
+      "location": "Hauptbeet",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Hauptbeet mit Vogelmiere 2024",
+      "linked_plants": ["Vogelmiere"]
+    },
+    {
+      "filename": "hochbeet_2024_archiv.jpg",
+      "location": "Hochbeet",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Hochbeet 2024",
+      "linked_plants": []
+    },
+    {
+      "filename": "pergola_wein_2024_archiv.jpg",
+      "location": "Pergola",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Pergola mit Weinreben 2024",
+      "linked_plants": ["Weinreben"]
+    },
+    {
+      "filename": "zaunseite_sonnenhut_pflaume_kirsche_apfel_johannisbeere_2024_archiv.jpg",
+      "location": "Zaunseite",
+      "date": "2024-03-01",
+      "notes": "Archiv-Foto Zaunseite mit Sonnenhut 2024",
+      "linked_plants": ["Sonnenhut"]
+    },
+    {
+      "filename": "Beet_Moos_ueberwachsen.jpg",
+      "location": "Beete",
+      "date": "2026-02-01",
+      "notes": "Februar: Beet mit Moos überwachsen",
+      "linked_plants": []
+    },
+    {
+      "filename": "Hauptbeet.jpg",
+      "location": "Hauptbeet",
+      "date": "2026-02-01",
+      "notes": "Februar: Hauptbeet Übersicht",
+      "linked_plants": []
+    },
+    {
+      "filename": "Hauptbeet_Taubnessel.jpg",
+      "location": "Hauptbeet",
+      "date": "2026-02-01",
+      "notes": "Februar: Taubnessel im Hauptbeet",
+      "linked_plants": ["Taubnessel"]
+    },
+    {
+      "filename": "Hauptbeet_Taubnessel_Vogelmiere.jpg",
+      "location": "Hauptbeet",
+      "date": "2026-02-01",
+      "notes": "Februar: Taubnessel und Vogelmiere im Hauptbeet",
+      "linked_plants": ["Taubnessel", "Vogelmiere"]
+    },
+    {
+      "filename": "Hauptbeet_Vogelmiere.jpg",
+      "location": "Hauptbeet",
+      "date": "2026-02-01",
+      "notes": "Februar: Vogelmiere im Hauptbeet",
+      "linked_plants": ["Vogelmiere"]
+    },
+    {
+      "filename": "Pergola_Weinreben.jpg",
+      "location": "Pergola",
+      "date": "2026-02-01",
+      "notes": "Februar: Pergola mit Weinreben",
+      "linked_plants": ["Weinreben"]
+    },
+    {
+      "filename": "Zaunseite_Blaue_Glockenblume.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Blaue Glockenblume an der Zaunseite",
+      "linked_plants": ["Blaue Glockenblume"]
+    },
+    {
+      "filename": "Zaunseite_Brombeere.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Brombeere an der Zaunseite",
+      "linked_plants": ["Brombeere"]
+    },
+    {
+      "filename": "Zaunseite_Federnelke_Rosa_Austrieb.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Federnelke Rosa Austrieb",
+      "linked_plants": ["Federnelke Rosa"]
+    },
+    {
+      "filename": "Zaunseite_Mulch_Sonnenhut_Baeume.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Zaunseite mit Mulch und Sonnenhut",
+      "linked_plants": ["Sonnenhut"]
+    },
+    {
+      "filename": "Zaunseite_Orangerote_Habichtblume.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Orangerote Habichtblume an der Zaunseite",
+      "linked_plants": ["Orangerote Habichtblume"]
+    },
+    {
+      "filename": "Zaunseite_Sonnenhut_Mulch_Zaun.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Zaunseite mit Sonnenhut und Mulch",
+      "linked_plants": ["Sonnenhut"]
+    },
+    {
+      "filename": "Zaunseite_UnbekanntePflanze.jpg",
+      "location": "Zaunseite",
+      "date": "2026-02-01",
+      "notes": "Februar: Unbekannte Pflanze an der Zaunseite",
+      "linked_plants": []
+    }
+  ]
+}

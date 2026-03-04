@@ -40,9 +40,15 @@ export default function ShoppingListScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('ShoppingList focused, loading items');
       loadItems();
     }, [])
   );
+
+  // Fallback: Also load on mount
+  useEffect(() => {
+    loadItems();
+  }, []);
 
   useEffect(() => {
     if (searchDebounceRef.current) {

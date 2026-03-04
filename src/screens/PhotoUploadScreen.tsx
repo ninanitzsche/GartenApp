@@ -23,7 +23,7 @@ import { uploadPhoto } from '../services/photoService';
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoUpload'>;
 
 export default function PhotoUploadScreen({ route, navigation }: Props) {
-  const { plantId } = route.params;
+  const { plantId } = route.params || {};
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -143,6 +143,11 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
       return;
     }
 
+    if (!plantId) {
+      Alert.alert('Fehler', 'Plant ID nicht gefunden. Bitte versuchen Sie es später erneut.');
+      return;
+    }
+
     setLoading(true);
     setUploadProgress(0);
     setUploadCancelled(false);
@@ -177,6 +182,7 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
         },
       ]);
     } catch (error: any) {
+      console.error('Upload error:', error);
       // Store for retry/resume on error
       if (!uploadCancelled) {
         Alert.alert(

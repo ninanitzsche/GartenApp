@@ -69,9 +69,8 @@ export default function AddShoppingItemScreen({ navigation }: Props) {
       });
 
       await createShoppingItem(cleanData);
-      Alert.alert('Erfolg', 'Artikel wurde hinzugefügt.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      // Directly go back instead of showing alert - triggers useFocusEffect on ShoppingList
+      navigation.goBack();
     } catch (error) {
       console.error('Error creating shopping item:', error);
       Alert.alert('Fehler', 'Artikel konnte nicht gespeichert werden.');

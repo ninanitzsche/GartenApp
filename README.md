@@ -1,6 +1,44 @@
 # Gartenplaner App 🌱
 
+**Last Updated:** 2026-03-04
+**Status:** Active (Production - Phase 1 Complete)
+**Audience:** All
+**Related Files:** [ONBOARDING.md](ONBOARDING.md), [QUICK-LINKS.md](QUICK-LINKS.md), [MVP-RELEASE-SUMMARY.md](MVP-RELEASE-SUMMARY.md)
+
+---
+
 Eine intelligente Mobile App für Familien, die ihren Garten nach Permakultur-Prinzipien bewirtschaften möchten.
+
+---
+
+## 📖 Dokumentation Finden
+
+**Wer bist du?**
+- **PO/Stakeholder:** → `BMAD-STATUS.md` (was ist fertig? ✅ alle 5 Sprints)
+- **Product Owner:** → `PO-GUIDE.md` (epics, stories, sprints)
+- **Neue Developer:** → `ONBOARDING.md` (1h to get started)
+- **Schnelle Navigation:** → `QUICK-LINKS.md` (find anything fast)
+- **Vollständige Struktur:** → `FILE-STRUCTURE.md` (complete overview)
+
+### 🎯 BMAD Workflow (Für Entwicklung)
+- **Product Brief** → `docs/bmad/bmad-01-product-brief.md` (Wofür bauen wir?)
+- **Requirements** → `docs/bmad/bmad-02-prd.md` (Was bauen wir? - 25 FRs, 7 Epics)
+- **Architecture** → `docs/bmad/bmad-03-architecture.md` (Wie bauen wir?)
+- **Sprint Plan** → `docs/sprint/sprint-plan-gartenplaner-mvp-*.md` (Aktueller Sprint)
+- **Navigation** → `docs/bmad-index.md` (Alle BMAD-Dateien erklärt)
+
+### 🛠️ Development Reference
+- 🏠 **Projekt Setup** → `README.md` (diese Datei)
+- 🤖 **Claude Config** → `CLAUDE.md` (Cost Control, Auto-Loading)
+- 🔧 **Code Patterns** → `memory/patterns.md` (70% Reuse!)
+- 💰 **Budget & Kosten** → `memory/costs.md`
+- 🐛 **Probleme & Lösungen** → `memory/troubleshooting.md`
+- 📊 **Sprint Metriken** → `memory/sprints.md`
+- 🛡️ **Database** → `docs/database/database-guide.md`
+- 🧪 **Testing** → `docs/testing/TESTING-GUIDE.md` (automatisiert) + `docs/testing/TESTING-CHECKLIST.md` (manuell)
+- 📁 **Navigation** → `docs/FILE-STRUCTURE.md` (Struktur-Übersicht)
+
+---
 
 ## Features
 
@@ -109,7 +147,7 @@ eas build --platform ios
 
 ### Supabase Schema
 
-See `docs/architecture-gartenplaner-2026-03-02.md` for complete database schema.
+See `docs/bmad-03-architecture.md` for complete database schema.
 
 **Tables:**
 - `plants` - Pflanzen-Inventar
@@ -153,12 +191,12 @@ Synchronisiert alle Pflanzen mit Supabase (idempotent via upsert).
 
 ## Roadmap
 
-See `docs/sprint-plan-gartenplaner-2026-03-02.md` for detailed sprint plan.
+See `docs/sprint-plan-gartenplaner-mvp-2026-03-02.md` for detailed sprint plan.
 
-**Current Sprint:** Sprint 1 (Mar 3-17, 2026)
-- ✅ STORY-000: Development Environment Setup
-- ⏳ STORY-INF-001: Database Schema & RLS Setup
-- ⏳ STORY-034: App Navigation & Layout
+**Status:** ✅ MVP Phase Complete (Sprints 1-5, 56.5 points delivered)
+- ✅ Sprint 1-5: All Phase 1 features complete
+- ⏳ Sprint 6: Phase 2 planning (AI features)
+- See `MVP-RELEASE-SUMMARY.md` for details
 
 **Target MVP Completion:** Ende Juli 2026
 

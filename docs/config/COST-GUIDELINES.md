@@ -1,8 +1,9 @@
 # Cost Management Guidelines - Gartenplaner App
 
-**Status:** Active Cost Control Mode
-**Purpose:** Enforce low-cost practices before starting any sprint/task
-**Created:** 2026-03-03
+**Last Updated:** 2026-03-04
+**Status:** Active
+**Audience:** All
+**Related Files:** [CLAUDE.md](CLAUDE.md), [../../MEMORY.md](../../MEMORY.md), [../../docs/reference/BMAD-STATUS.md](../reference/BMAD-STATUS.md)
 
 ---
 

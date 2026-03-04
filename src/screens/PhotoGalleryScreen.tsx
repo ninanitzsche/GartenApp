@@ -17,96 +17,139 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { Photo } from '../types/photo';
 import Colors from '../theme/colors';
-import { fetchPhotos, deletePhoto } from '../services/photoService';
+import { fetchAllPhotos, fetchPhotos as fetchPhotosForPlant, deletePhoto, PhotoFilters } from '../services/photoService';
 import EmptyState from '../components/EmptyState';
+import PhotoFilterModal from '../components/PhotoFilterModal';
 
-type PhotoGalleryRouteProp = RouteProp<RootStackParamList, 'PhotoGallery'>;
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoGallery'>;
+type PhotoGalleryRouteProp = RouteProp<RootStackParamList, 'PhotoGallery'>;
 
 interface PhotoGridItem extends Photo {
   key: string;
 }
 
-export default function PhotoGalleryScreen({ navigation }: Props) {
-  const route = useRoute<PhotoGalleryRouteProp>();
-  const { plantId } = route.params;
+const PHOTO_BATCH_SIZE = 50;
 
+export default function PhotoGalleryScreen({ navigation }: Props) {
+  // Get route params
+  const route = useRoute<PhotoGalleryRouteProp>();
+  const { plantId } = route.params || {};
+  const isPlantSpecific = !!plantId;
+
+  // State
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
+  // Filters & Pagination
+  const [currentFilters, setCurrentFilters] = useState<PhotoFilters>({});
+  const [paginationOffset, setPaginationOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Load initial photos on mount
   useEffect(() => {
-    if (plantId) {
-      loadPhotos();
-    }
-  }, [plantId]);
+    loadPhotos();
+  }, [currentFilters, plantId]); // Reload when filters or plantId changes
 
-  const loadPhotos = async () => {
-    if (!plantId) return;
-
+  const loadPhotos = useCallback(async (isRefresh = false) => {
     try {
-      setLoading(true);
-      const photoList = await fetchPhotos(plantId);
-      setPhotos(photoList);
+      if (isRefresh) {
+        setRefreshing(true);
+        setPaginationOffset(0);
+      } else {
+        setLoading(true);
+      }
+
+      let newPhotos: Photo[];
+
+      if (isPlantSpecific && plantId) {
+        // Plant-specific mode: show only photos for this plant
+        newPhotos = await fetchPhotosForPlant(plantId);
+      } else {
+        // Gallery mode: show all user photos with filters and pagination
+        newPhotos = await fetchAllPhotos(currentFilters, {
+          offset: 0,
+          limit: PHOTO_BATCH_SIZE,
+        });
+      }
+
+      setPhotos(newPhotos);
+      setHasMore(newPhotos.length >= PHOTO_BATCH_SIZE);
     } catch (error: any) {
       Alert.alert('Fehler', `Fotos konnten nicht geladen werden: ${error.message}`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await loadPhotos();
-    } catch (error: any) {
-      Alert.alert('Fehler', `Fotos konnten nicht aktualisiert werden: ${error.message}`);
-    } finally {
       setRefreshing(false);
     }
-  };
+  }, [currentFilters, plantId, isPlantSpecific]);
+
+  const onRefresh = useCallback(async () => {
+    await loadPhotos(true);
+  }, [loadPhotos]);
+
+  const loadMorePhotos = useCallback(async () => {
+    // Don't paginate in plant-specific mode
+    if (isPlantSpecific || isLoadingMore || !hasMore) return;
+
+    try {
+      setIsLoadingMore(true);
+      const nextOffset = paginationOffset + PHOTO_BATCH_SIZE;
+
+      const morePhotos = await fetchAllPhotos(currentFilters, {
+        offset: nextOffset,
+        limit: PHOTO_BATCH_SIZE,
+      });
+
+      if (morePhotos.length === 0) {
+        setHasMore(false);
+      } else {
+        setPhotos([...photos, ...morePhotos]);
+        setPaginationOffset(nextOffset);
+        setHasMore(morePhotos.length >= PHOTO_BATCH_SIZE);
+      }
+    } catch (error: any) {
+      console.error('Error loading more photos:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [photos, paginationOffset, currentFilters, isLoadingMore, hasMore, isPlantSpecific]);
 
   const handlePhotoPress = (photo: Photo) => {
     setSelectedPhoto(photo);
     setModalVisible(true);
   };
 
-  const handleDeletePhoto = () => {
+  const handleDeletePhoto = async () => {
     if (!selectedPhoto) return;
 
-    Alert.alert(
-      'Foto löschen?',
-      'Dieses Foto wird permanent gelöscht.',
-      [
-        {
-          text: 'Abbrechen',
-          style: 'cancel',
+    Alert.alert('Foto löschen', 'Dieses Foto wird permanent gelöscht. Fortfahren?', [
+      { text: 'Abbrechen', style: 'cancel' },
+      {
+        text: 'Löschen',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deletePhoto(selectedPhoto.id, selectedPhoto.file_url);
+            setModalVisible(false);
+            setSelectedPhoto(null);
+            await loadPhotos(true); // Reload gallery
+            Alert.alert('Erfolg', 'Foto wurde gelöscht');
+          } catch (error: any) {
+            Alert.alert('Fehler', `${error.message}`);
+          }
         },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePhoto(selectedPhoto.id, selectedPhoto.photo_url);
-              setModalVisible(false);
-              setSelectedPhoto(null);
-              await loadPhotos();
-              Alert.alert('Erfolg', 'Foto wurde gelöscht.');
-            } catch (error: any) {
-              Alert.alert('Fehler', `Foto konnte nicht gelöscht werden: ${error.message}`);
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
-  const handleUploadPhoto = () => {
-    if (plantId) {
-      navigation.navigate('PhotoUpload', { plantId });
-    }
+  const handleApplyFilters = (filters: PhotoFilters) => {
+    setCurrentFilters(filters);
+    setFilterModalVisible(false);
+    setPaginationOffset(0);
   };
 
   const formatDate = (dateString?: string) => {
@@ -119,7 +162,13 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
     });
   };
 
-  // Memoized photo item renderer for better performance
+  // Determine active filter count for badge
+  const activeFilterCount =
+    (currentFilters.locations?.length || 0) +
+    (currentFilters.plantIds?.length || 0) +
+    (currentFilters.dateRange ? 1 : 0);
+
+  // Memoized photo item renderer
   const renderPhotoItem = useCallback(
     ({ item }: { item: PhotoGridItem }) => (
       <TouchableOpacity
@@ -128,10 +177,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: item.file_url || item.photo_url }}
+          source={{ uri: item.photo_url || item.file_url }}
           style={styles.photoImage}
           resizeMode="cover"
-          defaultSource={require('../../assets/placeholder.png')}
         />
         <View style={styles.photoOverlay}>
           <MaterialIcons name="zoom-in" size={32} color="#fff" />
@@ -146,16 +194,21 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
       <EmptyState
         icon="image-not-supported"
         title="Keine Fotos vorhanden"
-        message="Fügen Sie ein Foto hinzu, um diese Pflanze zu dokumentieren"
-        action={{
-          label: 'Foto hochladen',
-          onPress: handleUploadPhoto,
-        }}
+        message={isPlantSpecific ? "Diese Pflanze hat noch keine Fotos" : "Sie haben noch keine Fotos in Ihrer Galerie"}
         containerStyle={styles.emptyStateContainer}
       />
     ),
-    [handleUploadPhoto]
+    [isPlantSpecific]
   );
+
+  const renderFooter = useCallback(() => {
+    if (!hasMore || photos.length === 0) return null;
+    return isLoadingMore ? (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={Colors.primary} />
+      </View>
+    ) : null;
+  }, [isLoadingMore, hasMore, photos.length]);
 
   const gridData: PhotoGridItem[] = useMemo(
     () =>
@@ -166,9 +219,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
     [photos]
   );
 
-  // Item height calculation for 2-column grid (170 = item size + margin + gap)
+  // Item height calculation for 2-column grid
   const PHOTO_ITEM_HEIGHT = 170;
-  const PHOTO_GRID_ROW_HEIGHT = PHOTO_ITEM_HEIGHT + 8; // item height + margin
+  const PHOTO_GRID_ROW_HEIGHT = PHOTO_ITEM_HEIGHT + 8;
 
   const getItemLayout = useCallback(
     (_data: PhotoGridItem[] | null, index: number) => ({
@@ -196,17 +249,24 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
           <Text style={styles.headerTitle}>Fotos</Text>
           <Text style={styles.headerSubtitle}>{photos.length} Foto(s)</Text>
         </View>
-        {photos.length > 0 && (
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={handleUploadPhoto}
-          >
-            <MaterialIcons name="add-a-photo" size={24} color={Colors.primary} />
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerButtons}>
+          {photos.length > 0 && !isPlantSpecific && (
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <MaterialIcons name="tune" size={24} color={Colors.primary} />
+              {activeFilterCount > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {/* Gallery Grid */}
+      {/* Gallery Grid or Empty State */}
       {photos.length > 0 ? (
         <FlatList
           data={gridData}
@@ -228,6 +288,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
           updateCellsBatchingPeriod={50}
           initialNumToRender={4}
           getItemLayout={getItemLayout}
+          onEndReached={loadMorePhotos}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
       ) : (
         <FlatList
@@ -244,6 +307,14 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
           }
         />
       )}
+
+      {/* Filter Modal */}
+      <PhotoFilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        onApply={handleApplyFilters}
+        currentFilters={currentFilters}
+      />
 
       {/* Full-size Photo Modal */}
       <Modal
@@ -273,7 +344,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
             {/* Full Image */}
             {selectedPhoto && (
               <Image
-                source={{ uri: selectedPhoto.file_url || selectedPhoto.photo_url }}
+                source={{ uri: selectedPhoto.photo_url || selectedPhoto.file_url }}
                 style={styles.fullImage}
                 resizeMode="contain"
               />
@@ -283,9 +354,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
             {selectedPhoto && (
               <View style={styles.photoInfoContainer}>
                 <View>
-                  <Text style={styles.photoDate}>
-                    {formatDate(selectedPhoto.created_at)}
-                  </Text>
+                  <Text style={styles.photoDate}>{formatDate(selectedPhoto.created_at)}</Text>
                   {selectedPhoto.notes && (
                     <Text style={styles.photoNotes}>{selectedPhoto.notes}</Text>
                   )}
@@ -341,13 +410,34 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginTop: 4,
   },
-  uploadButton: {
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  filterButton: {
+    position: 'relative',
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   gridContent: {
     paddingHorizontal: 8,
@@ -387,34 +477,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  emptyStateSubtitle: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  addPhotoButtonSmall: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primaryLight,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 20,
+  loadingFooter: {
+    paddingVertical: 16,
     alignItems: 'center',
-    gap: 8,
-  },
-  addPhotoButtonText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
   },
   modalContainer: {
     flex: 1,
