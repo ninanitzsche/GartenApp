@@ -3,7 +3,7 @@
 **Functional Requirements Status Dashboard**
 **Datum:** 2026-03-04
 **Quelle:** bmad-02-prd.md
-**Status Update:** After Sprint 5
+**Status Update:** After Sprint 6 (Epic 5 & 6 Validation)
 
 ---
 
@@ -73,6 +73,7 @@ Alle 25 Functional Requirements aus bmad-02-prd.md mit Completion Status, Story 
 | **FR-025** | Success-Dashboard | Should | ✅ Complete | STORY-040 | Sprint 5 | [x] Metrics visualization, progress tracking |
 
 **Epic Status:** ✅ **COMPLETE** - All 4 requirements implemented (Sprint 5)
+**Sprint 6 Validation:** ✅ **VALIDATED** - All features working in production
 
 ---
 
@@ -85,6 +86,7 @@ Alle 25 Functional Requirements aus bmad-02-prd.md mit Completion Status, Story 
 | **FR-020** | Wissens-Datenbank aufbauen | Should | ✅ Complete | STORY-041 | Sprint 3-5 | [x] Manual photo annotations build KB, progressive |
 
 **Epic Status:** ✅ **COMPLETE** - All 3 requirements implemented (Sprint 1, 3, 5)
+**Sprint 6 Validation:** ✅ **VALIDATED** - Photo links to plants working perfectly
 
 ---
 
@@ -179,7 +181,17 @@ Code Quality:
 
 ---
 
-**Last Updated:** 2026-03-04 (After Sprint 5)
-**Next Update:** Sprint 6 completion (planned May 2026)
+**Last Updated:** 2026-03-04 (After Sprint 6 - Epic 5 & 6 Validation)
+**Status:** 22/22 Phase 1 FRs COMPLETE + VALIDATED
+
+## 🎉 Sprint 6 Achievements
+
+✅ **EPIC-005 Validated:** Success tracking, time tracking, harvest logging, metrics dashboard all working
+✅ **EPIC-006 Validated:** Photo-to-plant linking with clickable navigation implemented
+✅ **TODOs Imported:** 58 tasks from Garten2026 with automatic plant linking
+✅ **Photo Links:** Plant photos now display correctly with Supabase public URLs
+✅ **Cross-Navigation:** Click plant names in tasks to jump to plant detail
+
+**Next Update:** Phase 2 (AI Features) planned for Sprint 7+
 
 **See also:** `BMAD-STATUS.md` for complete project overview
