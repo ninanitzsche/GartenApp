@@ -395,8 +395,11 @@ export function getPublicPhotoUrl(storagePath: string): string {
  * Transform photo data with public URLs
  */
 export function enrichPhotoWithUrl(photo: Photo): Photo {
+  // Use existing photo_url if available, otherwise generate from file_url
+  const photo_url = photo.photo_url || (photo.file_url ? getPublicPhotoUrl(photo.file_url) : undefined);
+
   return {
     ...photo,
-    photo_url: photo.file_url ? getPublicPhotoUrl(photo.file_url) : undefined,
+    photo_url,
   };
 }
