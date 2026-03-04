@@ -9,7 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import PlantsStackNavigator from './PlantsStackNavigator';
 import ShoppingStackNavigator from './ShoppingStackNavigator';
 import MoreMenuStackNavigator from './MoreMenuStackNavigator';
-import TaskListScreen from '../screens/TaskListScreen';
+import TaskStackNavigator from './TaskStackNavigator';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -60,10 +60,11 @@ export default function TabNavigator() {
 
       <Tab.Screen
         name="Tasks"
-        component={TaskListScreen}
+        component={TaskStackNavigator}
         options={{
           title: 'Aufgaben',
           tabBarLabel: 'Aufgaben',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="checklist" size={size} color={color} />
           ),

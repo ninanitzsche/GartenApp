@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
@@ -17,7 +16,7 @@ import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
 import { fetchTasks, toggleTaskCompletion, getCategoryColor, getPriorityColor, sortTasks, getSortLabel } from '../services/taskService';
 import EmptyState from '../components/EmptyState';
-import TaskListItem as TaskListItemComponent from '../components/TaskListItem';
+import TaskListItemComp from '../components/TaskListItem';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskList'>;
 
@@ -30,10 +29,9 @@ export default function TaskListScreen({ navigation }: Props) {
   const [sortBy, setSortBy] = useState<string>('priority');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Load tasks and sort preference on mount
+  // Load tasks on mount
   useEffect(() => {
     loadTasks();
-    loadSortPreference();
   }, []);
 
   // Apply sorting when tasks or sortBy changes
@@ -74,27 +72,6 @@ export default function TaskListScreen({ navigation }: Props) {
     }
   }, [loadTasks]);
 
-  const loadSortPreference = useCallback(async () => {
-    try {
-      const saved = await AsyncStorage.getItem('taskSortBy');
-      if (saved) {
-        setSortBy(saved);
-      }
-    } catch (error) {
-      // Silently fail - use default sort if load fails
-      console.warn('Failed to load sort preference:', error);
-    }
-  }, []);
-
-  const saveSortPreference = useCallback(async (sortOption: string) => {
-    try {
-      await AsyncStorage.setItem('taskSortBy', sortOption);
-    } catch (error) {
-      // Silently fail - preference still works in session
-      console.warn('Failed to save sort preference:', error);
-    }
-  }, []);
-
   const handleAddTask = () => {
     navigation.navigate('AddTask');
   };
@@ -125,7 +102,7 @@ export default function TaskListScreen({ navigation }: Props) {
 
   const renderTaskItem = useCallback(
     ({ item }: { item: TaskListItem }) => (
-      <TaskListItemComponent
+      <TaskListItemComp
         task={item}
         onPress={() => handleTaskPress(item)}
         onToggleCompletion={handleToggleCompletion}
@@ -213,7 +190,6 @@ export default function TaskListScreen({ navigation }: Props) {
                     ]}
                     onPress={() => {
                       setSortBy(option);
-                      saveSortPreference(option);
                       setShowSortMenu(false);
                     }}
                   >

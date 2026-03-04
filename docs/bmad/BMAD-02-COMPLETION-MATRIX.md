@@ -17,11 +17,11 @@ Alle 25 Functional Requirements aus bmad-02-prd.md mit Completion Status, Story 
 
 ### EPIC-001: Plant Inventory Management
 
-| FR | Title | Priority | Status | Story | Sprint | Acceptance Criteria |
-|---|---|---|---|---|---|---|
-| **FR-001** | Pflanzen anlegen & verwalten | Must | ✅ Complete | STORY-001 | Sprint 1 | [x] All fields work, CRUD complete, photos linkable |
-| **FR-002** | Pflanzen filtern & suchen | Should | ✅ Complete | STORY-002 | Sprint 2 | [x] All filters work, multi-select, partial search |
-| **FR-003** | Bestehenden Garten vorausfüllen | Must | ✅ Complete | STORY-003 | Sprint 1 | [x] 7+ established + 50+ planned plants seeded |
+| FR         | Title                           | Priority | Status     | Story     | Sprint   | Acceptance Criteria                                 |
+| ---------- | ------------------------------- | -------- | ---------- | --------- | -------- | --------------------------------------------------- |
+| **FR-001** | Pflanzen anlegen & verwalten    | Must     | ✅ Complete | STORY-001 | Sprint 1 | [x] All fields work, CRUD complete, photos linkable |
+| **FR-002** | Pflanzen filtern & suchen       | Should   | ✅ Complete | STORY-002 | Sprint 2 | [x] All filters work, multi-select, partial search  |
+| **FR-003** | Bestehenden Garten vorausfüllen | Must     | ✅ Complete | STORY-003 | Sprint 1 | [x] 7+ established + 50+ planned plants seeded      |
 
 **Epic Status:** ✅ **COMPLETE** - All 3 requirements implemented (Sprint 1-2)
 
@@ -29,12 +29,12 @@ Alle 25 Functional Requirements aus bmad-02-prd.md mit Completion Status, Story 
 
 ### EPIC-002: Task Management
 
-| FR | Title | Priority | Status | Story | Sprint | Acceptance Criteria |
-|---|---|---|---|---|---|---|
-| **FR-004** | Aufgaben manuell erstellen | Must | ✅ Complete | STORY-004 | Sprint 3 | [x] CRUD, categories, priorities, plant linking |
-| **FR-005** | Aufgaben abhaken & Status-Tracking | Must | ✅ Complete | STORY-004 | Sprint 3 | [x] Checkbox, auto-timestamp, filtering, undo |
-| **FR-006** | Saisonbasierte Aufgaben-Vorschläge | Should | ✅ Complete | STORY-004 | Sprint 3 | [x] Monthly suggestions, plant-aware, accept/reject |
-| **FR-008** | Wiederholende Aufgaben | Should | ✅ Complete | STORY-004 | Sprint 3 | [x] Recurrence patterns, flexible scheduling |
+| FR         | Title                              | Priority | Status     | Story     | Sprint   | Acceptance Criteria                                 |
+| ---------- | ---------------------------------- | -------- | ---------- | --------- | -------- | --------------------------------------------------- |
+| **FR-004** | Aufgaben manuell erstellen         | Must     | ✅ Complete | STORY-004 | Sprint 3 | [x] CRUD, categories, priorities, plant linking     |
+| **FR-005** | Aufgaben abhaken & Status-Tracking | Must     | ✅ Complete | STORY-004 | Sprint 3 | [x] Checkbox, auto-timestamp, filtering, undo       |
+| **FR-006** | Saisonbasierte Aufgaben-Vorschläge | Should   | ✅ Complete | STORY-004 | Sprint 3 | [x] Monthly suggestions, plant-aware, accept/reject |
+| **FR-008** | Wiederholende Aufgaben             | Should   | ✅ Complete | STORY-004 | Sprint 3 | [x] Recurrence patterns, flexible scheduling        |
 
 **Epic Status:** ✅ **COMPLETE** - All 4 requirements implemented (Sprint 3)
 

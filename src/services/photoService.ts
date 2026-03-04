@@ -69,7 +69,7 @@ export async function fetchPhoto(id: string): Promise<Photo | null> {
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? enrichPhotoWithUrl(data) : null;
   } catch (error: any) {
     throw new Error(`Error fetching photo: ${error.message}`);
   }

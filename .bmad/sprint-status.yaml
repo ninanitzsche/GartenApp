@@ -29,8 +29,8 @@ sprints:
     end_date: "2026-03-18"
     capacity_points: 12
     committed_points: 12
-    completed_points: 10
-    status: "in_progress"
+    completed_points: 12
+    status: "completed"
     goal: "Enable task management and make photos discoverable through filterable gallery"
 
     stories:
@@ -81,12 +81,14 @@ sprints:
         epic: "EPIC-002"
         points: 2
         priority: "SHOULD_HAVE"
-        status: "not_started"
-        assigned_to: null
+        status: "completed"
+        assigned_to: "Claude"
         created_at: "2026-03-04"
-        started_at: null
-        completed_at: null
+        started_at: "2026-03-04"
+        completed_at: "2026-03-04T18:30:00Z"
         acceptance_criteria_count: 4
+        actual_points: 2
+        implementation_notes: "Full task sorting with 4 options (priority, created_at, category, title). Auto-sort by priority (high→medium→low) + created_at ASC. AsyncStorage persistence for sort preference. Sort UI in TaskListScreen header with dropdown menu. 14 unit tests added, all 54 tests passing. Committed: feat(task): implement STORY-009"
 
 # Velocity Tracking
 velocity:
@@ -126,8 +128,8 @@ dates:
 # Cumulative Metrics
 cumulative:
   total_sprints: 6
-  total_stories_completed: 17
-  total_points_completed: 54.5
+  total_stories_completed: 18
+  total_points_completed: 56.5
   average_velocity: 10.7
   total_test_coverage: "85%"
   code_quality_score: 9/10
