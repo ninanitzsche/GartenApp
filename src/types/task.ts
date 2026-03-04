@@ -12,6 +12,7 @@ export interface Task {
   location?: string;
   created_at: string;
   updated_at?: string;
+  completed_at?: string | null;
   linked_plants?: Plant[];
 }
 

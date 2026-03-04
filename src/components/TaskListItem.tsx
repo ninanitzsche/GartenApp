@@ -13,11 +13,20 @@ import { getCategoryColor, getPriorityColor } from '../services/taskService';
 interface Props {
   task: Task;
   onPress: () => void;
+  onToggleCompletion?: (taskId: string) => Promise<void>;
+  isCompletionLoading?: boolean;
 }
 
-export default function TaskListItem({ task, onPress }: Props) {
+export default function TaskListItem({ task, onPress, onToggleCompletion, isCompletionLoading }: Props) {
   const priorityColor = getPriorityColor(task.priority);
   const categoryColor = getCategoryColor(task.category);
+  const isCompleted = !!task.completed_at;
+
+  const handleToggleCompletion = () => {
+    if (onToggleCompletion) {
+      onToggleCompletion(task.id);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -29,10 +38,23 @@ export default function TaskListItem({ task, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, isCompleted && styles.containerCompleted]}
       onPress={onPress}
       activeOpacity={0.7}
     >
+      {/* Completion checkbox */}
+      <TouchableOpacity
+        style={styles.completionButton}
+        onPress={handleToggleCompletion}
+        disabled={isCompletionLoading}
+      >
+        <View style={[styles.checkbox, isCompleted && styles.checkboxChecked]}>
+          {isCompleted && (
+            <MaterialIcons name="check" size={16} color="#fff" />
+          )}
+        </View>
+      </TouchableOpacity>
+
       {/* Priority color bar */}
       <View style={[styles.priorityBar, { backgroundColor: priorityColor }]} />
 
@@ -40,7 +62,10 @@ export default function TaskListItem({ task, onPress }: Props) {
       <View style={styles.content}>
         {/* Title and date row */}
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text
+            style={[styles.title, isCompleted && styles.titleCompleted]}
+            numberOfLines={1}
+          >
             {task.title}
           </Text>
           <Text style={styles.date}>{formatDate(task.created_at)}</Text>
@@ -87,6 +112,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  containerCompleted: {
+    opacity: 0.7,
+    backgroundColor: '#f5f5f5',
+  },
+  completionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   priorityBar: {
     width: 4,
     height: '100%',
@@ -107,6 +155,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
     flex: 1,
+  },
+  titleCompleted: {
+    color: Colors.textLight,
+    textDecorationLine: 'line-through',
   },
   date: {
     fontSize: 12,

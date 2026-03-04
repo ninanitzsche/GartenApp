@@ -15,7 +15,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
-import { fetchTask, deleteTask, getCategoryColor, getPriorityColor } from '../services/taskService';
+import { fetchTask, deleteTask, toggleTaskCompletion, getCategoryColor, getPriorityColor } from '../services/taskService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskDetail'>;
 type RouteProps = RouteProp<RootStackParamList, 'TaskDetail'>;
@@ -27,6 +27,7 @@ export default function TaskDetailScreen({ navigation }: Props) {
   const [task, setTask] = useState<TaskListItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [completingTask, setCompletingTask] = useState(false);
 
   // Load task on mount
   useEffect(() => {
@@ -53,6 +54,31 @@ export default function TaskDetailScreen({ navigation }: Props) {
 
   const handleEdit = () => {
     navigation.navigate('AddTask', { taskId });
+  };
+
+  const handleToggleCompletion = async () => {
+    if (!task) return;
+
+    try {
+      setCompletingTask(true);
+      await toggleTaskCompletion(task.id);
+
+      // Update local state
+      setTask({
+        ...task,
+        completed_at: task.completed_at ? null : new Date().toISOString(),
+      });
+
+      // Show feedback
+      const message = task.completed_at
+        ? 'Aufgabe wieder geöffnet'
+        : 'Aufgabe als erledigt markiert';
+      Alert.alert('Erfolg', message);
+    } catch (error: any) {
+      Alert.alert('Fehler', `${error.message}`);
+    } finally {
+      setCompletingTask(false);
+    }
   };
 
   const handleDelete = () => {
@@ -134,8 +160,18 @@ export default function TaskDetailScreen({ navigation }: Props) {
         {/* Priority Bar */}
         <View style={[styles.priorityBar, { backgroundColor: priorityColor }]} />
 
-        {/* Title */}
-        <Text style={styles.title}>{task.title}</Text>
+        {/* Title with Completion Status */}
+        <View style={styles.titleSection}>
+          <Text style={[styles.title, task.completed_at && styles.titleCompleted]}>
+            {task.title}
+          </Text>
+          {task.completed_at && (
+            <View style={styles.completedBadge}>
+              <MaterialIcons name="check-circle" size={16} color="#4CAF50" />
+              <Text style={styles.completedBadgeText}>Erledigt</Text>
+            </View>
+          )}
+        </View>
 
         {/* Meta Info */}
         <View style={styles.metaSection}>
@@ -205,9 +241,39 @@ export default function TaskDetailScreen({ navigation }: Props) {
       {/* Footer Buttons */}
       <View style={styles.footer}>
         <TouchableOpacity
+          style={[
+            styles.button,
+            task.completed_at ? styles.reopenButton : styles.completeButton,
+          ]}
+          onPress={handleToggleCompletion}
+          disabled={deleting || completingTask}
+        >
+          {completingTask ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <>
+              <MaterialIcons
+                name={task.completed_at ? 'refresh' : 'check-circle'}
+                size={20}
+                color={task.completed_at ? Colors.primary : '#fff'}
+              />
+              <Text
+                style={
+                  task.completed_at
+                    ? styles.reopenButtonText
+                    : styles.completeButtonText
+                }
+              >
+                {task.completed_at ? 'Wieder öffnen' : 'Erledigt'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.button, styles.editButton]}
           onPress={handleEdit}
-          disabled={deleting}
+          disabled={deleting || completingTask}
         >
           <MaterialIcons name="edit" size={20} color={Colors.primary} />
           <Text style={styles.editButtonText}>Bearbeiten</Text>
@@ -216,7 +282,7 @@ export default function TaskDetailScreen({ navigation }: Props) {
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
           onPress={handleDelete}
-          disabled={deleting}
+          disabled={deleting || completingTask}
         >
           {deleting ? (
             <ActivityIndicator size="small" color={Colors.error} />
@@ -267,13 +333,37 @@ const styles = StyleSheet.create({
   priorityBar: {
     height: 4,
   },
+  titleSection: {
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 16,
+    flex: 1,
+  },
+  titleCompleted: {
+    color: Colors.textLight,
+    textDecorationLine: 'line-through',
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  completedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4CAF50',
   },
   metaSection: {
     marginHorizontal: 16,
@@ -372,7 +462,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: 20,
@@ -389,6 +479,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
     borderWidth: 1,
+  },
+  completeButton: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  completeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  reopenButton: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+  },
+  reopenButtonText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   editButton: {
     backgroundColor: Colors.primaryLight,

@@ -619,6 +619,116 @@ describe('taskService', () => {
     });
   });
 
+  describe('toggleTaskCompletion', () => {
+    it('should mark incomplete task as complete', async () => {
+      const mockBuilder = createMockQueryBuilder([
+        { id: 'task-1', completed_at: null },
+      ]);
+      mockBuilder.single = jest
+        .fn()
+        .mockResolvedValue({ data: { id: 'task-1', completed_at: null }, error: null });
+      mockBuilder.update = jest.fn().mockReturnValue(mockBuilder);
+
+      const updateBuilder = createMockQueryBuilder([
+        { id: 'task-1', completed_at: '2026-03-04T16:00:00Z' },
+      ]);
+      updateBuilder.update = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.eq = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.select = jest
+        .fn()
+        .mockResolvedValue({
+          data: [{ id: 'task-1', completed_at: '2026-03-04T16:00:00Z' }],
+          error: null,
+        });
+
+      let callCount = 0;
+      (supabase.from as jest.Mock).mockImplementation((table) => {
+        callCount++;
+        if (callCount === 1) return mockBuilder;
+        return updateBuilder;
+      });
+
+      const result = await taskService.toggleTaskCompletion('task-1');
+
+      expect(result.completed_at).toBeDefined();
+    });
+
+    it('should mark complete task as incomplete', async () => {
+      const mockBuilder = createMockQueryBuilder([
+        { id: 'task-1', completed_at: '2026-03-04T15:00:00Z' },
+      ]);
+      mockBuilder.single = jest.fn().mockResolvedValue({
+        data: { id: 'task-1', completed_at: '2026-03-04T15:00:00Z' },
+        error: null,
+      });
+      mockBuilder.update = jest.fn().mockReturnValue(mockBuilder);
+
+      const updateBuilder = createMockQueryBuilder([
+        { id: 'task-1', completed_at: null },
+      ]);
+      updateBuilder.update = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.eq = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.select = jest
+        .fn()
+        .mockResolvedValue({ data: [{ id: 'task-1', completed_at: null }], error: null });
+
+      let callCount = 0;
+      (supabase.from as jest.Mock).mockImplementation((table) => {
+        callCount++;
+        if (callCount === 1) return mockBuilder;
+        return updateBuilder;
+      });
+
+      const result = await taskService.toggleTaskCompletion('task-1');
+
+      expect(result.completed_at).toBeNull();
+    });
+  });
+
+  describe('markTaskComplete', () => {
+    it('should mark task as complete with timestamp', async () => {
+      const completedTask = {
+        id: 'task-1',
+        completed_at: new Date().toISOString(),
+      };
+
+      const mockBuilder = createMockQueryBuilder([completedTask]);
+      mockBuilder.update = jest.fn().mockReturnValue(mockBuilder);
+      mockBuilder.eq = jest.fn().mockReturnValue(mockBuilder);
+      mockBuilder.select = jest
+        .fn()
+        .mockResolvedValue({ data: [completedTask], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(mockBuilder);
+
+      const result = await taskService.markTaskComplete('task-1');
+
+      expect(result.completed_at).toBeDefined();
+      expect(mockBuilder.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('markTaskIncomplete', () => {
+    it('should mark task as incomplete (null completed_at)', async () => {
+      const incompleteTask = {
+        id: 'task-1',
+        completed_at: null,
+      };
+
+      const mockBuilder = createMockQueryBuilder([incompleteTask]);
+      mockBuilder.update = jest.fn().mockReturnValue(mockBuilder);
+      mockBuilder.eq = jest.fn().mockReturnValue(mockBuilder);
+      mockBuilder.select = jest
+        .fn()
+        .mockResolvedValue({ data: [incompleteTask], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(mockBuilder);
+
+      const result = await taskService.markTaskIncomplete('task-1');
+
+      expect(result.completed_at).toBeNull();
+      expect(mockBuilder.update).toHaveBeenCalled();
+    });
+  });
+
   describe('Color utility functions', () => {
     describe('getCategoryColor', () => {
       it('should return correct color for each category', () => {

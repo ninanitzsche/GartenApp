@@ -835,5 +835,43 @@ describe('Integration Tests - Critical User Flows', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(fetchBuilder.order).toHaveBeenCalledWith('name', { ascending: true });
     });
+
+    it('should toggle task completion status', async () => {
+      const mockUserObj = setupAuthenticatedUser();
+
+      // First call: fetch task (returns incomplete)
+      const incompleteTask = {
+        id: 'task-1',
+        user_id: mockUserObj.id,
+        title: 'Test Task',
+        completed_at: null,
+      };
+
+      const fetchBuilder = createMockQueryBuilder([incompleteTask]);
+      fetchBuilder.single = jest
+        .fn()
+        .mockResolvedValue({ data: incompleteTask, error: null });
+      fetchBuilder.select = jest.fn().mockReturnValue(fetchBuilder);
+
+      // Second call: update task (mark complete)
+      const completedTask = { ...incompleteTask, completed_at: '2026-03-04T16:00:00Z' };
+      const updateBuilder = createMockQueryBuilder([completedTask]);
+      updateBuilder.update = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.eq = jest.fn().mockReturnValue(updateBuilder);
+      updateBuilder.select = jest
+        .fn()
+        .mockResolvedValue({ data: [completedTask], error: null });
+
+      let callCount = 0;
+      (supabase.from as jest.Mock).mockImplementation((table) => {
+        callCount++;
+        if (callCount === 1) return fetchBuilder;
+        return updateBuilder;
+      });
+
+      const result = await taskService.toggleTaskCompletion('task-1');
+
+      expect(result.completed_at).toBeDefined();
+    });
   });
 });

@@ -288,6 +288,103 @@ async function enrichTaskWithPlantNames(task: Task): Promise<TaskListItem> {
 }
 
 /**
+ * Toggle task completion status
+ */
+export async function toggleTaskCompletion(taskId: string): Promise<Task> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    // Fetch current task to check completion status
+    const { data: currentTask, error: fetchError } = await supabase
+      .from('tasks')
+      .select('completed_at')
+      .eq('id', taskId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!currentTask) throw new Error('Task not found');
+
+    // Toggle: if completed, mark incomplete (null), else mark complete (now)
+    const newCompletedAt = currentTask.completed_at === null
+      ? new Date().toISOString()
+      : null;
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({
+        completed_at: newCompletedAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', taskId)
+      .eq('user_id', user.id)
+      .select();
+
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to update task');
+
+    return data[0] as Task;
+  } catch (error: any) {
+    throw new Error(`Error toggling task completion: ${error.message}`);
+  }
+}
+
+/**
+ * Mark task as complete
+ */
+export async function markTaskComplete(taskId: string): Promise<Task> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', taskId)
+      .eq('user_id', user.id)
+      .select();
+
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to complete task');
+
+    return data[0] as Task;
+  } catch (error: any) {
+    throw new Error(`Error completing task: ${error.message}`);
+  }
+}
+
+/**
+ * Mark task as incomplete
+ */
+export async function markTaskIncomplete(taskId: string): Promise<Task> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({
+        completed_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', taskId)
+      .eq('user_id', user.id)
+      .select();
+
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to reopen task');
+
+    return data[0] as Task;
+  } catch (error: any) {
+    throw new Error(`Error reopening task: ${error.message}`);
+  }
+}
+
+/**
  * Get category color
  */
 export function getCategoryColor(category: string): string {

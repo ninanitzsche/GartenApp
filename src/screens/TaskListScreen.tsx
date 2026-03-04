@@ -14,7 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
-import { fetchTasks, getCategoryColor, getPriorityColor } from '../services/taskService';
+import { fetchTasks, toggleTaskCompletion, getCategoryColor, getPriorityColor } from '../services/taskService';
 import EmptyState from '../components/EmptyState';
 import TaskListItem as TaskListItemComponent from '../components/TaskListItem';
 
@@ -24,6 +24,7 @@ export default function TaskListScreen({ navigation }: Props) {
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
 
   // Load tasks on mount
   useEffect(() => {
@@ -70,14 +71,36 @@ export default function TaskListScreen({ navigation }: Props) {
     navigation.navigate('TaskDetail', { taskId: task.id });
   };
 
+  const handleToggleCompletion = useCallback(async (taskId: string) => {
+    try {
+      setCompletingTaskId(taskId);
+      await toggleTaskCompletion(taskId);
+
+      // Update task in list
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId
+            ? { ...task, completed_at: task.completed_at ? null : new Date().toISOString() }
+            : task
+        )
+      );
+    } catch (error: any) {
+      Alert.alert('Fehler', `Aufgabe konnte nicht aktualisiert werden: ${error.message}`);
+    } finally {
+      setCompletingTaskId(null);
+    }
+  }, []);
+
   const renderTaskItem = useCallback(
     ({ item }: { item: TaskListItem }) => (
       <TaskListItemComponent
         task={item}
         onPress={() => handleTaskPress(item)}
+        onToggleCompletion={handleToggleCompletion}
+        isCompletionLoading={completingTaskId === item.id}
       />
     ),
-    []
+    [handleToggleCompletion, completingTaskId]
   );
 
   const renderEmptyState = useCallback(
