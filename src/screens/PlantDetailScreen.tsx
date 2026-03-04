@@ -14,6 +14,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../services/supabase';
 import { fetchPlant } from '../services/plantService';
+import { enrichPhotoWithUrl } from '../services/photoService';
 import { Plant } from '../types/plant';
 import { Photo, PhotoPlant } from '../types/photo';
 import { RootStackParamList } from '../types/navigation';
@@ -54,7 +55,8 @@ export default function PlantDetailScreen() {
       } else if (photoData) {
         const photoList = photoData
           .map((pp: any) => pp.photos)
-          .filter((p: Photo | null) => p !== null) as Photo[];
+          .filter((p: Photo | null) => p !== null)
+          .map((p: Photo) => enrichPhotoWithUrl(p)) as Photo[];
         setPhotos(photoList);
       }
     } catch (error: any) {
