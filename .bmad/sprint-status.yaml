@@ -39,12 +39,14 @@ sprints:
         epic: "EPIC-003"
         points: 3
         priority: "MUST_HAVE"
-        status: "not_started"
-        assigned_to: null
+        status: "completed"
+        assigned_to: "Claude"
         created_at: "2026-03-04"
-        started_at: null
-        completed_at: null
+        started_at: "2026-03-04"
+        completed_at: "2026-03-04T14:30:00Z"
         acceptance_criteria_count: 8
+        actual_points: 3
+        implementation_notes: "Standalone gallery with filters (location, plant, date). Dual mode: plant-specific or all photos. Pagination for 50+ photos. FlatList optimizations applied. Filter modal with checkboxes and radio buttons. Committed: feat(photos): implement STORY-013"
 
       - story_id: "STORY-005"
         title: "Aufgaben erstellen und verwalten"
