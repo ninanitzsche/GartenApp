@@ -20,7 +20,7 @@
 
 | Phase | Name | Status | Plans | Summaries |
 |-------|------|--------|-------|-----------|
-| 1 | AI Plant ID | context_gathered | 0 | 0 |
+| 1 | AI Plant ID | planned | 1 | 0 |
 | 2 | Pest Detection | pending | 0 | 0 |
 | 3 | Task Suggestions | pending | 0 | 0 |
 | 4 | Integration | pending | 0 | 0 |
