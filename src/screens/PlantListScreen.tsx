@@ -220,6 +220,12 @@ export default function PlantListScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.plantMeta}>
+        {item.identification_source === 'ai' && (
+          <View style={[styles.metaChip, styles.aiChip]}>
+            <MaterialIcons name="auto-awesome" size={14} color={Colors.accent} />
+            <Text style={[styles.metaText, styles.aiChipText]}>KI</Text>
+          </View>
+        )}
         {item.essbar && (
           <View style={styles.metaChip}>
             <MaterialIcons name="restaurant" size={14} color={Colors.primary} />
@@ -669,6 +675,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 12,
     gap: 4,
+  },
+  aiChip: {
+    backgroundColor: Colors.accent + '20',
+    borderWidth: 1,
+    borderColor: Colors.accent,
+  },
+  aiChipText: {
+    color: Colors.accentDark,
   },
   metaText: {
     fontSize: 12,

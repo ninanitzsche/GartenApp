@@ -15,6 +15,8 @@ export interface Plant {
   harvest_date?: string;
   notes?: string;
   tags?: string[];
+  identification_source?: 'ai' | 'manual';
+  identified_at?: string;
   user_id: string;
   created_at?: string;
   updated_at?: string;
@@ -33,6 +35,7 @@ export interface PlantFormData {
   harvest_date?: string;
   notes?: string;
   tags?: string[];
+  identification_source?: 'ai' | 'manual';
 }
 
 export const PLANT_STATUSES = [
