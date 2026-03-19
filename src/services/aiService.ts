@@ -10,7 +10,7 @@ import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import {
   PlantIdentificationResult,
-  Pl@ntNetResponse,
+  PlantNetResponse,
   AI_ERROR_CODES,
 } from '../types/ai';
 
@@ -72,7 +72,7 @@ export async function identifyPlant(
       };
     }
 
-    const data: Pl@ntNetResponse = await response.json();
+    const data: PlantNetResponse = await response.json();
 
     // Parse response
     return parseIdentificationResult(data);
@@ -91,7 +91,7 @@ export async function identifyPlant(
 /**
  * Parse Pl@ntNet response into our format
  */
-function parseIdentificationResult(data: Pl@ntNetResponse): PlantIdentificationResult {
+function parseIdentificationResult(data: PlantNetResponse): PlantIdentificationResult {
   if (!data.results || data.results.length === 0) {
     throw {
       code: AI_ERROR_CODES.NO_RESULTS,
@@ -156,7 +156,7 @@ export async function getRemainingQuota(): Promise<number> {
     const response = await fetch(
       `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}`
     );
-    const data: Pl@ntNetResponse = await response.json();
+    const data: PlantNetResponse = await response.json();
     return data.remainingIdentificationRequests || 0;
   } catch {
     return -1;

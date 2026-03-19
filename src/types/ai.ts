@@ -3,6 +3,50 @@
  * Using Pl@ntNet API
  */
 
+export type AICacheType = 'plant' | 'pest' | 'suggestion';
+
+export const CACHE_TTL = {
+  PLANT: 7 * 24 * 60 * 60 * 1000,
+  PEST: 24 * 60 * 60 * 1000,
+  SUGGESTION: 24 * 60 * 60 * 1000,
+} as const;
+
+export interface AICacheEntry<T> {
+  type: AICacheType;
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+export interface PlantIdentificationCacheEntry {
+  imageHash: string;
+  result: PlantIdentificationResult;
+  timestamp: number;
+}
+
+export interface PestDetectionResult {
+  pest: string;
+  confidence: number;
+  treatment: string;
+  knowledgeLinks?: string[];
+}
+
+export interface SuggestionCacheEntry {
+  plantId: string;
+  season: string;
+  result: TaskSuggestion[];
+  timestamp: number;
+}
+
+export interface TaskSuggestion {
+  id?: string;
+  title: string;
+  description: string;
+  category: string;
+  priority?: string;
+  season?: string;
+}
+
 export interface PlantIdentificationResult {
   name: string;
   scientificName: string;
@@ -13,7 +57,7 @@ export interface PlantIdentificationResult {
   powoId?: string;
 }
 
-export interface Pl@ntNetSpecies {
+export interface PlantNetSpecies {
   scientificNameWithoutAuthor: string;
   scientificNameAuthorship: string;
   scientificName: string;
@@ -26,20 +70,20 @@ export interface Pl@ntNetSpecies {
   commonNames: string[];
 }
 
-export interface Pl@ntNetResult {
+export interface PlantNetResult {
   score: number;
-  species: Pl@ntNetSpecies;
+  species: PlantNetSpecies;
   gbif?: { id: string };
   powo?: { id: string };
 }
 
-export interface Pl@ntNetResponse {
+export interface PlantNetResponse {
   query: {
     project: string;
     images: string[];
   };
   bestMatch: string;
-  results: Pl@ntNetResult[];
+  results: PlantNetResult[];
   predictedOrgans: Array<{
     organ: string;
     score: number;
@@ -72,3 +116,30 @@ export const CONFIDENCE_THRESHOLDS = {
   MEDIUM: 0.5,
   LOW: 0.3,
 };
+
+export interface AIIdentification {
+  id: string;
+  user_id: string;
+  ai_type: 'plant' | 'pest';
+  image_url: string;
+  result_json: any;
+  confidence: number;
+  created_at: string;
+}
+
+export interface PlantIdentificationLink {
+  id: string;
+  plant_id: string;
+  identification_id: string;
+  linked_at: string;
+}
+
+export interface PhotoAIAnalysis {
+  id: string;
+  photo_id: string;
+  ai_type: string;
+  analysis_id: string;
+  created_at: string;
+}
+
+export type AIAnalysisResult = AIIdentification;

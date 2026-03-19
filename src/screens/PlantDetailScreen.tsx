@@ -18,10 +18,12 @@ import { fetchPlant, progressPlantStatus, getNextStatus } from '../services/plan
 import { enrichPhotoWithUrl } from '../services/photoService';
 import { getHarvestsByPlant, getTotalHarvestByPlant } from '../services/harvestService';
 import { getCompanionsByPlantName } from '../services/companionService';
+import { getIdentificationsForPlant } from '../services/aiMetadataService';
 import { PlantCompanion } from '../types/companion';
 import { Plant } from '../types/plant';
 import { Photo, PhotoPlant } from '../types/photo';
 import { Harvest, HarvestTotal } from '../types/harvest';
+import { AIIdentification } from '../types/ai';
 import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 
@@ -38,6 +40,7 @@ export default function PlantDetailScreen() {
   const [harvests, setHarvests] = useState<Harvest[]>([]);
   const [harvestTotals, setHarvestTotals] = useState<HarvestTotal[]>([]);
   const [companions, setCompanions] = useState<PlantCompanion | null>(null);
+  const [aiIdentifications, setAiIdentifications] = useState<AIIdentification[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Reload plant details whenever screen is focused
@@ -101,8 +104,15 @@ export default function PlantDetailScreen() {
           setCompanions(companionData);
         } catch (companionError) {
           console.error('Error fetching companions:', companionError);
-          // Don't fail the whole page load if companions fail
         }
+      }
+
+      // Fetch AI identifications
+      try {
+        const identifications = await getIdentificationsForPlant(plantId);
+        setAiIdentifications(identifications);
+      } catch (aiError) {
+        console.error('Error fetching AI identifications:', aiError);
       }
     } catch (error: any) {
       console.error('Error fetching plant details:', error);
@@ -499,6 +509,50 @@ export default function PlantDetailScreen() {
           </View>
         )}
 
+        {/* AI Analysis Section */}
+        {aiIdentifications.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🤖 KI-Analysen</Text>
+            {aiIdentifications.slice(0, 5).map((ident, index) => (
+              <View key={ident.id || index} style={styles.aiIdentificationItem}>
+                <View style={styles.aiIdentificationHeader}>
+                  <MaterialIcons 
+                    name={ident.ai_type === 'plant' ? 'eco' : 'bug-report'} 
+                    size={18} 
+                    color={Colors.primary} 
+                  />
+                  <Text style={styles.aiIdentificationType}>
+                    {ident.ai_type === 'plant' ? 'Pflanzen-Erkennung' : 'Schädlings-Erkennung'}
+                  </Text>
+                </View>
+                {ident.result_json && (
+                  <Text style={styles.aiIdentificationResult}>
+                    {ident.result_json.name || ident.result_json.pest || JSON.stringify(ident.result_json).substring(0, 50)}
+                  </Text>
+                )}
+                <View style={styles.aiIdentificationMeta}>
+                  <Text style={styles.aiIdentificationDate}>
+                    {formatDate(ident.created_at)}
+                  </Text>
+                  {ident.confidence && (
+                    <Text style={[
+                      styles.aiIdentificationConfidence,
+                      { color: ident.confidence >= 0.8 ? Colors.success : Colors.warning }
+                    ]}>
+                      {Math.round(ident.confidence * 100)}%
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+            {aiIdentifications.length > 5 && (
+              <Text style={styles.moreIdentificationsText}>
+                + {aiIdentifications.length - 5} weitere Analysen
+              </Text>
+            )}
+          </View>
+        )}
+
         {/* Spacer */}
         <View style={styles.spacer} />
       </ScrollView>
@@ -828,5 +882,51 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: Colors.text,
+  },
+  aiIdentificationItem: {
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  aiIdentificationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  aiIdentificationType: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  aiIdentificationResult: {
+    fontSize: 14,
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  aiIdentificationMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  aiIdentificationDate: {
+    fontSize: 11,
+    color: Colors.textLight,
+  },
+  aiIdentificationConfidence: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  moreIdentificationsText: {
+    fontSize: 12,
+    color: Colors.primary,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  spacer: {
+    height: 80,
   },
 });

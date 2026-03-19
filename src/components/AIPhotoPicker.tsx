@@ -12,35 +12,43 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { identifyPlant, pickImage } from '../services/aiService';
 import { cacheIdentification, getCachedIdentification } from '../services/cacheService';
 import { PlantIdentificationResult } from '../types/ai';
+import TaskSuggestionModal from './TaskSuggestionModal';
+import { getAllSuggestions } from '../services/taskSuggestionService';
+import { TaskSuggestion } from '../types/taskSuggestion';
 
 interface AIPhotoPickerProps {
   visible: boolean;
   onClose: () => void;
   onPlantIdentified: (result: PlantIdentificationResult) => void;
+  linkedPlantId?: string;
 }
 
 export default function AIPhotoPicker({
   visible,
   onClose,
   onPlantIdentified,
+  linkedPlantId,
 }: AIPhotoPickerProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PlantIdentificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<TaskSuggestion[]>([]);
 
   const resetState = () => {
     setSelectedImage(null);
     setIsLoading(false);
     setResult(null);
     setError(null);
+    setShowSuggestions(false);
+    setSuggestions([]);
   };
 
   const handleClose = () => {
@@ -94,9 +102,20 @@ export default function AIPhotoPicker({
 
   const handleAccept = () => {
     if (result) {
-      onPlantIdentified(result);
-      handleClose();
+      const taskSuggestions = getAllSuggestions({
+        plantFamily: result.family,
+        plantName: result.name,
+        linkedPlantId,
+      });
+      setSuggestions(taskSuggestions);
+      setShowSuggestions(true);
     }
+  };
+
+  const handleCloseSuggestions = () => {
+    setShowSuggestions(false);
+    onPlantIdentified(result!);
+    handleClose();
   };
 
   const handleRetry = () => {
@@ -154,11 +173,21 @@ export default function AIPhotoPicker({
               <Text style={styles.secondaryButtonText}>Nochmal</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={() => {
+                onPlantIdentified(result);
+                handleClose();
+              }}
+            >
+              <MaterialIcons name="add" size={20} color={Colors.text} />
+              <Text style={styles.secondaryButtonText}>Pflanze</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.button, styles.primaryButton]}
               onPress={handleAccept}
             >
-              <MaterialIcons name="add" size={20} color={Colors.surface} />
-              <Text style={styles.primaryButtonText}>Hinzufügen</Text>
+              <MaterialIcons name="lightbulb" size={20} color={Colors.surface} />
+              <Text style={styles.primaryButtonText}>+ Aufgaben</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -237,23 +266,33 @@ export default function AIPhotoPicker({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={handleClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={handleClose}>
-              <MaterialIcons name="close" size={24} color={Colors.text} />
-            </TouchableOpacity>
+    <>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent
+        onRequestClose={handleClose}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={handleClose}>
+                <MaterialIcons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+            {renderContent()}
           </View>
-          {renderContent()}
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      <TaskSuggestionModal
+        visible={showSuggestions}
+        suggestions={suggestions}
+        plantName={result?.name}
+        linkedPlantId={linkedPlantId}
+        onClose={handleCloseSuggestions}
+      />
+    </>
   );
 }
 
@@ -314,6 +353,7 @@ const styles = StyleSheet.create({
   previewContainer: {
     paddingHorizontal: 24,
     alignItems: 'center',
+    minHeight: 400,
   },
   previewImage: {
     width: 250,
@@ -322,9 +362,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   identifyButton: {
+    backgroundColor: Colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    width: '100%',
   },
   resultContainer: {
     paddingHorizontal: 24,
