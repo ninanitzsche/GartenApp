@@ -13,9 +13,9 @@
     "_auto_chain_active": true
   },
   "milestone": {
-    "name": "Phase 2 - AI Features",
-    "goal": "Add AI-powered plant identification and task automation",
-    "validated_requirements": 19,
-    "new_requirements": 4
+    "name": "Phase 5 - UI/UX Polish",
+    "goal": "Improve accessibility, consistency, and mobile experience",
+    "validated_requirements": 23,
+    "new_requirements": 6
   }
 }

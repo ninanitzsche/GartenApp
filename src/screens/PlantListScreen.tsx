@@ -160,14 +160,14 @@ export default function PlantListScreen({ navigation }: Props) {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      geplant: Colors.info,
-      bestellt: Colors.warning,
-      ausgesät: '#2196F3',
-      pikiert: '#1976D2',
-      ausgepflanzt: Colors.primary,
-      etabliert: Colors.success,
-      geerntet: '#FF9800',
-      unklar: Colors.textLight,
+      geplant: Colors.statusGeplant,
+      bestellt: Colors.statusBestellt,
+      ausgesät: Colors.statusAusgesaet,
+      pikiert: Colors.statusPikiert,
+      ausgepflanzt: Colors.statusAusgepflanzt,
+      etabliert: Colors.statusEtabliert,
+      geerntet: Colors.statusGeerntet,
+      unklar: Colors.statusUnklar,
       entfernt: Colors.textDisabled,
     };
     return colors[status.toLowerCase()] || Colors.textLight;
@@ -444,10 +444,20 @@ export default function PlantListScreen({ navigation }: Props) {
 
       {plants.length > 0 && (
         <>
-          <TouchableOpacity style={styles.aiButton} onPress={handleAIIdentify}>
+          <TouchableOpacity 
+            style={styles.aiButton} 
+            onPress={handleAIIdentify}
+            accessibilityLabel="Pflanze mit KI identifizieren"
+            accessibilityRole="button"
+          >
             <MaterialIcons name="camera-alt" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.fab} onPress={handleAddPlant}>
+          <TouchableOpacity 
+            style={styles.fab} 
+            onPress={handleAddPlant}
+            accessibilityLabel="Neue Pflanze hinzufügen"
+            accessibilityRole="button"
+          >
             <MaterialIcons name="add" size={28} color="#fff" />
           </TouchableOpacity>
         </>

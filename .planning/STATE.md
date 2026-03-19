@@ -1,7 +1,7 @@
 # GSD Project State
 
-**Project:** Gartenplaner App - Phase 2
-**Milestone:** AI Features
+**Project:** Gartenplaner App
+**Milestone:** Phase 5 - UI/UX Polish
 **Mode:** yolo
 
 ---
@@ -10,9 +10,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Phases | 4/4 |
+| Phases | 5/5 |
 | Progress | 100% |
-| Status | All Complete |
+| Status | Phase 5 Complete |
 
 ---
 
@@ -24,6 +24,12 @@
 | 2 | Pest Detection | complete | 0 | 0 |
 | 3 | Task Suggestions | complete | 0 | 0 |
 | 4 | Integration | complete | 1 | 1 |
+| 5.1 | Accessibility | complete | 1 | 1 |
+| 5.2 | Theme Consolidation | complete | 1 | 1 |
+| 5.3 | Navigation Polish | complete | 0 | 0 |
+| 5.4 | Mobile Experience | complete | 0 | 0 |
+| 5.5 | Interaction Polish | skipped | 0 | 0 |
+| 5.6 | Content Consistency | complete | 0 | 0 |
 
 ---
 
@@ -32,6 +38,7 @@
 | Category | Mapped | Total |
 |----------|--------|-------|
 | AI Features | 4 | 4 |
+| UI/UX Polish | 6 | 6 |
 
 ---
 
@@ -43,6 +50,36 @@
 | 2 | Context gathered | 2026-03-19 |
 | 3 | Context gathered | 2026-03-19 |
 | 4 | Implemented | 2026-03-19 |
+| 5 | Complete | 2026-03-19 |
+
+---
+
+## Phase 5: UI/UX Polish - Complete ✅
+
+**Review:** `.planning/UI-REVIEW.md` (Score: 6.7 → 7.5/10)
+
+**Implemented:**
+| Sub-Phase | Focus | Status |
+|-----------|-------|--------|
+| 5.1 | Accessibility (UI-01) | ✅ Checkbox 44x44px, ARIA labels |
+| 5.2 | Theme Consolidation (UI-02) | ✅ Colors extrahiert, Status-Farben |
+| 5.3 | Navigation Polish (UI-03) | ✅ Tab-Struktur unverändert (war ok) |
+| 5.4 | Mobile Experience (UI-04) | ✅ KeyboardAvoidingView in AddPlant |
+| 5.5 | Interaction Polish (UI-05) | ⏭️ Skipped (kein Haptics-Paket) |
+| 5.6 | Content Consistency (UI-06) | ✅ Emoji aus Header entfernt |
+
+**Files Modified:**
+- `src/theme/colors.ts` - Neue Status-Farben, semantic colors
+- `src/components/TaskListItem.tsx` - Touch target, accessibility
+- `src/screens/HomeScreen.tsx` - Theme-Farben, Emoji entfernt
+- `src/screens/PlantListScreen.tsx` - Theme-Farben, FAB accessibility
+- `src/screens/ShoppingListScreen.tsx` - Theme-Farben, FAB accessibility
+- `src/screens/AddPlantScreen.tsx` - KeyboardAvoidingView
+
+---
+
+*Last updated: 2026-03-19*
+*Phase 5 Complete - UI/UX verbessert*
 
 ---
 

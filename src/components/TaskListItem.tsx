@@ -41,12 +41,17 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
       style={[styles.container, isCompleted && styles.containerCompleted]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityLabel={`Aufgabe: ${task.title}. ${isCompleted ? 'Erledigt' : 'Unerledigt'}. Kategorie: ${task.category}`}
+      accessibilityRole="button"
     >
-      {/* Completion checkbox */}
+      {/* Completion checkbox - 44x44px touch target */}
       <TouchableOpacity
         style={styles.completionButton}
         onPress={handleToggleCompletion}
         disabled={isCompletionLoading}
+        accessibilityLabel={isCompleted ? 'Als unerledigt markieren' : 'Als erledigt markieren'}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isCompleted }}
       >
         <View style={[styles.checkbox, isCompleted && styles.checkboxChecked]}>
           {isCompleted && (
@@ -114,17 +119,17 @@ const styles = StyleSheet.create({
   },
   containerCompleted: {
     opacity: 0.7,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.divider,
   },
   completionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     borderRadius: 4,
     borderWidth: 2,
     borderColor: Colors.border,

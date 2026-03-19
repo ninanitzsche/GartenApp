@@ -26,14 +26,36 @@ export const Colors = {
   textDisabled: '#BDBDBD', // Disabled Text
   
   // Status Colors
-  success: '#4CAF50',      // = primary
-  warning: '#FFC107',      // = accent
-  error: '#F44336',        // Rot
-  info: '#2196F3',         // Blau
+  success: '#4CAF50',
+  warning: '#FFC107',
+  error: '#F44336',
+  info: '#2196F3',
+  
+  // Plant Status Colors
+  statusGeplant: '#2196F3',
+  statusBestellt: '#FFC107',
+  statusAusgesaet: '#2196F3',
+  statusPikiert: '#1976D2',
+  statusAusgepflanzt: '#4CAF50',
+  statusEtabliert: '#4CAF50',
+  statusGeerntet: '#FF9800',
+  statusUnklar: '#757575',
+  
+  // Activity Colors
+  harvest: '#F44336',
+  
+  // Priority Colors
+  priorityHigh: '#D32F2F',
+  priorityMedium: '#F57C00',
+  
+  // Semantic Colors
+  card: '#FFFFFF',
+  cardElevated: '#FFFFFF',
+  disabled: '#BDBDBD',
   
   // Tab Bar
-  tabActive: '#4CAF50',    // Aktiver Tab
-  tabInactive: '#9E9E9E',  // Inaktiver Tab
+  tabActive: '#4CAF50',
+  tabInactive: '#9E9E9E',
   
   // Borders
   border: '#E0E0E0',

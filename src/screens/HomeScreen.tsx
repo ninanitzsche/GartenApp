@@ -76,14 +76,14 @@ export default function HomeScreen({ navigation }: Props) {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      geplant: Colors.info,
-      bestellt: Colors.warning,
-      ausgesät: '#2196F3',
-      pikiert: '#1976D2',
-      ausgepflanzt: Colors.primary,
-      etabliert: Colors.success,
-      geerntet: '#FF9800',
-      unklar: Colors.textLight,
+      geplant: Colors.statusGeplant,
+      bestellt: Colors.statusBestellt,
+      ausgesät: Colors.statusAusgesaet,
+      pikiert: Colors.statusPikiert,
+      ausgepflanzt: Colors.statusAusgepflanzt,
+      etabliert: Colors.statusEtabliert,
+      geerntet: Colors.statusGeerntet,
+      unklar: Colors.statusUnklar,
     };
     return colors[status.toLowerCase()] || Colors.textLight;
   };
@@ -133,7 +133,7 @@ export default function HomeScreen({ navigation }: Props) {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>🌱 Gartenplaner</Text>
+        <Text style={styles.title}>Gartenplaner</Text>
         <Text style={styles.subtitle}>Dashboard</Text>
       </View>
 
@@ -268,7 +268,7 @@ export default function HomeScreen({ navigation }: Props) {
 
       {/* Empty State */}
       {harvests.totalHarvests === 0 && tasks.totalTasks === 0 && (
-        <View style={styles.emptyState}>
+        <View style={styles.emptyState} accessibilityLabel="Keine Daten vorhanden. Fügen Sie Pflanzen, Aufgaben oder Ernten hinzu.">
           <MaterialIcons
             name="dashboard"
             size={48}

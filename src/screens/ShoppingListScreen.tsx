@@ -143,15 +143,15 @@ export default function ShoppingListScreen({ navigation }: Props) {
   const getCategoryColor = (category?: string): string => {
     switch (category) {
       case 'saatgut':
-        return '#4CAF50';
+        return Colors.primary;
       case 'werkzeug':
-        return '#FF9800';
+        return Colors.statusGeerntet;
       case 'dünger':
-        return '#8B4513';
+        return Colors.secondaryDark;
       case 'erde':
-        return '#A0522D';
+        return Colors.secondary;
       case 'töpfe':
-        return '#CE93D8';
+        return Colors.secondaryLight;
       default:
         return Colors.textLight;
     }
@@ -365,7 +365,12 @@ export default function ShoppingListScreen({ navigation }: Props) {
       )}
 
       {/* Add Button */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddItem}>
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={handleAddItem}
+        accessibilityLabel="Neuen Artikel hinzufügen"
+        accessibilityRole="button"
+      >
         <MaterialIcons name="add" size={28} color="#fff" />
       </TouchableOpacity>
     </View>
