@@ -13,6 +13,7 @@ Before **ANY** `/dev-story`, `/sprint-planning`, or multi-task work, verify:
 
 ### ✅ Checklist Items (ALL must be green)
 
+- [ ] **Requirement Gathering**: Fill out REQUIREMENT-GATHERING-TEMPLATE.md for each task (15 min saves $0.40-1.50!)
 - [ ] **Sequential**: Plan to work on tasks one-at-a-time (not parallel agents)
 - [ ] **MEMORY.md**: Check memory for reusable patterns (avoid re-asking)
 - [ ] **Specific**: Task requirements are clear and detailed (no vague prompts)
@@ -22,6 +23,60 @@ Before **ANY** `/dev-story`, `/sprint-planning`, or multi-task work, verify:
 ---
 
 ## 📋 Detailed Pre-Task Protocol
+
+### 0. Requirement Gathering ✅ (NEW - BIGGEST SAVINGS!)
+
+**Before starting any task, use REQUIREMENT-GATHERING-TEMPLATE.md**
+
+```
+For each task/story:
+1. Fill out: WHAT / WHERE / ACCEPTANCE CRITERIA / SCHEMA / DEPENDENCIES / PATTERNS / EDGE CASES
+2. Make AC1/AC2/AC3 specific with file paths + line numbers
+3. Identify similar patterns (copy-paste potential)
+4. Note edge cases upfront (web compat, errors, validation)
+
+Time: 15 min per task
+Savings: $0.40-1.50 per sprint (40-50% reduction!)
+Reason: Specific requirements = first-try implementations = no retries
+```
+
+**Example: VAGUE vs SPECIFIC**
+
+❌ VAGUE (causes retries):
+```
+Task: "Add photo upload"
+AC1: "User can upload photos"
+AC2: "Photos are saved"
+Impact: What storage? Which DB table? Web compatible? RLS?
+Cost: +$0.40 (clarifications + retries)
+```
+
+✅ SPECIFIC (no retries):
+```
+Task: STORY-055: Photo Upload with Compression
+AC1: Image compressed to 1200x1200 @ 70% quality
+     File: src/services/photoService.ts
+     Test: npm test photoService.test.ts
+
+AC2: Linked to plant via photo_plants junction table
+     File: docs/database/database-schema.sql
+     Test: Query photo_plants after upload
+
+AC3: Delete removes file from storage + DB
+     File: src/services/photoService.ts, deletePhoto()
+     Test: Verify file missing after delete
+
+Edge cases:
+- Web: Image picker fallback (Platform.OS)
+- Errors: Storage full, DB constraint
+- Validation: File size < 5MB
+
+Pattern reuse: photoService similar to plantService (70% reuse = $0.30 saved)
+Impact: Clear + complete = first try correct = no retries
+Cost: $0.08 (pure implementation, no clarifications)
+```
+
+---
 
 ### 1. Sequential Check ✅
 
@@ -120,8 +175,12 @@ Q: Will you check costs daily during sprint?
 Q: Dashboard bookmarked?
   ✅ YES → Can quickly check: https://app.portkey.ai/dashboard
 
-Q: Budget set?
-  ✅ YES → $10 for Sprint 4 (with $5 buffer)
+Q: Token budget set?
+  ✅ YES → 150,000 tokens for Sprint 6 (= €9.00)
+
+Token budget: 150,000 tokens per sprint
+Daily budget: 45,000 tokens per day (= €2.70)
+1,000 tokens = €0.06 (Haiku rate)
 ```
 
 **Action:** Enable monitoring and commit to weekly review

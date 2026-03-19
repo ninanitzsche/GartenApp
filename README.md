@@ -1,7 +1,7 @@
 # Gartenplaner App 🌱
 
-**Last Updated:** 2026-03-04
-**Status:** Active (Production - Phase 1 Complete)
+**Last Updated:** 2026-03-05
+**Status:** Active (Phase 1 Complete + Sprint 7 Garden Feature)
 **Audience:** All
 **Related Files:** [ONBOARDING.md](ONBOARDING.md), [QUICK-LINKS.md](QUICK-LINKS.md), [MVP-RELEASE-SUMMARY.md](MVP-RELEASE-SUMMARY.md)
 
@@ -37,18 +37,30 @@ Eine intelligente Mobile App für Familien, die ihren Garten nach Permakultur-Pr
 - 🛡️ **Database** → `docs/database/database-guide.md`
 - 🧪 **Testing** → `docs/testing/TESTING-GUIDE.md` (automatisiert) + `docs/testing/TESTING-CHECKLIST.md` (manuell)
 - 📁 **Navigation** → `docs/FILE-STRUCTURE.md` (Struktur-Übersicht)
+- 🌱 **Garden Feature (Sprint 7)** → `docs/GARDEN-FEATURE-IMPLEMENTATION.md` (Complete guide)
 
 ---
 
 ## Features
 
-### Phase 1 (MVP)
+### Phase 1 (MVP) ✅
 - **Pflanzen-Inventar:** Verwaltung von 50+ Pflanzen mit Status-Tracking
 - **Dynamische Aufgaben:** Priorisierte Task-Liste mit saisonalen Vorschlägen
 - **Foto-Dokumentation:** Pflanzen und Probleme dokumentieren
 - **Einkaufsliste:** Budget-Tracking für Gartenbedarf
 - **Success-Tracking:** Unkraut-Zeit < 1h/Monat, Ernte-Logging
 - **Wissens-Datenbank:** Permakultur-Infos und Mischkultur
+
+### Sprint 7 (Garden Overview) ✅ NEW
+- **Interaktive Beetplan:** Visuelle Darstellung mit positionierten Beeten
+- **Beetverwaltung:** Erstellen, bearbeiten, löschen von Beeten
+- **Form-basierte Positionierung:** Sliders für X/Y Position (0-100%), Größe
+- **Beetdetails:** Farbe, Form (Rechteck/Kreis), Notizen
+- **Pflanzenverlinkung:** Link von Pflanzen zu Beeten
+- **Garten-Info:** Name, Standort, Größe, Beschreibung
+- **Foto-Galerie:** Garten-Fotos verwalten
+
+**Dokumentation:** Siehe `docs/GARDEN-FEATURE-IMPLEMENTATION.md` für vollständige Details
 
 ### Phase 2 (KI Features)
 - **KI-Pflanzen-Identifikation:** Automatische Pflanzen-Erkennung per Foto
@@ -157,11 +169,26 @@ See `docs/bmad-03-architecture.md` for complete database schema.
 - `harvests` - Ernte-Logging
 - `knowledge_articles` - Wissens-Datenbank
 - `plant_companions` - Mischkultur-Datenbank
+- `gardens` - Garten-Metadaten (Sprint 7)
+- `beds` - Interaktive Beete (Sprint 7)
+- `bed_plants` - Beet-Pflanze Beziehungen (Sprint 7)
 - Plus junction tables
 
 ### Row Level Security (RLS)
 
 All tables have RLS policies to ensure users can only access their own data.
+
+### Database Migrations
+
+**Sprint 7 - Garden Feature:**
+
+Run the SQL migration in Supabase SQL Editor:
+```bash
+# Location: docs/migrations/add-garden-tables.sql
+# Creates: gardens, beds, bed_plants tables with RLS policies
+```
+
+See `docs/migrations/add-garden-tables.sql` for the complete migration script.
 
 ## Seed Data - Garten2026
 
@@ -193,10 +220,15 @@ Synchronisiert alle Pflanzen mit Supabase (idempotent via upsert).
 
 See `docs/sprint-plan-gartenplaner-mvp-2026-03-02.md` for detailed sprint plan.
 
-**Status:** ✅ MVP Phase Complete (Sprints 1-5, 56.5 points delivered)
-- ✅ Sprint 1-5: All Phase 1 features complete
-- ⏳ Sprint 6: Phase 2 planning (AI features)
-- See `MVP-RELEASE-SUMMARY.md` for details
+**Status:**
+- ✅ **Sprint 1-5:** All Phase 1 features complete (56.5 points)
+- ✅ **Sprint 7:** Garden Overview Feature complete (Interactive bed map, metadata, photo gallery)
+  - 18 files created (services, screens, components, navigation)
+  - Full TypeScript support
+  - Database migration ready
+  - See `docs/GARDEN-FEATURE-IMPLEMENTATION.md` for details
+- ⏳ **Sprint 6/8:** Phase 2 planning (AI features)
+- See `MVP-RELEASE-SUMMARY.md` for Phase 1 details
 
 **Target MVP Completion:** Ende Juli 2026
 

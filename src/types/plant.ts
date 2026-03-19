@@ -36,11 +36,14 @@ export interface PlantFormData {
 }
 
 export const PLANT_STATUSES = [
-  { label: 'Etabliert', value: 'etabliert' },
   { label: 'Geplant', value: 'geplant' },
   { label: 'Bestellt', value: 'bestellt' },
-  { label: 'Gepflanzt', value: 'gepflanzt' },
+  { label: 'Ausgesät', value: 'ausgesät' },
+  { label: 'Pikiert', value: 'pikiert' },
+  { label: 'Ausgepflanzt', value: 'ausgepflanzt' },
+  { label: 'Etabliert', value: 'etabliert' },
   { label: 'Geerntet', value: 'geerntet' },
+  { label: 'Unklar', value: 'unklar' },
   { label: 'Entfernt', value: 'entfernt' },
 ];
 

@@ -130,7 +130,7 @@ gartenplaner-app/
 │   → Captures patterns from BMAD-LEARNINGS
 │   → Imports cost rules into decision-making
 │
-└── /docs/archive/sprints/SPRINT-*-SUMMARY.md
+└── .archive/docs/archive/SPRINT-*-SUMMARY.md
     → Records actual costs achieved
     → Feeds back into cost-optimization-learnings.md
 ```
@@ -291,7 +291,7 @@ Location: /Users/ninanitzsche/aipm/gartenplaner-app/
 Includes:
   - docs/bmad/ → BMAD workflow for THIS project
   - docs/LEARNINGS/ → Gartenplaner-specific learnings
-  - docs/archive/sprints/ → Sprint histories
+  - .archive/docs/archive/ → Sprint histories
   - MEMORY.md → Reusable code patterns
 ```
 

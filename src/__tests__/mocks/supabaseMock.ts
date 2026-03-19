@@ -78,13 +78,16 @@ export function createMockQueryBuilder(initialData: any = []) {
       return Promise.resolve({ data: null, error: null });
     }),
     insert: jest.fn(function (records: any[]) {
-      // Add IDs if not present
       data = records.map((record, index) => ({
         id: record.id || `mock-id-${Date.now()}-${index}`,
         ...record,
       }));
       queryData = [...data];
-      return this;
+      return {
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ data: data[0], error: null }),
+        }),
+      };
     }),
     update: jest.fn(function (values: any) {
       lastFilters.update = values;
@@ -98,7 +101,6 @@ export function createMockQueryBuilder(initialData: any = []) {
       return this;
     }),
     delete: jest.fn(function () {
-      // Return self to allow method chaining
       return this;
     }),
     upsert: jest.fn(function (records: any[], options?: any) {
@@ -159,6 +161,21 @@ export function createMockQueryBuilder(initialData: any = []) {
 }
 
 /**
+ * Create a mock storage bucket
+ */
+function createMockStorage() {
+  return {
+    from: jest.fn((bucket: string) => ({
+      upload: jest.fn().mockResolvedValue({ data: { path: `${bucket}/mock-file.jpg` }, error: null }),
+      remove: jest.fn().mockResolvedValue({ data: null, error: null }),
+      getPublicUrl: jest.fn().mockReturnValue({
+        data: { publicUrl: `https://mock.supabase.co/storage/v1/object/public/${bucket}/mock-file.jpg` },
+      }),
+    })),
+  };
+}
+
+/**
  * Create a mock Supabase client
  */
 export function createMockSupabase(initialData: any = {}) {
@@ -173,6 +190,7 @@ export function createMockSupabase(initialData: any = {}) {
       signInWithPassword: jest.fn(),
       signOut: jest.fn(),
     },
+    storage: createMockStorage(),
   };
 }
 

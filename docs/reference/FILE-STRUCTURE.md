@@ -80,7 +80,7 @@ docs/
 ├── 📂 LEARNINGS/                ← Lessons Learned (Knowledge Base)
 │   ├── bugs-and-gotchas.md      ← 14+ solved problems
 │   ├── feature-implementation-learnings.md  ← How long features take
-│   └── development-process-learnings.md     ← Workflow insights
+│   └── README.md                ← Learning Index
 │
 ├── 📂 features/                 ← Feature-Specific Guides
 │   ├── AUTH-SCREENS-VISUAL-GUIDE.md
@@ -115,7 +115,7 @@ docs/
 | **Database schema** | `docs/database/database-guide.md` | 150+ | 10min |
 | **Testing guide** | `docs/testing/TESTING-GUIDE.md` | 200+ | 10min |
 | **Development config** | `docs/config/CLAUDE.md` | 793 | reference |
-| **Completed sprints** | `docs/archive/sprints/` | varies | reference |
+| **Completed sprints** | `.archive/docs/archive/` | reference |
 
 ---
 
@@ -197,12 +197,11 @@ docs/
 ```
 1. Found new bug? → docs/LEARNINGS/bugs-and-gotchas.md
 2. Feature timing? → docs/LEARNINGS/feature-implementation-learnings.md
-3. Process insight? → docs/LEARNINGS/development-process-learnings.md
 ```
 
 **Archive Old Docs:**
 ```
-1. Move to: docs/archive/
+1. Move to: .archive/ (for root) or .archive/docs/ (for docs/)
 2. Keep structure clear
 3. Update references in QUICK-LINKS.md
 ```

@@ -10,6 +10,7 @@ export interface Task {
   category: 'Aussaat' | 'Pflanzen' | 'Gartenarbeiten' | 'Beobachten' | 'Ernten';
   priority: 'niedrig' | 'mittel' | 'hoch';
   location?: string;
+  time_spent_minutes?: number;
   created_at: string;
   updated_at?: string;
   completed_at?: string | null;
@@ -22,6 +23,7 @@ export interface TaskFormData {
   category: string;
   priority: string;
   location?: string;
+  time_spent_minutes?: number;
   plant_ids?: string[];
 }
 

@@ -8,6 +8,10 @@ import MoreMenuScreen from '../screens/MoreMenuScreen';
 import ShoppingDashboardScreen from '../screens/ShoppingDashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import HarvestLogScreen from '../screens/HarvestLogScreen';
+import AddHarvestScreen from '../screens/AddHarvestScreen';
+import KnowledgeBaseScreen from '../screens/KnowledgeBaseScreen';
+import ArticleDetailScreen from '../screens/ArticleDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,6 +55,34 @@ export default function MoreMenuStackNavigator() {
         component={ChangePasswordScreen}
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="HarvestLog"
+        component={HarvestLogScreen}
+        options={{
+          title: 'Ernte-Tagebuch',
+        }}
+      />
+      <Stack.Screen
+        name="AddHarvest"
+        component={AddHarvestScreen}
+        options={{
+          title: 'Ernte dokumentieren',
+        }}
+      />
+      <Stack.Screen
+        name="KnowledgeBase"
+        component={KnowledgeBaseScreen}
+        options={{
+          title: 'Wissensdatenbank',
+        }}
+      />
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetailScreen}
+        options={{
+          title: 'Artikel',
         }}
       />
     </Stack.Navigator>

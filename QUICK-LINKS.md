@@ -102,7 +102,7 @@
 → `docs/reference/BMAD-STATUS.md` (2 min overview - all phases)
 → `docs/bmad/BMAD-02-COMPLETION-MATRIX.md` (all 25 FRs status)
 → `docs/bmad/BMAD-03-ARCHITECTURE-CHECKLIST.md` (architecture verified)
-→ `docs/archive/sprints/` (Sprint 1-5 summaries with real data)
+→ `.archive/docs/archive/` (Sprint 1-5 summaries with real data)
 
 ### Project Overview
 → `README.md` (5 min)
@@ -313,7 +313,7 @@ Also: `docs/LEARNINGS/bugs-and-gotchas.md` → Route Params Type Safety
 ---
 
 ### Sprints (Historical)
-→ `docs/archive/sprints/`
+→ `.archive/docs/archive/`
 
 **Recent sprints:**
 - SPRINT-5-SUMMARY.md
@@ -430,7 +430,7 @@ Also: `docs/LEARNINGS/bugs-and-gotchas.md` → Route Params Type Safety
 | File structure | docs/reference/FILE-STRUCTURE.md |
 | Cost rules | docs/config/COST-GUIDELINES.md |
 | Cost data | ../BMAD-LEARNINGS/cost-optimization-learnings.md |
-| Old sprints | docs/archive/sprints/ |
+| Old sprints | .archive/docs/archive/ |
 
 ---
 

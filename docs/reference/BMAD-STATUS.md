@@ -504,7 +504,7 @@
 |------|--------|--------|
 | feature-implementation-learnings.md | ✅ | 11 features documented with timing |
 | bugs-and-gotchas.md | ✅ | 14+ issues solved & documented |
-| development-process-learnings.md | ✅ | Sprint 6+ optimizations planned |
+| README.md | ✅ | Learning index (updated 2026-03-19) |
 
 ---
 

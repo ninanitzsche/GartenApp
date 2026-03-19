@@ -280,9 +280,16 @@ describe('shoppingService', () => {
         data: { user: mockUserData },
       });
 
-      const mockBuilder = createMockQueryBuilder();
-      mockBuilder._setError('Insert failed');
-      (supabase.from as jest.Mock).mockReturnValue(mockBuilder);
+      (supabase.from as jest.Mock).mockReturnValue({
+        insert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ 
+              data: null, 
+              error: new Error('Insert failed') 
+            }),
+          }),
+        }),
+      });
 
       const itemData = {
         item_name: 'Seeds',

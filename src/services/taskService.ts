@@ -83,6 +83,7 @@ export async function createTask(formData: TaskFormData): Promise<Task> {
         category: formData.category,
         priority: formData.priority,
         location: formData.location || null,
+        time_spent_minutes: formData.time_spent_minutes || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -126,6 +127,7 @@ export async function updateTask(taskId: string, formData: TaskFormData): Promis
         category: formData.category,
         priority: formData.priority,
         location: formData.location || null,
+        time_spent_minutes: formData.time_spent_minutes || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
@@ -503,4 +505,23 @@ export function sortTasks(
   }
 
   return sorted;
+}
+
+/**
+ * Format time spent in minutes to human-readable format
+ * Examples: 45 → "45m", 90 → "1h 30m", 150 → "2h 30m"
+ */
+export function formatTimeSpent(minutes?: number | null): string | null {
+  if (!minutes || minutes <= 0) return null;
+
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours === 0) {
+    return `${mins}m`;
+  } else if (mins === 0) {
+    return `${hours}h`;
+  } else {
+    return `${hours}h ${mins}m`;
+  }
 }

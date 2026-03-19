@@ -205,3 +205,89 @@ export async function getUniqueLocations(): Promise<string[]> {
 
   return locations;
 }
+
+/**
+ * Plant status progression flow
+ * geplant → bestellt → ausgesät → pikiert → ausgepflanzt → etabliert → geerntet → unklar
+ */
+const STATUS_FLOW = [
+  'geplant',
+  'bestellt',
+  'ausgesät',
+  'pikiert',
+  'ausgepflanzt',
+  'etabliert',
+  'geerntet',
+  'unklar',
+] as const;
+
+/**
+ * Get next status in progression flow
+ * Returns null if already at final status
+ */
+export function getNextStatus(currentStatus: string): string | null {
+  const normalizedStatus = currentStatus?.trim().toLowerCase() || '';
+  const index = STATUS_FLOW.findIndex(s => s.toLowerCase() === normalizedStatus);
+  if (index === -1 || index === STATUS_FLOW.length - 1) {
+    return null; // Unknown status or already at final status
+  }
+  return STATUS_FLOW[index + 1];
+}
+
+/**
+ * Check if plant can progress to next status
+ */
+export function canProgressStatus(status: string): boolean {
+  return getNextStatus(status) !== null;
+}
+
+/**
+ * Update plant status to a specific value
+ */
+export async function updatePlantStatus(plantId: string, newStatus: string): Promise<Plant> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('plants')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', plantId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error('Error updating plant status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Progress plant status to next step
+ */
+export async function progressPlantStatus(plantId: string): Promise<Plant | null> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    // Get current plant
+    const plant = await fetchPlant(plantId);
+    if (!plant) return null;
+
+    // Get next status
+    const nextStatus = getNextStatus(plant.status);
+    if (!nextStatus) return null; // Already at final status
+
+    // Update to next status
+    return updatePlantStatus(plantId, nextStatus);
+  } catch (error: any) {
+    console.error('Error progressing plant status:', error);
+    throw error;
+  }
+}

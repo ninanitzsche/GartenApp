@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   -- Task scheduling and status
   priority TEXT,                         -- Priority level (niedrig, mittel, hoch, dringend)
   location TEXT,                         -- Garden location
+  scheduled_date DATE,                   -- Planned/scheduled date for task
   completed BOOLEAN DEFAULT false,       -- Completion status
   completed_at TIMESTAMPTZ,              -- When completed
 

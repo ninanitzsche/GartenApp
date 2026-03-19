@@ -24,6 +24,7 @@ import {
   fetchTask,
   fetchPlantsForSelection,
   getTaskPlants,
+  formatTimeSpent,
 } from '../services/taskService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddTask'>;
@@ -31,6 +32,14 @@ type RouteProps = RouteProp<RootStackParamList, 'AddTask'>;
 
 const CATEGORIES = ['Aussaat', 'Pflanzen', 'Gartenarbeiten', 'Beobachten', 'Ernten'];
 const PRIORITIES = ['niedrig', 'mittel', 'hoch'];
+
+/**
+ * Format time in minutes for display preview
+ */
+function formatTimeDisplayPreview(minutes: number): string {
+  const formatted = formatTimeSpent(minutes);
+  return formatted ? `= ${formatted}` : '';
+}
 
 export default function AddTaskScreen({ navigation }: Props) {
   const route = useRoute<RouteProps>();
@@ -50,6 +59,7 @@ export default function AddTaskScreen({ navigation }: Props) {
   const [category, setCategory] = useState('Gartenarbeiten');
   const [priority, setPriority] = useState('mittel');
   const [location, setLocation] = useState('');
+  const [timeSpentMinutes, setTimeSpentMinutes] = useState('');
 
   // Load task and plants on mount
   useEffect(() => {
@@ -74,6 +84,7 @@ export default function AddTaskScreen({ navigation }: Props) {
           setCategory(taskData.category);
           setPriority(taskData.priority);
           setLocation(taskData.location || '');
+          setTimeSpentMinutes(taskData.time_spent_minutes ? String(taskData.time_spent_minutes) : '');
 
           // Load linked plants
           const linkedPlants = await getTaskPlants(taskIdToEdit);
@@ -121,6 +132,7 @@ export default function AddTaskScreen({ navigation }: Props) {
         category,
         priority,
         location: location.trim() || undefined,
+        time_spent_minutes: timeSpentMinutes ? parseInt(timeSpentMinutes, 10) : undefined,
         plant_ids: Array.from(selectedPlants),
       };
 
@@ -253,6 +265,24 @@ export default function AddTaskScreen({ navigation }: Props) {
               onChangeText={setLocation}
               placeholderTextColor={Colors.textLight}
             />
+          </View>
+
+          {/* Time Spent */}
+          <View style={styles.section}>
+            <Text style={styles.label}>Zeit aufgewendet (optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Minuten"
+              value={timeSpentMinutes}
+              onChangeText={setTimeSpentMinutes}
+              keyboardType="number-pad"
+              placeholderTextColor={Colors.textLight}
+            />
+            {timeSpentMinutes && parseInt(timeSpentMinutes, 10) > 0 && (
+              <Text style={styles.helper}>
+                = {formatTimeDisplayPreview(parseInt(timeSpentMinutes, 10))}
+              </Text>
+            )}
           </View>
 
           {/* Linked Plants */}

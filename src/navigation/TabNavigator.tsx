@@ -11,6 +11,7 @@ import ShoppingStackNavigator from './ShoppingStackNavigator';
 import MoreMenuStackNavigator from './MoreMenuStackNavigator';
 import TaskStackNavigator from './TaskStackNavigator';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
+import GardenStackNavigator from './GardenStackNavigator';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -92,6 +93,19 @@ export default function TabNavigator() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="shopping-cart" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="GardenOverview"
+        component={GardenStackNavigator}
+        options={{
+          title: 'Garten',
+          tabBarLabel: 'Garten',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="yard" size={size} color={color} />
           ),
         }}
       />

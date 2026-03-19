@@ -220,23 +220,24 @@ docs/sprint/
 
 ---
 
-### LEVEL 9: Historical Archive (docs/archive/)
+### LEVEL 9: Historical Archive (.archive/)
 **Purpose:** Keep history without cluttering active docs
 **Reader:** Rarely (historical reference)
 
 ```
-docs/archive/
-├── README.md                   🔗 Index of archived items
-├── sprints/
-│   ├── SPRINT-1-SUMMARY.md
-│   ├── SPRINT-2-SUMMARY.md
-│   ├── SPRINT-3-SUMMARY.md
-│   ├── SPRINT-4-SUMMARY.md
-│   └── SPRINT-5-SUMMARY.md
-└── stories/
-    ├── STORY-001-COMPLETED.md
-    ├── STORY-002-IMPLEMENTATION.md
-    └── [All completed stories]
+.archive/
+├── root/                   # Obsolete root-level files
+│   ├── AI_AND_ME_PRESENTATION.html
+│   └── *.md/*.txt
+├── docs/
+│   └── archive/           # All archived documentation
+│       ├── README.md                   🔗 Index of archived items
+│       ├── sprints/
+│       │   ├── SPRINT-1-SUMMARY.md
+│       │   └── [All completed sprints]
+│       └── stories/
+│           ├── STORY-001-COMPLETED.md
+│           └── [All completed stories]
 ```
 
 **Rule:** Move to archive once:
@@ -374,11 +375,11 @@ Content...
 
 ### When Archive a Doc
 
-1. **Move to docs/archive/** folder
+1. **Move to .archive/** folder
 2. **Keep all content** (never delete)
 3. **Update status** to "Archived"
 4. **Remove dead link** from index
-5. **Add note** in archive/README.md
+5. **Add note** in .archive/README.md
 
 ---
 

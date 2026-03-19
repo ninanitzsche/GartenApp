@@ -3,7 +3,7 @@
 **Last Updated:** 2026-03-04
 **Status:** Active (Code-Complete, Awaiting Deployment)
 **Audience:** PO, Stakeholders, All
-**Related Files:** [README.md](README.md), [docs/reference/BMAD-STATUS.md](docs/reference/BMAD-STATUS.md), [docs/archive/sprints/SPRINT-5-SUMMARY.md](docs/archive/sprints/SPRINT-5-SUMMARY.md)
+**Related Files:** [README.md](README.md), [docs/reference/BMAD-STATUS.md](docs/reference/BMAD-STATUS.md), [.archive/docs/archive/](.archive/docs/archive/)
 
 **Release Date:** March 4, 2026 | **Team:** Solo Developer (Nina)
 
@@ -205,7 +205,7 @@ Gartenplaner MVP is **code-complete and ready for production deployment**. All 1
 - **Known Issues:** `docs/LEARNINGS/bugs-and-gotchas.md` - solutions
 
 ### For Team
-- **Sprint History:** `docs/archive/sprints/` - all sprint summaries
+- **Sprint History:** `.archive/docs/archive/` - all sprint summaries
 - **Learnings:** `/Users/ninanitzsche/aipm/BMAD-LEARNINGS/` - cross-project learnings
 - **Cost Tracking:** `BMAD-LEARNINGS/cost-optimization-learnings.md` - budget analysis
 

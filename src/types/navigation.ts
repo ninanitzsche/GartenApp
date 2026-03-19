@@ -16,7 +16,7 @@ export type RootStackParamList = {
   // Plants Stack
   PlantList: undefined;
   PlantDetail: { plantId: string };
-  AddPlant: undefined;
+  AddPlant: { prefillName?: string; prefillLatinName?: string; identificationSource?: 'ai' | 'manual' };
   EditPlant: { plantId: string };
 
   // Profile Stack
@@ -38,6 +38,22 @@ export type RootStackParamList = {
   AddTask: { taskId?: string };
   TaskDetail: { taskId: string };
 
+  // Harvest Stack (Sprint 6A)
+  HarvestLog: { plantId?: string };
+  AddHarvest: { harvestId?: string; plantId?: string };
+
+  // Knowledge Stack (Sprint 6A)
+  KnowledgeBase: undefined;
+  ArticleDetail: { articleId: string };
+
+  // Garden Stack (Sprint 7)
+  GardenOverview: undefined;
+  GardenSettings: undefined;
+  GardenPhotoGallery: undefined;
+  BedDetail: { bedId: string };
+  AddBed: undefined;
+  EditBed: { bedId: string };
+
   // More Menu
   MoreMenu: undefined;
 };
@@ -49,5 +65,6 @@ export type TabParamList = {
   Tasks: undefined;
   Photos: undefined;
   Shopping: undefined;
+  GardenOverview: undefined;
   More: undefined;
 };

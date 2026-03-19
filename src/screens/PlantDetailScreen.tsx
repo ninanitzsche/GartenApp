@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -13,10 +14,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../services/supabase';
-import { fetchPlant } from '../services/plantService';
+import { fetchPlant, progressPlantStatus, getNextStatus } from '../services/plantService';
 import { enrichPhotoWithUrl } from '../services/photoService';
+import { getHarvestsByPlant, getTotalHarvestByPlant } from '../services/harvestService';
+import { getCompanionsByPlantName } from '../services/companionService';
+import { PlantCompanion } from '../types/companion';
 import { Plant } from '../types/plant';
 import { Photo, PhotoPlant } from '../types/photo';
+import { Harvest, HarvestTotal } from '../types/harvest';
 import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 
@@ -30,11 +35,17 @@ export default function PlantDetailScreen() {
 
   const [plant, setPlant] = useState<Plant | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [harvests, setHarvests] = useState<Harvest[]>([]);
+  const [harvestTotals, setHarvestTotals] = useState<HarvestTotal[]>([]);
+  const [companions, setCompanions] = useState<PlantCompanion | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPlantDetails();
-  }, [plantId]);
+  // Reload plant details whenever screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchPlantDetails();
+    }, [plantId])
+  );
 
   const fetchPlantDetails = async () => {
     try {
@@ -56,8 +67,42 @@ export default function PlantDetailScreen() {
         const photoList = photoData
           .map((pp: any) => pp.photos)
           .filter((p: Photo | null) => p !== null)
-          .map((p: Photo) => enrichPhotoWithUrl(p)) as Photo[];
+          .map((p: Photo) => {
+            const enriched = enrichPhotoWithUrl(p);
+            if (!enriched.photo_url) {
+              console.warn('Photo missing URL:', { photo_id: p.id, file_url: p.file_url });
+            }
+            return enriched;
+          })
+          .filter((p: Photo) => !!p.photo_url) as Photo[];
         setPhotos(photoList);
+        if (photoList.length === 0 && photoData.length > 0) {
+          console.warn(`No valid photo URLs found. Fetched ${photoData.length} photos but ${photoData.length - photoList.length} had missing URLs`);
+        }
+      }
+
+      // Fetch harvests for this plant
+      try {
+        const harvestData = await getHarvestsByPlant(plantId);
+        setHarvests(harvestData);
+
+        // Get total harvests by unit
+        const totals = await getTotalHarvestByPlant(plantId);
+        setHarvestTotals(totals);
+      } catch (harvestError) {
+        console.error('Error fetching harvests:', harvestError);
+        // Don't fail the whole page load if harvests fail
+      }
+
+      // Fetch companion planting info
+      if (plantData?.name) {
+        try {
+          const companionData = await getCompanionsByPlantName(plantData.name);
+          setCompanions(companionData);
+        } catch (companionError) {
+          console.error('Error fetching companions:', companionError);
+          // Don't fail the whole page load if companions fail
+        }
       }
     } catch (error: any) {
       console.error('Error fetching plant details:', error);
@@ -67,19 +112,6 @@ export default function PlantDetailScreen() {
       setLoading(false);
     }
   };
-
-  // Memoized callbacks to prevent unnecessary re-renders
-  const handleEdit = useCallback(() => {
-    navigation.navigate('EditPlant', { plantId });
-  }, [navigation, plantId]);
-
-  const handleViewGallery = useCallback(() => {
-    navigation.navigate('PhotoGallery', { plantId });
-  }, [navigation, plantId]);
-
-  const handleUploadPhoto = useCallback(() => {
-    navigation.navigate('PhotoUpload', { plantId });
-  }, [navigation, plantId]);
 
   // Memoized format functions
   const formatDate = useCallback((dateString?: string) => {
@@ -96,15 +128,95 @@ export default function PlantDetailScreen() {
   // Memoized status color function
   const getStatusColor = useCallback((status: string): string => {
     const statusColors: { [key: string]: string } = {
-      etabliert: Colors.success,
       geplant: Colors.info,
       bestellt: Colors.warning,
-      gepflanzt: Colors.primaryLight,
-      geerntet: Colors.accent,
+      ausgesät: '#2196F3',
+      pikiert: '#1976D2',
+      ausgepflanzt: Colors.primary,
+      etabliert: Colors.success,
+      geerntet: '#FF9800',
+      unklar: Colors.textLight,
       entfernt: Colors.textLight,
     };
     return statusColors[status.toLowerCase()] || Colors.textLight;
   }, []);
+
+  // Helper to get status label from value
+  const getStatusLabel = useCallback((statusValue: string): string => {
+    const statusMap: { [key: string]: string } = {
+      geplant: 'Geplant',
+      bestellt: 'Bestellt',
+      ausgesät: 'Ausgesät',
+      pikiert: 'Pikiert',
+      ausgepflanzt: 'Ausgepflanzt',
+      etabliert: 'Etabliert',
+      geerntet: 'Geerntet',
+      unklar: 'Unklar',
+      entfernt: 'Entfernt',
+    };
+    return statusMap[statusValue.toLowerCase()] || statusValue;
+  }, []);
+
+  // Memoized callbacks to prevent unnecessary re-renders
+  const handleEdit = useCallback(() => {
+    navigation.navigate('EditPlant', { plantId });
+  }, [navigation, plantId]);
+
+  const handleViewGallery = useCallback(() => {
+    navigation.navigate('PhotoGallery', { plantId });
+  }, [navigation, plantId]);
+
+  const handleUploadPhoto = useCallback(() => {
+    navigation.navigate('PhotoUpload', { plantId });
+  }, [navigation, plantId]);
+
+  const handleProgressStatus = useCallback(async () => {
+    if (!plant) return;
+
+    const nextStatus = getNextStatus(plant.status);
+    if (!nextStatus) {
+      Alert.alert('Info', 'Die Pflanze hat bereits den Status "geerntet" erreicht.');
+      return;
+    }
+
+    const statusMap: { [key: string]: string } = {
+      geplant: 'Geplant',
+      bestellt: 'Bestellt',
+      ausgesät: 'Ausgesät',
+      pikiert: 'Pikiert',
+      ausgepflanzt: 'Ausgepflanzt',
+      etabliert: 'Etabliert',
+      geerntet: 'Geerntet',
+      unklar: 'Unklar',
+    };
+    const nextStatusLabel = statusMap[nextStatus.toLowerCase()] || nextStatus;
+
+    Alert.alert(
+      'Status aktualisieren',
+      `Pflanze als "${nextStatusLabel}" markieren?`,
+      [
+        { text: 'Abbrechen', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'Bestätigen',
+          onPress: async () => {
+            try {
+              console.log('Updating status to:', nextStatus);
+              await progressPlantStatus(plantId);
+              const updated = await fetchPlant(plantId);
+              console.log('Updated plant:', updated?.status);
+              if (updated) {
+                setPlant(updated);
+              }
+              Alert.alert('Erfolg', `Status wurde auf "${nextStatusLabel}" aktualisiert.`);
+            } catch (error: any) {
+              console.error('Status update error:', error);
+              Alert.alert('Fehler', `Status konnte nicht aktualisiert werden: ${error.message}`);
+            }
+          },
+        },
+      ]
+    );
+  }, [plant, plantId]);
 
   if (loading) {
     return (
@@ -155,9 +267,22 @@ export default function PlantDetailScreen() {
             <MaterialIcons name="info" size={20} color={Colors.primary} />
             <Text style={styles.infoLabel}>Status:</Text>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(plant.status) }]}>
-              <Text style={styles.statusText}>{plant.status}</Text>
+              <Text style={styles.statusText}>{getStatusLabel(plant.status)}</Text>
             </View>
           </View>
+
+          {/* Status Progression Button */}
+          {getNextStatus(plant.status) && (
+            <TouchableOpacity
+              style={styles.statusProgressButton}
+              onPress={handleProgressStatus}
+            >
+              <MaterialIcons name="arrow-forward" size={18} color="#fff" />
+              <Text style={styles.statusProgressButtonText}>
+                Als {getStatusLabel(getNextStatus(plant.status) || '')} markieren
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.infoRow}>
             <MaterialIcons name="format-list-numbered" size={20} color={Colors.primary} />
@@ -242,7 +367,7 @@ export default function PlantDetailScreen() {
                 {photos.map((photo) => (
                   <View key={photo.id} style={styles.photoWrapper}>
                     <Image
-                      source={{ uri: photo.thumbnail_url || photo.file_url }}
+                      source={{ uri: photo.photo_url }}
                       style={styles.photoThumbnail}
                       resizeMode="cover"
                     />
@@ -279,6 +404,103 @@ export default function PlantDetailScreen() {
             <Text style={styles.infoValue}>{formatDate(plant.updated_at)}</Text>
           </View>
         </View>
+
+        {/* Companion Planting Section */}
+        {companions && (companions.good_companions?.length > 0 || companions.bad_companions?.length > 0) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Mischkultur-Informationen</Text>
+
+            {/* Good Companions */}
+            {companions.good_companions && companions.good_companions.length > 0 && (
+              <View style={styles.companionsContainer}>
+                <Text style={styles.companionLabel}>✓ Gute Nachbarn</Text>
+                <View style={styles.companionChipsContainer}>
+                  {companions.good_companions.map((companion, index) => (
+                    <View key={index} style={[styles.companionChip, styles.goodCompanion]}>
+                      <MaterialIcons name="check-circle" size={14} color="#4CAF50" />
+                      <Text style={styles.companionChipText}>{companion}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Bad Companions */}
+            {companions.bad_companions && companions.bad_companions.length > 0 && (
+              <View style={styles.companionsContainer}>
+                <Text style={styles.companionLabel}>✗ Ungünstige Nachbarn</Text>
+                <View style={styles.companionChipsContainer}>
+                  {companions.bad_companions.map((companion, index) => (
+                    <View key={index} style={[styles.companionChip, styles.badCompanion]}>
+                      <MaterialIcons name="cancel" size={14} color="#F44336" />
+                      <Text style={styles.companionChipText}>{companion}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Harvest Section */}
+        {(harvests.length > 0 || harvestTotals.length > 0) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Ernten</Text>
+
+            {/* Harvest Totals */}
+            {harvestTotals.length > 0 && (
+              <View style={styles.harvestTotalsContainer}>
+                {harvestTotals.map((total, index) => (
+                  <View key={index} style={styles.harvestTotal}>
+                    <Text style={styles.harvestTotalValue}>
+                      {total.quantity.toFixed(2)} {total.unit}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Last 3 Harvests */}
+            {harvests.length > 0 && (
+              <View style={styles.recentHarvestsContainer}>
+                <Text style={styles.subSectionTitle}>Letzte Ernten</Text>
+                {harvests.slice(0, 3).map((harvest, index) => (
+                  <View key={index} style={styles.harvestItem}>
+                    <Text style={styles.harvestItemText}>
+                      {harvest.quantity} {harvest.unit} • {formatDate(harvest.harvest_date)}
+                    </Text>
+                    {harvest.notes && <Text style={styles.harvestNotes}>{harvest.notes}</Text>}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Harvest Action Buttons */}
+            <View style={styles.harvestButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.harvestButton, styles.harvestButtonPrimary]}
+                onPress={() => navigation.navigate('AddHarvest', { plantId })}
+              >
+                <MaterialIcons name="agriculture" size={18} color="#fff" />
+                <Text style={styles.harvestButtonText}>Ernte dokumentieren</Text>
+              </TouchableOpacity>
+              {harvests.length > 3 && (
+                <TouchableOpacity
+                  style={[styles.harvestButton, styles.harvestButtonSecondary]}
+                  onPress={() => navigation.navigate('HarvestLog', { plantId })}
+                >
+                  <MaterialIcons name="view-list" size={18} color={Colors.primary} />
+                  <Text style={[styles.harvestButtonText, styles.harvestButtonTextSecondary]}>
+                    Alle anzeigen
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Spacer */}
+        <View style={styles.spacer} />
       </ScrollView>
 
       {/* Floating Edit Button */}
@@ -481,5 +703,130 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  harvestTotalsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  harvestTotal: {
+    backgroundColor: Colors.background,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  harvestTotalValue: {
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  recentHarvestsContainer: {
+    marginBottom: 12,
+  },
+  subSectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textLight,
+    marginBottom: 8,
+  },
+  harvestItem: {
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  harvestItemText: {
+    fontSize: 12,
+    color: Colors.text,
+  },
+  harvestNotes: {
+    fontSize: 11,
+    color: Colors.textLight,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  harvestButtonsContainer: {
+    gap: 8,
+    marginTop: 12,
+  },
+  harvestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 6,
+  },
+  harvestButtonPrimary: {
+    backgroundColor: Colors.primary,
+  },
+  harvestButtonSecondary: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  harvestButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  harvestButtonTextSecondary: {
+    color: Colors.primary,
+  },
+  statusProgressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.success,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginVertical: 8,
+    gap: 6,
+  },
+  statusProgressButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  companionsContainer: {
+    marginBottom: 12,
+  },
+  companionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  companionChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  companionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    gap: 4,
+  },
+  goodCompanion: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  badCompanion: {
+    backgroundColor: '#FFEBEE',
+    borderWidth: 1,
+    borderColor: '#F44336',
+  },
+  companionChipText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.text,
   },
 });

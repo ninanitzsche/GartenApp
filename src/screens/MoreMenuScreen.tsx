@@ -67,14 +67,24 @@ export default function MoreMenuScreen({ navigation }: Props) {
           <Text style={styles.menuItemText}>Einkaufsliste</Text>
           <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
         </TouchableOpacity>
-        <View style={styles.menuItem}>
-          <MaterialIcons name="map" size={24} color={Colors.textLight} />
-          <Text style={styles.menuItemText}>Garten-Pläne</Text>
-        </View>
-        <View style={styles.menuItem}>
-          <MaterialIcons name="book" size={24} color={Colors.textLight} />
-          <Text style={styles.menuItemText}>Wissensbank</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('HarvestLog')}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="agriculture" size={24} color={Colors.primary} />
+          <Text style={styles.menuItemText}>Ernte-Tagebuch</Text>
+          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('KnowledgeBase')}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="menu-book" size={24} color={Colors.primary} />
+          <Text style={styles.menuItemText}>Wissensdatenbank</Text>
+          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>

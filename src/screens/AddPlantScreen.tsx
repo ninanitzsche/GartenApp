@@ -19,10 +19,12 @@ import { createPlant } from '../services/plantService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddPlant'>;
 
-export default function AddPlantScreen({ navigation }: Props) {
+export default function AddPlantScreen({ navigation, route }: Props) {
+  const { prefillName, prefillLatinName, identificationSource } = route.params || {};
+  
   const [formData, setFormData] = useState<PlantFormData>({
-    name: '',
-    latin_name: '',
+    name: prefillName || '',
+    latin_name: prefillLatinName || '',
     location: '',
     type: '',
     status: 'geplant',
@@ -31,7 +33,7 @@ export default function AddPlantScreen({ navigation }: Props) {
     quantity: undefined,
     planted_date: '',
     harvest_date: '',
-    notes: '',
+    notes: identificationSource === 'ai' ? 'Via KI identifiziert' : '',
     tags: [],
   });
   const [loading, setLoading] = useState(false);

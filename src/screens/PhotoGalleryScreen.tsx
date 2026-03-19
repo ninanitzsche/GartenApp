@@ -77,7 +77,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
         });
       }
 
-      setPhotos(newPhotos);
+      // Filter out photos without valid URLs
+      const validPhotos = newPhotos.filter(p => !!p.photo_url);
+      setPhotos(validPhotos);
       setHasMore(newPhotos.length >= PHOTO_BATCH_SIZE);
     } catch (error: any) {
       Alert.alert('Fehler', `Fotos konnten nicht geladen werden: ${error.message}`);
@@ -107,7 +109,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
       if (morePhotos.length === 0) {
         setHasMore(false);
       } else {
-        setPhotos([...photos, ...morePhotos]);
+        // Filter out photos without valid URLs
+        const validPhotos = morePhotos.filter(p => !!p.photo_url);
+        setPhotos([...photos, ...validPhotos]);
         setPaginationOffset(nextOffset);
         setHasMore(morePhotos.length >= PHOTO_BATCH_SIZE);
       }
@@ -177,7 +181,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: item.photo_url || item.file_url }}
+          source={{ uri: item.photo_url }}
           style={styles.photoImage}
           resizeMode="cover"
         />
@@ -344,7 +348,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
             {/* Full Image */}
             {selectedPhoto && (
               <Image
-                source={{ uri: selectedPhoto.photo_url || selectedPhoto.file_url }}
+                source={{ uri: selectedPhoto.photo_url }}
                 style={styles.fullImage}
                 resizeMode="contain"
               />

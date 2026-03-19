@@ -270,7 +270,7 @@ Photo Upload Feature
 ---
 
 ### Development Process & Cost
-📄 **File:** `docs/LEARNINGS/development-process-learnings.md`
+📄 **Files:** `docs/LEARNINGS/bugs-and-gotchas.md`, `docs/LEARNINGS/feature-implementation-learnings.md`
 
 **What it contains:**
 - Velocity baseline (10.8 pts/2 weeks)
@@ -476,7 +476,7 @@ Find similar feature, use that as baseline
 ---
 
 ### "What's the budget for Sprint 6?"
-→ `docs/LEARNINGS/development-process-learnings.md`
+→ `docs/LEARNINGS/feature-implementation-learnings.md`
 Multiply story points × $0.03-0.05 per point
 Expected: $0.50-1.00 for 10-point sprint
 
@@ -484,7 +484,7 @@ Expected: $0.50-1.00 for 10-point sprint
 
 ### "What's our velocity?"
 → 10.8 points per 2-week sprint (baseline)
-See: `docs/LEARNINGS/development-process-learnings.md`
+See: `docs/LEARNINGS/feature-implementation-learnings.md`
 
 ---
 
@@ -493,7 +493,7 @@ See: `docs/LEARNINGS/development-process-learnings.md`
 1. Product vision in `docs/bmad/bmad-01-product-brief.md`
 2. Requirements scope in `docs/bmad/bmad-02-prd.md`
 3. Technical constraints in `docs/bmad/bmad-03-architecture.md`
-4. Velocity capacity in `docs/LEARNINGS/development-process-learnings.md`
+4. Velocity capacity in `docs/LEARNINGS/feature-implementation-learnings.md`
 
 ---
 
@@ -519,7 +519,7 @@ See: `docs/LEARNINGS/development-process-learnings.md`
 | Create new story | /bmad:create-story {ID} | 15 min |
 | Plan new sprint | /bmad:sprint-planning {name} | 30 min |
 | Evaluate big decision | /bmad:solutioning-gate-check {title} | 20 min |
-| Check budget | docs/LEARNINGS/development-process-learnings.md | 5 min |
+| Check budget | docs/LEARNINGS/feature-implementation-learnings.md | 5 min |
 | Find similar story | docs/stories/STORY-REGISTER.md | 5 min |
 | Understand constraints | docs/bmad/bmad-03-architecture.md | 15 min |
 

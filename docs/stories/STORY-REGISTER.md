@@ -100,16 +100,16 @@ STORY-002-SUMMARY.md      ← Filter & Search (Core Feature)
 STORY-033b-INDEX.md       ← Auth (Core Feature)
 ```
 
-### Option 2: Archivierte Dateien (docs/archive/)
+### Option 2: Archivierte Dateien (.archive/docs/archive/)
 Alle anderen Stories haben mehrere Dokumentationen:
 ```bash
 # Beispiel STORY-041 (Photo)
-docs/archive/
+.archive/docs/archive/
 ├── STORY-041-IMPLEMENTATION.md
 └── STORY-041-CHECKLIST.md
 
 # Beispiel STORY-019 (Tasks)
-docs/archive/
+.archive/docs/archive/
 ├── STORY-019-COMPLETED.md
 ├── README-STORY-019.md
 ├── COMPLETION-REPORT-STORY-019.md
@@ -193,7 +193,7 @@ STORY-XXX-TEST-GUIDE.md             ← Testing Scenarios
 ```
 STORY-002-SUMMARY.md                ← Main Reference (in root)
 
-docs/archive/:
+.archive/docs/archive/:
 ├── STORY-002-ARCHITECTURE.md
 ├── STORY-002-CHECKLIST.md
 ├── STORY-002-CODE-REFERENCE.md
@@ -212,8 +212,7 @@ Feature Documentation:
 └── src/services/README-PHOTO.md  ← Service Code
 
 Archive:
-├── docs/archive/STORY-041-IMPLEMENTATION.md
-└── docs/archive/STORY-041-CHECKLIST.md
+└── .archive/docs/archive/STORY-041-*.md
 
 Patterns:
 └── memory/patterns.md → Photo Service Pattern
@@ -226,13 +225,13 @@ Patterns:
 ### Alle Archive Durchsuchen
 ```bash
 # List alle Stories
-ls -1 docs/archive/ | grep "STORY"
+ls -1 .archive/docs/archive/ | grep "STORY"
 
 # Search in archive
-grep -r "STORY-XXX" docs/archive/
+grep -r "STORY-XXX" .archive/docs/archive/
 
 # View specific story
-cat docs/archive/STORY-042-COMPLETION-REPORT.md
+cat .archive/docs/archive/STORY-042-COMPLETION-REPORT.md
 ```
 
 ### Alle Code Patterns
