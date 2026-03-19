@@ -38,17 +38,17 @@ User uploads a photo → System identifies plant using Claude Vision API → Ret
 </read_first>
 <action>
 Create src/services/aiService.ts with:
-- interface PlantIdentification { name, confidence, plantId?, care_tips? }
+- interface PlantIdentification { name, scientificName, confidence, family, commonNames[] }
 - async function identifyPlant(imageUri: string): Promise<PlantIdentification>
-- Use Claude Sonnet via REST API
-- Resize image to max 1MB before upload
-- Timeout: 30 seconds
-- Return confidence score 0-100%
+- Use Pl@ntNet API: POST to https://my-api.plantnet.org/v2/identify/all
+- Use FormData for image upload
+- Parse response: bestMatch, score (0-1), species info
+- Handle API errors gracefully
 </action>
 <acceptance_criteria>
 - aiService.ts exports identifyPlant function
 - Function accepts imageUri parameter
-- Returns Promise with { name: string, confidence: number }
+- Returns Promise with { name, scientificName, confidence, family, commonNames }
 - Handles API errors gracefully
 </acceptance_criteria>
 </task>
@@ -60,12 +60,13 @@ Create src/services/aiService.ts with:
 <action>
 Create src/types/ai.ts with:
 - PlantIdentificationResult interface
+- Pl@ntNetResponse interface
 - IdentificationCache interface
-- AI_ERROR_CODES constant
+- API_ERROR_CODES constant
 </action>
 <acceptance_criteria>
-- PlantIdentificationResult has: name, confidence, plantId, careTips, imageUrl
-- IdentificationCache has: imageHash, plantId, timestamp
+- PlantIdentificationResult has: name, scientificName, confidence, family, commonNames
+- Pl@ntNetResponse maps API response to our types
 </acceptance_criteria>
 </task>
 ```

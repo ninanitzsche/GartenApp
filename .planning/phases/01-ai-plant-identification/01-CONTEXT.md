@@ -58,10 +58,12 @@ User uploads a photo → System identifies the plant using Claude Vision API →
 - [auto] Selected: Local cache enabled (recommended - cost optimization)
 
 ### API Integration
-- Use Claude Sonnet for vision (balanced cost/quality)
-- Max 1MB image size (resize before upload)
-- Timeout: 30 seconds
-- [auto] Selected: Claude Sonnet (recommended - good plant ID accuracy)
+- **Pl@ntNet API** - spezialisiert für Pflanzen, 500 Identifikationen/Tag kostenlos
+- API-Key in `.env`: `EXPO_PUBLIC_PLANTNET_API_KEY`
+- POST zu: `https://my-api.plantnet.org/v2/identify/all`
+- Organ-Detection: `auto` für automatische Erkennung
+- Max 5 Bilder pro Request
+- [auto] Selected: Pl@ntNet (recommended - spezialisiert, kostenlos, getestet)
 
 </decisions>
 
