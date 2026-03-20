@@ -30,6 +30,7 @@ import { learningService } from '../services/learningService';
 import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit, getZeitraumShortLabel, sortZeitraeume } from '../utils/zeitraumUtils';
 import { Zeitraum } from '../types/zeitraum';
 import LearningCard from '../components/LearningCard';
+import Toast from '../components/Toast';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -61,9 +62,18 @@ export default function HomeScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [prioritizedTasks, setPrioritizedTasks] = useState<Task[]>([]);
   const [learnings, setLearnings] = useState<Learning[]>([]);
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' | 'info' }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
   
   // PERFORMANCE FIX: Dashboard data cache
   const cacheRef = useRef<DashboardCache | null>(null);
+  
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ visible: true, message, type });
+  };
 
   const loadDashboard = useCallback(async (forceRefresh = false) => {
     // PERFORMANCE FIX: Return cached data if valid
@@ -148,8 +158,10 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       await toggleTaskCompletion(taskId);
       await loadPrioritizedTasks();
+      showToast('Aufgabe erledigt!', 'success');
     } catch (error: any) {
       console.error('Error toggling task:', error);
+      showToast('Fehler beim Aktualisieren', 'error');
     }
   };
 
@@ -157,8 +169,10 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       await learningService.rateLearning(id, helpful ? 'helpful' : 'not_helpful');
       await loadLearnings();
+      showToast(helpful ? 'Als hilfreich markiert' : 'Als nicht hilfreich markiert', 'success');
     } catch (error) {
       console.error('Error rating learning:', error);
+      showToast('Fehler beim Bewerten', 'error');
     }
   };
 
@@ -166,8 +180,10 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       await learningService.dismissLearning(id);
       await loadLearnings();
+      showToast('Tipp verworfen', 'info');
     } catch (error) {
       console.error('Error dismissing learning:', error);
+      showToast('Fehler beim Verwerfen', 'error');
     }
   };
 
@@ -223,11 +239,12 @@ export default function HomeScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Gartenplaner</Text>
@@ -378,23 +395,23 @@ export default function HomeScreen({ navigation }: Props) {
       {/* Plant Status Distribution */}
       {statusDistribution.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pflanzen-Status</Text>
+          <Text style={styles.sectionTitle} accessibilityRole="header">Pflanzen-Status</Text>
 
-          <View style={styles.statusDistribution}>
+          <View style={styles.statusDistribution} accessibilityRole="list" aria-label="Pflanzen nach Status">
             {statusDistribution.map((item, index) => (
-              <View key={index} style={styles.statusItem}>
+              <View key={index} style={styles.statusItem} accessibilityRole="listitem">
                 <View
                   style={[
                     styles.statusBar,
                     { backgroundColor: getStatusColor(item.status) + '20' },
                   ]}
+                  accessibilityLabel={`${getStatusLabel(item.status)}: ${item.count} Pflanzen`}
                 >
                   <View
                     style={[
                       styles.statusBarFill,
                       {
                         backgroundColor: getStatusColor(item.status),
-                        // Calculate width based on total plants
                         width: `${Math.round((item.count / statusDistribution.reduce((sum, s) => sum + s.count, 0)) * 100)}%`
                       },
                     ]}
@@ -457,6 +474,14 @@ export default function HomeScreen({ navigation }: Props) {
       {/* Spacer */}
       <View style={styles.spacer} />
     </ScrollView>
+
+    <Toast
+      visible={toast.visible}
+      message={toast.message}
+      type={toast.type}
+      onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+    />
+    </>
   );
 }
 
