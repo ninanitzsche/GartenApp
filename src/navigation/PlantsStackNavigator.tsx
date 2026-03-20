@@ -10,6 +10,7 @@ import EditPlantScreen from '../screens/EditPlantScreen';
 import PlantDetailScreen from '../screens/PlantDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import PhotoUploadScreen from '../screens/PhotoUploadScreen';
+import CompanionSearchScreen from '../screens/CompanionSearchScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -68,6 +69,13 @@ export default function PlantsStackNavigator() {
         options={{
           title: 'Foto hochladen',
           presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="CompanionSearch"
+        component={CompanionSearchScreen}
+        options={{
+          title: 'Mischkultur-Suche',
         }}
       />
     </Stack.Navigator>

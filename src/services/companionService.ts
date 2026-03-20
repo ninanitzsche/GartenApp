@@ -19,20 +19,37 @@ export async function getCompanionsByPlantName(
       return null;
     }
 
-    const { data, error } = await supabase
+    const normalizedName = plantName.toLowerCase().trim();
+    
+    // Try exact match first, then partial match
+    let { data, error } = await supabase
       .from('plant_companions')
       .select('*')
-      .ilike('plant_name', plantName)
-      .single();
+      .eq('plant_name', normalizedName)
+      .maybeSingle();
+
+    // If no result, try German name
+    if (!data) {
+      const { data: dataDe } = await supabase
+        .from('plant_companions')
+        .select('*')
+        .eq('plant_name_de', normalizedName)
+        .maybeSingle();
+      
+      if (dataDe) {
+        data = dataDe;
+        error = null;
+      }
+    }
 
     if (error && error.code !== 'PGRST116') {
-      // PGRST116 is "no rows returned" which is expected
-      throw error;
+      console.error(`Error fetching companions for "${plantName}":`, error.message);
+      return null;
     }
 
     return (data || null) as PlantCompanion | null;
   } catch (error: any) {
-    console.error(`Error fetching companions for plant "${plantName}":`, error.message);
+    console.error(`Error fetching companions for "${plantName}":`, error.message);
     return null;
   }
 }

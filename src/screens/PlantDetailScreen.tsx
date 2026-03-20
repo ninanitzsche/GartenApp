@@ -20,6 +20,7 @@ import { getHarvestsByPlant, getTotalHarvestByPlant } from '../services/harvestS
 import { getCompanionsByPlantName } from '../services/companionService';
 import { getIdentificationsForPlant } from '../services/aiMetadataService';
 import { PlantCompanion } from '../types/companion';
+import CompanionCard from '../components/CompanionCard';
 import { Plant } from '../types/plant';
 import { Photo, PhotoPlant } from '../types/photo';
 import { Harvest, HarvestTotal } from '../types/harvest';
@@ -415,36 +416,14 @@ export default function PlantDetailScreen() {
         {/* Companion Planting Section */}
         {companions && (companions.good_companions?.length > 0 || companions.bad_companions?.length > 0) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mischkultur-Informationen</Text>
-
-            {/* Good Companions */}
+            <Text style={styles.sectionTitle}>Mischkultur</Text>
+            
             {companions.good_companions && companions.good_companions.length > 0 && (
-              <View style={styles.companionsContainer}>
-                <Text style={styles.companionLabel}>✓ Gute Nachbarn</Text>
-                <View style={styles.companionChipsContainer}>
-                  {companions.good_companions.map((companion, index) => (
-                    <View key={index} style={[styles.companionChip, styles.goodCompanion]}>
-                      <MaterialIcons name="check-circle" size={14} color="#4CAF50" />
-                      <Text style={styles.companionChipText}>{companion}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
+              <CompanionCard companion={companions} type="good" />
             )}
-
-            {/* Bad Companions */}
+            
             {companions.bad_companions && companions.bad_companions.length > 0 && (
-              <View style={styles.companionsContainer}>
-                <Text style={styles.companionLabel}>✗ Ungünstige Nachbarn</Text>
-                <View style={styles.companionChipsContainer}>
-                  {companions.bad_companions.map((companion, index) => (
-                    <View key={index} style={[styles.companionChip, styles.badCompanion]}>
-                      <MaterialIcons name="cancel" size={14} color="#F44336" />
-                      <Text style={styles.companionChipText}>{companion}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
+              <CompanionCard companion={companions} type="bad" />
             )}
           </View>
         )}
