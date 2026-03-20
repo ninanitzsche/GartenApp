@@ -1,12 +1,11 @@
 /**
  * AI Plant Identification Service
- * Uses Pl@ntNet API for plant identification
- * 
+ * Uses Pl@ntNet API directly from the browser
+ *
  * API Docs: https://my.plantnet.org/doc/api/identify
  * Free tier: 500 identifications/day
  */
 
-import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import {
   PlantIdentificationResult,
@@ -14,8 +13,8 @@ import {
   AI_ERROR_CODES,
 } from '../types/ai';
 
-const PLANTNET_API_URL = 'https://my-api.plantnet.org/v2/identify/all';
 const PLANTNET_API_KEY = process.env.EXPO_PUBLIC_PLANTNET_API_KEY || '';
+const PLANTNET_URL = `https://my-api.plantnet.org/v2/identify/weurope`;
 
 export interface IdentifyPlantOptions {
   organ?: 'leaf' | 'flower' | 'fruit' | 'bark' | 'auto';
@@ -24,7 +23,7 @@ export interface IdentifyPlantOptions {
 }
 
 /**
- * Identify a plant from an image URI using Pl@ntNet API
+ * Identify a plant from an image URI using Pl@ntNet API directly
  */
 export async function identifyPlant(
   imageUri: string,
@@ -33,42 +32,39 @@ export async function identifyPlant(
   const { organ = 'auto', language = 'de' } = options;
 
   if (!PLANTNET_API_KEY) {
-    throw new Error('Pl@ntNet API key not configured. Set EXPO_PUBLIC_PLANTNET_API_KEY in .env');
+    throw new Error('PlantNet API key not configured. Set EXPO_PUBLIC_PLANTNET_API_KEY in .env');
   }
 
   try {
-    // Read image as base64
-    const base64Image = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    let imageBlob: Blob;
 
-    // Create form data
+    if (imageUri.startsWith('blob:')) {
+      const response = await fetch(imageUri);
+      imageBlob = await response.blob();
+    } else if (imageUri.startsWith('data:')) {
+      const response = await fetch(imageUri);
+      imageBlob = await response.blob();
+    } else {
+      const response = await fetch(imageUri);
+      imageBlob = await response.blob();
+    }
+
+    // Create form data with image
     const formData = new FormData();
-    formData.append('images', {
-      uri: imageUri,
-      name: 'plant_image.jpg',
-      type: 'image/jpeg',
-    } as any);
+    formData.append('images', imageBlob, 'plant.jpg');
     formData.append('organs', organ);
 
-    // Call Pl@ntNet API
-    const response = await fetch(
-      `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}&lang=${language}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        // Don't set Content-Type for FormData - fetch will set it with boundary
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+    // Call PlantNet API directly
+    const response = await fetch(`${PLANTNET_URL}?api-key=${PLANTNET_API_KEY}&lang=${language}`, {
+      method: 'POST',
       body: formData,
     });
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
       throw {
         code: AI_ERROR_CODES.API_ERROR,
-        message: `Pl@ntNet API error: ${response.status}`,
+        message: errorData.error || `API error: ${response.status}`,
       };
     }
 
@@ -152,15 +148,7 @@ export async function pickImage(
  * Check remaining API quota
  */
 export async function getRemainingQuota(): Promise<number> {
-  try {
-    const response = await fetch(
-      `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}`
-    );
-    const data: PlantNetResponse = await response.json();
-    return data.remainingIdentificationRequests || 0;
-  } catch {
-    return -1;
-  }
+  return -1;
 }
 
 /**
@@ -171,8 +159,5 @@ export async function identifyPlantMultiple(
   maxResults: number = 5
 ): Promise<PlantIdentificationResult[]> {
   const result = await identifyPlant(imageUri);
-  
-  // For now, return just the top result
-  // TODO: Extend to return multiple results from Pl@ntNet
   return [result];
 }

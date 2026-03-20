@@ -50,54 +50,55 @@ export default function PlantDetailScreen() {
     }, [plantId])
   );
 
+  // PERFORMANCE FIX: Parallel data fetching with Promise.all
   const fetchPlantDetails = async () => {
     try {
       setLoading(true);
 
-      // Fetch plant data using service
-      const plantData = await fetchPlant(plantId);
+      // Parallel fetch: Plant + all dependent data simultaneously
+      const [plantData, photoDataResult, harvestData, totals, identifications] = await Promise.all([
+        fetchPlant(plantId),
+        supabase
+          .from('photo_plants')
+          .select('photos(*)')
+          .eq('plant_id', plantId),
+        getHarvestsByPlant(plantId).catch(err => {
+          console.error('Error fetching harvests:', err);
+          return [];
+        }),
+        getTotalHarvestByPlant(plantId).catch(err => {
+          console.error('Error fetching harvest totals:', err);
+          return [];
+        }),
+        getIdentificationsForPlant(plantId).catch(err => {
+          console.error('Error fetching AI identifications:', err);
+          return [];
+        }),
+      ]);
+
+      // Set plant data
       setPlant(plantData);
 
-      // Fetch related photos via junction table
-      const { data: photoData, error: photoError } = await supabase
-        .from('photo_plants')
-        .select('photos(*)')
-        .eq('plant_id', plantId);
-
-      if (photoError) {
-        console.error('Error fetching photos:', photoError);
-      } else if (photoData) {
-        const photoList = photoData
+      // Process photos
+      if (!photoDataResult.error && photoDataResult.data) {
+        const photoList = photoDataResult.data
           .map((pp: any) => pp.photos)
           .filter((p: Photo | null) => p !== null)
           .map((p: Photo) => {
             const enriched = enrichPhotoWithUrl(p);
-            if (!enriched.photo_url) {
-              console.warn('Photo missing URL:', { photo_id: p.id, file_url: p.file_url });
-            }
             return enriched;
           })
           .filter((p: Photo) => !!p.photo_url) as Photo[];
         setPhotos(photoList);
-        if (photoList.length === 0 && photoData.length > 0) {
-          console.warn(`No valid photo URLs found. Fetched ${photoData.length} photos but ${photoData.length - photoList.length} had missing URLs`);
-        }
+      } else {
+        console.error('Error fetching photos:', photoDataResult.error);
       }
 
-      // Fetch harvests for this plant
-      try {
-        const harvestData = await getHarvestsByPlant(plantId);
-        setHarvests(harvestData);
+      // Set harvest data
+      setHarvests(harvestData);
+      setHarvestTotals(totals);
 
-        // Get total harvests by unit
-        const totals = await getTotalHarvestByPlant(plantId);
-        setHarvestTotals(totals);
-      } catch (harvestError) {
-        console.error('Error fetching harvests:', harvestError);
-        // Don't fail the whole page load if harvests fail
-      }
-
-      // Fetch companion planting info
+      // Fetch companion planting info (depends on plant name)
       if (plantData?.name) {
         try {
           const companionData = await getCompanionsByPlantName(plantData.name);
@@ -107,13 +108,9 @@ export default function PlantDetailScreen() {
         }
       }
 
-      // Fetch AI identifications
-      try {
-        const identifications = await getIdentificationsForPlant(plantId);
-        setAiIdentifications(identifications);
-      } catch (aiError) {
-        console.error('Error fetching AI identifications:', aiError);
-      }
+      // Set AI identifications
+      setAiIdentifications(identifications);
+
     } catch (error: any) {
       console.error('Error fetching plant details:', error);
       Alert.alert('Fehler', 'Pflanze konnte nicht geladen werden.');

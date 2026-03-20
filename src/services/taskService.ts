@@ -10,24 +10,49 @@ import { Plant } from '../types/plant';
 /**
  * Fetch all tasks for current user
  * Sorted by priority (hoch → mittel → niedrig), then created_at
+ * OPTIMIZED: Uses JOIN to avoid N+1 queries
  */
 export async function fetchTasks(): Promise<TaskListItem[]> {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (!user || userError) throw new Error('User not authenticated');
 
+    // Fetch tasks with linked plant names in a single query using JOIN
     const { data, error } = await supabase
       .from('tasks')
-      .select('*')
+      .select(`
+        *,
+        plant_tasks(
+          plants(
+            id,
+            name
+          )
+        )
+      `)
       .eq('user_id', user.id)
       .order('priority', { ascending: false })
       .order('created_at', { ascending: true });
 
     if (error) throw error;
 
-    // Enrich with plant names
-    const tasks = (data || []) as Task[];
-    return await Promise.all(tasks.map(enrichTaskWithPlantNames));
+    // Transform data to include plant_names (single query, no N+1)
+    return (data || []).map((task: any): TaskListItem => {
+      const linkedPlants = task.plant_tasks || [];
+      const plant_names = linkedPlants
+        .map((pt: any) => pt.plants?.name)
+        .filter(Boolean)
+        .sort();
+      
+      const linked_plants = linkedPlants
+        .map((pt: any) => pt.plants)
+        .filter(Boolean);
+
+      return {
+        ...task,
+        plant_names,
+        linked_plants,
+      };
+    });
   } catch (error: any) {
     throw new Error(`Error fetching tasks: ${error.message}`);
   }
@@ -35,6 +60,7 @@ export async function fetchTasks(): Promise<TaskListItem[]> {
 
 /**
  * Fetch single task by ID with linked plants
+ * OPTIMIZED: Uses JOIN to avoid N+1 queries
  */
 export async function fetchTask(taskId: string): Promise<TaskListItem | null> {
   try {
@@ -43,7 +69,15 @@ export async function fetchTask(taskId: string): Promise<TaskListItem | null> {
 
     const { data, error } = await supabase
       .from('tasks')
-      .select('*')
+      .select(`
+        *,
+        plant_tasks(
+          plants(
+            id,
+            name
+          )
+        )
+      `)
       .eq('id', taskId)
       .eq('user_id', user.id)
       .single();
@@ -51,7 +85,21 @@ export async function fetchTask(taskId: string): Promise<TaskListItem | null> {
     if (error) throw error;
     if (!data) return null;
 
-    return enrichTaskWithPlantNames(data as Task);
+    const task: any = data;
+    const linkedPlants = task.plant_tasks || [];
+    const plant_names = linkedPlants
+      .map((pt: any) => pt.plants?.name)
+      .filter(Boolean)
+      .sort();
+    const linked_plants = linkedPlants
+      .map((pt: any) => pt.plants)
+      .filter(Boolean);
+
+    return {
+      ...task,
+      plant_names,
+      linked_plants,
+    };
   } catch (error: any) {
     throw new Error(`Error fetching task: ${error.message}`);
   }

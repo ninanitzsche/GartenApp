@@ -15,6 +15,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.ninamarie.gartenplaner",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -25,6 +26,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "EXPO_PUBLIC_SUPABASE_URL": "https://imudqikcxawrvrmvyuzk.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltdWRxaWtjeGF3cnZybXZ5dXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NjA2MzQsImV4cCI6MjA4ODAzNjYzNH0.RzLuEQsZk8xpCD4YRUmaj2-YaFgQW1OvDUbeSOpl9zQ",
+      "eas": {
+        "projectId": "ad7f9126-e077-42cf-a823-aab2affc870e"
+      }
+    },
+    "owner": "ninamarie"
   }
 }
