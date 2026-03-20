@@ -48,7 +48,13 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <TouchableOpacity style={styles.checkbox} onPress={onToggle}>
+      <TouchableOpacity 
+        style={styles.checkbox} 
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isCompleted }}
+        accessibilityLabel={isCompleted ? `${task.title} erledigt` : `${task.title} nicht erledigt`}
+      >
         <MaterialIcons
           name={isCompleted ? 'check-circle' : 'radio-button-unchecked'}
           size={24}
@@ -86,9 +92,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   checkbox: {
-    marginRight: 12,
-    width: 24,
-    height: 24,
+    marginRight: 8,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },

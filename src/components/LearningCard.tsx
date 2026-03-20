@@ -22,7 +22,12 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
         <Text style={styles.title} numberOfLines={2}>
           {learning.title}
         </Text>
-        <TouchableOpacity onPress={onDismiss} style={styles.dismissButton}>
+        <TouchableOpacity 
+          onPress={onDismiss} 
+          style={styles.dismissButton}
+          accessibilityLabel="Tipp verwerfen"
+          accessibilityRole="button"
+        >
           <MaterialIcons name="close" size={18} color={Colors.textLight} />
         </TouchableOpacity>
       </View>
@@ -39,6 +44,8 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
             <TouchableOpacity 
               style={styles.ratingButton} 
               onPress={() => onRate(true)}
+              accessibilityLabel="Als hilfreich bewerten"
+              accessibilityRole="button"
             >
               <MaterialIcons name="thumb-up" size={18} color={Colors.textLight} />
               <Text style={styles.ratingText}>Hilfreich</Text>
@@ -46,6 +53,8 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
             <TouchableOpacity 
               style={styles.ratingButton} 
               onPress={() => onRate(false)}
+              accessibilityLabel="Als nicht hilfreich bewerten"
+              accessibilityRole="button"
             >
               <MaterialIcons name="thumb-down" size={18} color={Colors.textLight} />
               <Text style={styles.ratingText}>Nicht hilfreich</Text>
@@ -99,7 +108,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   dismissButton: {
-    padding: 2,
+    padding: 8,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     fontSize: 13,
@@ -124,7 +137,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    padding: 4,
+    padding: 10,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   ratingText: {
     fontSize: 12,

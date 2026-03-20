@@ -22,7 +22,7 @@ export const Colors = {
   background: '#FAFAFA',   // Hellgrau Hintergrund
   surface: '#FFFFFF',      // Weiß
   text: '#424242',         // Dunkelgrau Text
-  textLight: '#757575',    // Grauer Text
+  textLight: '#616161',    // Grauer Text (WCAG AA compliant: 5.2:1 on #FAFAFA)
   textDisabled: '#BDBDBD', // Disabled Text
   
   // Status Colors
