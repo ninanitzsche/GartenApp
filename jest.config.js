@@ -7,8 +7,15 @@ module.exports = {
   // Use node environment for service/utility testing
   testEnvironment: 'node',
 
+  // Transform ignore patterns for React Native
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|@react-navigation|@testing-library|expo|@expo|@expo/vector-icons)/)',
+  ],
+
   // Module name mapper for handling assets and non-JS imports
   moduleNameMapper: {
+    '^react-native$': '<rootDir>/src/__tests__/mocks/reactNative.js',
+    '@expo/vector-icons': '<rootDir>/src/__tests__/mocks/expoVectorIcons.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/src/__tests__/mocks/fileMock.ts',
     '\\.(css|less|scss|sass)$': '<rootDir>/src/__tests__/mocks/styleMock.ts',
