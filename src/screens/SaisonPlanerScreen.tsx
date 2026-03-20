@@ -7,13 +7,13 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
-  Dimensions,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { PlantingCalendarEntry } from '../data/plantingCalendarData';
 import { Plant } from '../types/plant';
 import { TaskListItem } from '../types/task';
 import {
@@ -23,7 +23,6 @@ import {
   searchPlants,
   getMonthName,
   getActionLabel,
-  getDifficultyLabel,
   getUserPlantsStatus,
   getRecommendedActionsForUserPlants,
   PlantablePlant,
@@ -34,287 +33,153 @@ import { getCurrentSeasonalKnowledge } from '../data/seasonalKnowledge';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const { width } = Dimensions.get('window');
-
-const SEASON_THEMES = {
-  spring: {
-    gradient: ['#A8E6CF', '#56AB2F'],
-    emoji: '🌸',
-    title: 'Frühling',
-    accent: '#56AB2F',
-  },
-  summer: {
-    gradient: ['#FAD0C4', '#FFD1FF'],
-    emoji: '☀️',
-    title: 'Sommer',
-    accent: '#FF9A44',
-  },
-  autumn: {
-    gradient: ['#F8B595', '#F67280'],
-    emoji: '🍂',
-    title: 'Herbst',
-    accent: '#F67280',
-  },
-  winter: {
-    gradient: ['#E0EAFC', '#CFDEF3'],
-    emoji: '❄️',
-    title: 'Winter',
-    accent: '#667EEA',
-  },
+const SEASONS = {
+  spring: { bg: '#F0FAF0', accent: '#2D9D4F', emoji: '🌸' },
+  summer: { bg: '#FFF8E7', accent: '#E8943A', emoji: '☀️' },
+  autumn: { bg: '#FFF0E7', accent: '#D4633A', emoji: '🍂' },
+  winter: { bg: '#F0F4FA', accent: '#5B8DEF', emoji: '❄️' },
 };
 
-const PLANT_ICONS: Record<string, string> = {
-  tomate: 'food-apple',
-  paprika: 'chili-mild',
-  gurke: 'cucumber',
-  zucchini: 'ghost',
-  moehre: 'carrot',
-  radieschen: 'radio',
-  spinat: 'leaf',
-  salat: 'food-variant',
-  rucola: 'grass',
-  zwiebel: 'onion',
-  knoblauch: 'garlic',
-  basilikum: 'leaf-maple',
-  petersilie: 'herb',
-  schnittlauch: 'chives',
-  bohne: 'seed',
-  erbsen: 'pea',
-  kohl: 'cabbage',
-  brokkoli: 'broccoli',
-  kartoffeln: 'pot-mashed',
-  kuerbis: 'pumpkin',
-  lauch: 'leek',
-  sellerie: 'celery',
-  default: 'sprout',
+const PLANT_COLORS: Record<string, string> = {
+  tomate: '#E53935', paprika: '#FB8C00', gurke: '#43A047',
+  zucchini: '#7CB342', moehre: '#FF7043', radieschen: '#EC407A',
+  spinat: '#66BB6A', salat: '#26A69A', rucola: '#9CCC65',
+  zwiebel: '#8D6E63', knoblauch: '#A1887F', basilikum: '#4CAF50',
+  petersilie: '#2E7D32', schnittlauch: '#689F38', bohne: '#558B2F',
+  erbsen: '#7CB342', kohl: '#388E3C', brokkoli: '#4CAF50',
+  kartoffeln: '#A1887F', kuerbis: '#EF6C00', lauch: '#43A047',
+  default: '#56AB2F',
 };
 
-const getPlantIcon = (name: string): string => {
-  const lower = name.toLowerCase().replace(/[öüä]/g, (c) => ({ö:'o',ü:'u',ä:'a'}[c]));
-  for (const [key, icon] of Object.entries(PLANT_ICONS)) {
-    if (lower.includes(key)) return icon;
-  }
-  return PLANT_ICONS.default;
+const getPlantColor = (name: string): string => {
+  const n = name.toLowerCase().replace(/[öüä]/g, (c: string) => ({ö:'o',ü:'u',ä:'a'}[c] || c));
+  for (const [k, v] of Object.entries(PLANT_COLORS)) if (n.includes(k)) return v;
+  return PLANT_COLORS.default;
 };
 
-const ModernCard = ({ children, style, onPress }: any) => {
-  const content = (
-    <View style={[styles.card, style]}>
-      {children}
-    </View>
-  );
-  
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
-        {content}
-      </TouchableOpacity>
-    );
-  }
-  return content;
-};
-
-const FloatingButton = ({ children, style, onPress }: any) => (
-  <TouchableOpacity 
-    onPress={onPress} 
-    activeOpacity={0.8}
-    style={[styles.floatingButton, style]}
-  >
-    {children}
-  </TouchableOpacity>
+const Chip = ({ children, color, small }: { children: React.ReactNode; color?: string; small?: boolean }) => (
+  <View style={[styles.chip, small && styles.chipSmall, color && { backgroundColor: color + '20' }]}>
+    <Text style={[styles.chipText, small && styles.chipTextSmall, color && { color }]}>{children}</Text>
+  </View>
 );
 
 export default function SaisonPlanerScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'my' | 'ideas'>('my');
-  const [userPlants, setUserPlants] = useState<Plant[]>([]);
+  const [tab, setTab] = useState<'my' | 'ideas'>('my');
+  const [plants, setPlants] = useState<Plant[]>([]);
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [plants, taskList] = await Promise.all([
-        fetchPlants(),
-        fetchTasks()
-      ]);
-      setUserPlants(plants);
-      setTasks(taskList);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  
+
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-  
-  const userPlantsWithStatus = useMemo(() => getUserPlantsStatus(userPlants), [userPlants]);
-  const recommendations = useMemo(() => getRecommendedActionsForUserPlants(userPlants), [userPlants]);
-  const seasonStatus = useMemo(() => getSeasonStatus(), []);
-  const plantableNow = useMemo(() => getPlantableNow(), []);
-  const plantableSoon = useMemo(() => getPlantableSoon(8), []);
-  const seasonalKnowledge = useMemo(() => getCurrentSeasonalKnowledge(), []);
-  const pendingTasksCount = useMemo(() => tasks.filter(t => !t.completed_at).length, [tasks]);
+    (async () => {
+      try {
+        setLoading(true);
+        const [p, t] = await Promise.all([fetchPlants(), fetchTasks()]);
+        setPlants(p);
+        setTasks(t);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return searchPlants(searchQuery);
-  }, [searchQuery]);
+  const season = useMemo(() => SEASONS[getSeasonStatus().seasonPhase] || SEASONS.spring, []);
+  const status = useMemo(() => getSeasonStatus(), []);
+  const myWithStatus = useMemo(() => getUserPlantsStatus(plants), [plants]);
+  const recs = useMemo(() => getRecommendedActionsForUserPlants(plants), [plants]);
+  const now = useMemo(() => getPlantableNow(), []);
+  const soon = useMemo(() => getPlantableSoon(8), []);
+  const knowledge = useMemo(() => getCurrentSeasonalKnowledge(), []);
+  const pendingTasks = useMemo(() => tasks.filter(t => !t.completed_at).length, [tasks]);
 
-  const displayedPlants = useMemo(() => {
-    if (searchQuery.trim()) {
-      return searchResults.map(plant => ({
-        plant,
-        action: 'direct_sow' as const,
-        urgency: 'now' as const,
-        weeksUntilOptimal: 0,
-      }));
-    }
-    return [...plantableNow, ...plantableSoon].sort((a, b) => 
-      a.weeksUntilOptimal - b.weeksUntilOptimal
-    );
-  }, [searchQuery, searchResults, plantableNow, plantableSoon]);
+  const ideas = useMemo(() => {
+    if (searchQuery.trim()) return searchPlants(searchQuery).map(p => ({ plant: p, urgency: 'now' as const, weeksUntilOptimal: 0, action: 'direct_sow' as const }));
+    return [...now, ...soon].sort((a, b) => a.weeksUntilOptimal - b.weeksUntilOptimal);
+  }, [searchQuery, now, soon]);
 
-  const theme = SEASON_THEMES[seasonStatus.seasonPhase] || SEASON_THEMES.spring;
+  const navigateToPlant = (plantId: string) => navigation.navigate('PlantDetail' as any, { plantId });
+  const navigateToAddPlant = (name?: string) => navigation.navigate('AddPlant' as any, name ? { prefillName: name } : {});
+  const navigateToTasks = () => navigation.navigate('Tasks' as any);
 
-  const renderPlantIdeaCard = ({ item }: { item: PlantablePlant }) => (
-    <ModernCard style={styles.ideaCard}>
-      <View style={styles.ideaCardHeader}>
-        <View style={styles.ideaIconContainer}>
-          <MaterialCommunityIcons 
-            name={getPlantIcon(item.plant.plant_name) as any} 
-            size={28} 
-            color="#56AB2F" 
-          />
-        </View>
-        <View style={styles.ideaInfo}>
-          <Text style={styles.ideaName}>{item.plant.plant_name}</Text>
-          {item.plant.latin_name && (
-            <Text style={styles.ideaLatin}>{item.plant.latin_name}</Text>
-          )}
-        </View>
-        <View style={[
-          styles.urgencyPill, 
-          { backgroundColor: item.urgency === 'now' ? '#FF6B6B' : '#FFE66D' }
-        ]}>
-          <Text style={[
-            styles.urgencyText, 
-            { color: item.urgency === 'now' ? '#fff' : '#333' }
-          ]}>
-            {item.urgency === 'now' ? '🌱 Jetzt' : `${item.weeksUntilOptimal}w`}
-          </Text>
-        </View>
+  const renderMyPlant = ({ item }: { item: typeof myWithStatus[0] }) => (
+    <TouchableOpacity style={styles.plantRow} onPress={() => navigateToPlant(item.plantId)} activeOpacity={0.7}>
+      <View style={[styles.plantDot, { backgroundColor: item.isOverdue ? '#E53935' : item.isOnTrack ? '#2D9D4F' : '#FFA726' }]} />
+      <View style={styles.plantRowContent}>
+        <Text style={styles.plantRowName}>{item.plantName}</Text>
+        <Text style={styles.plantRowMeta}>
+          {item.statusLabel}
+          {item.calendarEntry && ` · ${getActionLabel(item.nextAction)}`}
+        </Text>
       </View>
-      
-      <View style={styles.ideaMeta}>
-        <View style={styles.metaChip}>
-          <MaterialCommunityIcons name="clock-outline" size={14} color="#666" />
-          <Text style={styles.metaChipText}>{getActionLabel(item.action)}</Text>
-        </View>
-        <View style={styles.metaChip}>
-          <MaterialCommunityIcons name={item.plant.sunlight === 'full' ? 'white-balance-sunny' : 'weather-partly-cloudy'} size={14} color="#666" />
-          <Text style={styles.metaChipText}>
-            {item.plant.sunlight === 'full' ? 'Sonne' : 'Halbschatten'}
-          </Text>
-        </View>
-        <View style={[styles.difficultyPill, { backgroundColor: getDifficultyLabel(item.plant.difficulty) === 'Einfach' ? '#E8F5E9' : getDifficultyLabel(item.plant.difficulty) === 'Mittel' ? '#FFF3E0' : '#FFEBEE' }]}>
-          <Text style={[styles.difficultyText, { color: getDifficultyLabel(item.plant.difficulty) === 'Einfach' ? '#4CAF50' : getDifficultyLabel(item.plant.difficulty) === 'Mittel' ? '#FF9800' : '#F44336' }]}>
-            {getDifficultyLabel(item.plant.difficulty)}
-          </Text>
-        </View>
-      </View>
-      
-      {item.plant.planting_tip && (
-        <View style={styles.tipBubble}>
-          <MaterialCommunityIcons name="lightbulb-outline" size={14} color="#FFC107" />
-          <Text style={styles.tipText}>{item.plant.planting_tip}</Text>
-        </View>
-      )}
-      
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={() => navigation.navigate('AddPlant' as any, {
-          prefillName: item.plant.plant_name,
-        })}
-      >
-        <Text style={styles.addButtonText}>Zur Liste hinzufügen</Text>
-        <MaterialCommunityIcons name="arrow-right" size={18} color="#56AB2F" />
-      </TouchableOpacity>
-    </ModernCard>
+      <Ionicons name="chevron-forward" size={20} color="#CCC" />
+    </TouchableOpacity>
   );
 
-  const renderMyPlantCard = ({ item }: any) => (
-    <ModernCard 
-      style={styles.myPlantCard}
-      onPress={() => navigation.navigate('PlantDetail' as any, { plantId: item.plantId })}
-    >
-      <View style={styles.myPlantRow}>
-        <View style={styles.myPlantIcon}>
-          <MaterialCommunityIcons name="sprout" size={24} color="#56AB2F" />
+  const renderIdea = ({ item }: { item: PlantablePlant }) => (
+    <TouchableOpacity style={styles.ideaCard} onPress={() => navigateToAddPlant(item.plant.plant_name)} activeOpacity={0.8}>
+      <View style={[styles.ideaHeader, { backgroundColor: getPlantColor(item.plant.plant_name) + '15' }]}>
+        <View style={[styles.ideaBadge, { backgroundColor: getPlantColor(item.plant.plant_name) }]}>
+          <Text style={styles.ideaBadgeText}>
+            {item.urgency === 'now' || item.weeksUntilOptimal === 0 ? '🌱' : `${item.weeksUntilOptimal}w`}
+          </Text>
         </View>
-        <View style={styles.myPlantInfo}>
-          <Text style={styles.myPlantName}>{item.plantName}</Text>
-          <View style={styles.myPlantMeta}>
-            <View style={[
-              styles.statusDot, 
-              { backgroundColor: item.isOverdue ? '#FF6B6B' : item.isOnTrack ? '#4CAF50' : '#FFE66D' }
-            ]} />
-            <Text style={styles.statusLabel}>{item.statusLabel}</Text>
-            {item.calendarEntry && (
-              <Text style={styles.nextAction}>· {getActionLabel(item.nextAction)}</Text>
-            )}
-          </View>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color="#ccc" />
+        <Text style={styles.ideaName}>{item.plant.plant_name}</Text>
+        {item.plant.latin_name && <Text style={styles.ideaLatin}>{item.plant.latin_name}</Text>}
       </View>
-    </ModernCard>
+      <View style={styles.ideaBody}>
+        <View style={styles.ideaMeta}>
+          <Text style={styles.ideaMetaText}>📅 {getActionLabel(item.action)}</Text>
+          <Text style={styles.ideaMetaText}>☀️ {item.plant.sunlight === 'full' ? 'Vollsonne' : 'Halbschatten'}</Text>
+        </View>
+        {item.plant.planting_tip && (
+          <Text style={styles.ideaTip} numberOfLines={2}>💡 {item.plant.planting_tip}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Hero Section */}
-      <View style={[styles.hero, { backgroundColor: theme.gradient[0] }]}>
-        <View style={styles.heroContent}>
-          <View style={styles.heroTop}>
-            <View>
-              <Text style={styles.heroEmoji}>{theme.emoji}</Text>
-              <Text style={styles.heroTitle}>Saison-Planer</Text>
-              <Text style={styles.heroSubtitle}>{getMonthName(seasonStatus.currentMonth)}</Text>
-            </View>
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: season.bg }]}>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerSeason}>{season.emoji} {SEASONS[status.seasonPhase as keyof typeof SEASONS]?.bg.includes('spring') ? 'Frühling' : SEASONS[status.seasonPhase as keyof typeof SEASONS]?.bg.includes('summer') ? 'Sommer' : SEASONS[status.seasonPhase as keyof typeof SEASONS]?.bg.includes('autumn') ? 'Herbst' : 'Winter'}</Text>
+            <Text style={styles.headerTitle}>Saison-Planer</Text>
           </View>
-          
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{plantableNow.length}</Text>
-              <Text style={styles.statLabel}>Jetzt pflanzbar</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{userPlants.length}</Text>
-              <Text style={styles.statLabel}>Meine Pflanzen</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{pendingTasksCount}</Text>
-              <Text style={styles.statLabel}>Aufgaben</Text>
-            </View>
-          </View>
+          <TouchableOpacity style={styles.monthBadge}>
+            <Text style={styles.monthText}>{getMonthName(status.currentMonth)}</Text>
+          </TouchableOpacity>
         </View>
-        
-        {/* Decorative circles */}
-        <View style={styles.decorCircle1} />
-        <View style={styles.decorCircle2} />
+
+        {/* Quick Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.stat}>
+            <Text style={[styles.statNum, { color: season.accent }]}>{now.length}</Text>
+            <Text style={styles.statLab}>Jetzt pflanzbar</Text>
+          </View>
+          <View style={styles.statSep} />
+          <View style={styles.stat}>
+            <Text style={[styles.statNum, { color: season.accent }]}>{plants.length}</Text>
+            <Text style={styles.statLab}>Meine Pflanzen</Text>
+          </View>
+          <View style={styles.statSep} />
+          <TouchableOpacity style={styles.stat} onPress={navigateToTasks}>
+            <Text style={[styles.statNum, { color: pendingTasks > 0 ? '#E53935' : season.accent }]}>{pendingTasks}</Text>
+            <Text style={styles.statLab}>Aufgaben</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchWrapper}>
+      {/* Search */}
+      <View style={styles.searchWrap}>
         <View style={styles.searchBar}>
-          <MaterialCommunityIcons name="magnify" size={22} color="#999" />
+          <Ionicons name="search" size={20} color="#999" />
           <TextInput
             style={styles.searchInput}
             placeholder="Pflanze suchen..."
@@ -322,113 +187,70 @@ export default function SaisonPlanerScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          {searchQuery && (
+          {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialCommunityIcons name="close-circle" size={20} color="#999" />
+              <Ionicons name="close-circle" size={20} color="#999" />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
       </View>
 
-      {/* Tab Switcher */}
-      <View style={styles.tabWrapper}>
-        <View style={styles.tabBar}>
-          <TouchableOpacity 
-            style={[styles.tab, selectedTab === 'my' && styles.tabActive]}
-            onPress={() => setSelectedTab('my')}
-          >
-            <MaterialCommunityIcons 
-              name="leaf" 
-              size={20} 
-              color={selectedTab === 'my' ? '#fff' : '#666'} 
-            />
-            <Text style={[styles.tabLabel, selectedTab === 'my' && styles.tabLabelActive]}>
-              Meine Pflanzen
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, selectedTab === 'ideas' && styles.tabActive]}
-            onPress={() => setSelectedTab('ideas')}
-          >
-            <MaterialCommunityIcons 
-              name="lightbulb-outline" 
-              size={20} 
-              color={selectedTab === 'ideas' ? '#fff' : '#666'} 
-            />
-            <Text style={[styles.tabLabel, selectedTab === 'ideas' && styles.tabLabelActive]}>
-              Pflanz-Ideen
-            </Text>
-          </TouchableOpacity>
-        </View>
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tab, tab === 'my' && { backgroundColor: season.accent }]}
+          onPress={() => setTab('my')}
+        >
+          <Text style={[styles.tabText, tab === 'my' && styles.tabTextOn]}>{'Meine Pflanzen'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, tab === 'ideas' && { backgroundColor: season.accent }]}
+          onPress={() => setTab('ideas')}
+        >
+          <Text style={[styles.tabText, tab === 'ideas' && styles.tabTextOn]}>{'Pflanz-Ideen'}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
-      {selectedTab === 'my' ? (
+      {tab === 'my' ? (
         loading ? (
-          <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color="#56AB2F" />
-          </View>
+          <View style={styles.loading}><ActivityIndicator size="large" color={season.accent} /></View>
         ) : (
           <FlatList
-            data={userPlantsWithStatus}
+            data={myWithStatus}
             keyExtractor={(item) => item.plantId}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={
               <>
-                {/* Recommendations */}
-                {recommendations.length > 0 && (
+                {recs.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Das steht an</Text>
-                    {recommendations.map((rec, idx) => (
-                      <View key={idx} style={[
-                        styles.recCard,
-                        rec.urgency === 'high' && styles.recCardUrgent,
-                        rec.urgency === 'medium' && styles.recCardWarning,
-                      ]}>
-                        <MaterialCommunityIcons 
-                          name={rec.urgency === 'high' ? 'alert-circle' : 'information'} 
-                          size={20} 
-                          color={rec.urgency === 'high' ? '#FF6B6B' : '#FFE66D'} 
-                        />
-                        <Text style={styles.recText}>{rec.recommendation}</Text>
+                    <Text style={styles.sectionTitle}>⚡ Das steht an</Text>
+                    {recs.map((r, i) => (
+                      <View key={i} style={[styles.recCard, r.urgency === 'high' && styles.recHigh, r.urgency === 'medium' && styles.recMed]}>
+                        <Ionicons name={r.urgency === 'high' ? 'warning' : 'information-circle'} size={20} color={r.urgency === 'high' ? '#E53935' : '#FFA726'} />
+                        <Text style={styles.recText}>{r.recommendation}</Text>
                       </View>
                     ))}
                   </View>
                 )}
-
-                {/* Tasks Banner */}
-                {pendingTasksCount > 0 && (
-                  <TouchableOpacity 
-                    style={styles.tasksBanner}
-                    onPress={() => navigation.navigate('Tasks' as any)}
-                  >
-                    <View style={styles.tasksBannerLeft}>
-                      <View style={styles.tasksBadge}>
-                        <Text style={styles.tasksBadgeText}>{pendingTasksCount}</Text>
-                      </View>
-                      <Text style={styles.tasksBannerText}>Offene Aufgaben</Text>
-                    </View>
-                    <MaterialCommunityIcons name="chevron-right" size={24} color="#fff" />
+                {pendingTasks > 0 && (
+                  <TouchableOpacity style={[styles.taskBanner, { backgroundColor: season.accent }]} onPress={navigateToTasks}>
+                    <Text style={styles.taskBannerText}>{pendingTasks} offene Aufgaben</Text>
+                    <Ionicons name="arrow-forward" size={20} color="#FFF" />
                   </TouchableOpacity>
                 )}
-
-                <Text style={styles.listHeader}>
-                  Deine Pflanzen ({userPlantsWithStatus.length})
-                </Text>
+                <Text style={styles.listTitle}>Deine Pflanzen ({myWithStatus.length})</Text>
               </>
             }
-            renderItem={renderMyPlantCard}
+            renderItem={renderMyPlant}
             ListEmptyComponent={
-              <View style={styles.emptyState}>
+              <View style={styles.empty}>
                 <Text style={styles.emptyEmoji}>🌻</Text>
                 <Text style={styles.emptyTitle}>Keine Pflanzen vorhanden</Text>
-                <Text style={styles.emptySubtitle}>Füge deine erste Pflanze hinzu!</Text>
-                <TouchableOpacity 
-                  style={styles.emptyButton}
-                  onPress={() => navigation.navigate('AddPlant' as any, {})}
-                >
-                  <Text style={styles.emptyButtonText}>+ Pflanze hinzufügen</Text>
+                <Text style={styles.emptySub}>Füge deine erste Pflanze hinzu!</Text>
+                <TouchableOpacity style={[styles.addBtn, { backgroundColor: season.accent }]} onPress={() => navigateToAddPlant()}>
+                  <Text style={styles.addBtnText}>+ Pflanze hinzufügen</Text>
                 </TouchableOpacity>
               </View>
             }
@@ -436,624 +258,274 @@ export default function SaisonPlanerScreen() {
         )
       ) : (
         <FlatList
-          data={displayedPlants}
+          data={ideas}
           keyExtractor={(item) => `${item.plant.id}-${item.action}`}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <>
-              {/* Knowledge Card */}
-              <ModernCard style={styles.knowledgeCard}>
-                <View style={styles.knowledgeHeader}>
-                  <Text style={styles.knowledgeEmoji}>💡</Text>
-                  <Text style={styles.knowledgeTitle}>{seasonalKnowledge?.title}</Text>
-                </View>
-                
-                <View style={styles.knowledgeSection}>
-                  <Text style={styles.knowledgeSectionTitle}>Tipps für heute</Text>
-                  {seasonalKnowledge?.tips.slice(0, 3).map((tip, idx) => (
-                    <View key={idx} style={styles.knowledgeItem}>
-                      <View style={styles.bulletPoint} />
-                      <Text style={styles.knowledgeText}>{tip}</Text>
+              <View style={[styles.knowledgeCard, { borderLeftColor: season.accent }]}>
+                <Text style={styles.knowledgeTitle}>💡 {knowledge?.title}</Text>
+                <View style={styles.knowledgeTips}>
+                  {knowledge?.tips.slice(0, 3).map((t, i) => (
+                    <View key={i} style={styles.knowledgeTip}>
+                      <View style={[styles.dot, { backgroundColor: season.accent }]} />
+                      <Text style={styles.knowledgeTipText}>{t}</Text>
                     </View>
                   ))}
                 </View>
-              </ModernCard>
-
-              {/* Companion Tips */}
-              {seasonalKnowledge?.companionPlantingTips?.length > 0 && (
+              </View>
+              {knowledge?.companionPlantingTips?.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🌿 Mischkultur-Tipps</Text>
-                  {seasonalKnowledge.companionPlantingTips.slice(0, 3).map((tip, idx) => (
-                    <View key={idx} style={[
-                      styles.companionCard,
-                      tip.type === 'avoid' && styles.companionCardAvoid,
-                    ]}>
-                      <View style={styles.companionRow}>
-                        <Text style={styles.companionPlants}>{tip.plant1} ↔ {tip.plant2}</Text>
-                        <View style={[
-                          styles.companionBadge,
-                          tip.type === 'good' ? styles.badgeGood : styles.badgeAvoid,
-                        ]}>
-                          <Text style={[
-                            styles.badgeText,
-                            { color: tip.type === 'good' ? '#4CAF50' : '#FF6B6B' }
-                          ]}>
-                            {tip.type === 'good' ? '✓ Gut' : '✗ Meiden'}
-                          </Text>
-                        </View>
-                      </View>
-                      <Text style={styles.companionReason}>{tip.benefit}</Text>
+                  <Text style={styles.sectionTitle}>🌿 Mischkultur</Text>
+                  {knowledge.companionPlantingTips.slice(0, 3).map((c, i) => (
+                    <View key={i} style={[styles.companionCard, c.type === 'avoid' && styles.companionAvoid]}>
+                      <Text style={styles.companionPlants}>{c.plant1} ↔ {c.plant2}</Text>
+                      <Chip color={c.type === 'good' ? '#2D9D4F' : '#E53935'}>{c.type === 'good' ? '✓ Gut' : '✗ Meiden'}</Chip>
+                      <Text style={styles.companionReason}>{c.benefit}</Text>
                     </View>
                   ))}
                 </View>
               )}
-
-              <Text style={styles.listHeader}>
-                🌱 Pflanzbar im {getMonthName(seasonStatus.currentMonth)}
-              </Text>
+              <Text style={styles.listTitle}>🌱 Pflanzbar im {getMonthName(status.currentMonth)}</Text>
             </>
           }
-          renderItem={renderPlantIdeaCard}
+          renderItem={renderIdea}
           ListEmptyComponent={
-            <View style={styles.emptyState}>
+            <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🔍</Text>
               <Text style={styles.emptyTitle}>Keine Pflanzen gefunden</Text>
             </View>
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  safe: { flex: 1, backgroundColor: '#FAFAFA' },
   
-  // Hero Section
-  hero: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    position: 'relative',
-    overflow: 'hidden',
+  header: {
+    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
-  heroContent: {
-    position: 'relative',
-    zIndex: 2,
-  },
-  heroTop: {
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
-  heroEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
+  headerSeason: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    marginBottom: 4,
   },
-  heroTitle: {
-    fontSize: 32,
+  headerTitle: {
+    fontSize: 34,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: '#1A1A1A',
     letterSpacing: -1,
   },
-  heroSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.9)',
+  monthBadge: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
-    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#56AB2F',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#666',
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 8,
-  },
-  decorCircle1: {
-    position: 'absolute',
-    right: -30,
-    top: -30,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  decorCircle2: {
-    position: 'absolute',
-    right: 40,
-    bottom: -20,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  monthText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
   },
 
-  // Search
-  searchWrapper: {
-    paddingHorizontal: 20,
-    marginTop: -15,
-    zIndex: 10,
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
   },
+  stat: { flex: 1, alignItems: 'center' },
+  statNum: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+  statLab: { fontSize: 11, color: '#888', marginTop: 4, fontWeight: '500' },
+  statSep: { width: 1, backgroundColor: '#EEE', marginHorizontal: 8 },
+
+  searchWrap: { paddingHorizontal: 24, marginTop: -12, marginBottom: 8 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#333',
-  },
-
-  // Tabs
-  tabWrapper: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 16, color: '#333' },
+
+  tabs: {
+    flexDirection: 'row',
+    marginHorizontal: 24,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 6,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   tab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: 12,
-    gap: 8,
+    alignItems: 'center',
   },
-  tabActive: {
-    backgroundColor: '#56AB2F',
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  tabLabelActive: {
-    color: '#fff',
-  },
+  tabText: { fontSize: 14, fontWeight: '600', color: '#888' },
+  tabTextOn: { color: '#FFF' },
 
-  // List Content
-  listContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 12,
-  },
+  list: { paddingHorizontal: 24, paddingBottom: 100 },
+  section: { marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 12 },
   
-  // Recommendation Cards
   recCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderRadius: 14,
     padding: 14,
     marginBottom: 8,
-    gap: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFE66D',
+    borderLeftColor: '#FFA726',
+    gap: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
   },
-  recCardUrgent: {
-    borderLeftColor: '#FF6B6B',
-    backgroundColor: '#FFF5F5',
-  },
-  recCardWarning: {
-    borderLeftColor: '#FFE66D',
-    backgroundColor: '#FFFBEB',
-  },
-  recText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
+  recHigh: { borderLeftColor: '#E53935', backgroundColor: '#FFF5F5' },
+  recMed: { borderLeftColor: '#FFA726', backgroundColor: '#FFFBF0' },
+  recText: { flex: 1, fontSize: 14, color: '#333', lineHeight: 20 },
 
-  // Tasks Banner
-  tasksBanner: {
+  taskBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#56AB2F',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
   },
-  tasksBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  tasksBadge: {
-    backgroundColor: '#fff',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tasksBadgeText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#56AB2F',
-  },
-  tasksBannerText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
+  taskBannerText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
 
-  // List Header
-  listHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 16,
-  },
+  listTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 12 },
 
-  // Cards
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  
-  // My Plant Card
-  myPlantCard: {
-    padding: 16,
-  },
-  myPlantRow: {
+  plantRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  myPlantIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#E8F5E9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  myPlantInfo: {
-    flex: 1,
-  },
-  myPlantName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  myPlantMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  statusLabel: {
-    fontSize: 13,
-    color: '#666',
-  },
-  nextAction: {
-    fontSize: 13,
-    color: '#56AB2F',
-    marginLeft: 4,
-  },
-
-  // Idea Card
-  ideaCard: {
-    padding: 18,
-  },
-  ideaCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  ideaIconContainer: {
-    width: 52,
-    height: 52,
+    backgroundColor: '#FFF',
     borderRadius: 16,
-    backgroundColor: '#E8F5E9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  ideaInfo: {
-    flex: 1,
-  },
-  ideaName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  ideaLatin: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  urgencyPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  urgencyText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  ideaMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  metaChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  metaChipText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  difficultyPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tipBubble: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#FFFBEB',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-    gap: 8,
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#795548',
-    lineHeight: 18,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#E8F5E9',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#56AB2F',
-  },
-
-  // Knowledge Card
-  knowledgeCard: {
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
-  knowledgeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 10,
-  },
-  knowledgeEmoji: {
-    fontSize: 28,
-  },
-  knowledgeTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    flex: 1,
-  },
-  knowledgeSection: {
-    marginTop: 8,
-  },
-  knowledgeSectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    padding: 16,
     marginBottom: 10,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  knowledgeItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-    gap: 10,
-  },
-  bulletPoint: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#56AB2F',
-    marginTop: 6,
-  },
-  knowledgeText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#444',
-    lineHeight: 20,
-  },
+  plantDot: { width: 12, height: 12, borderRadius: 6 },
+  plantRowContent: { flex: 1 },
+  plantRowName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  plantRowMeta: { fontSize: 13, color: '#888' },
 
-  // Companion Cards
+  ideaCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    marginBottom: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  ideaHeader: {
+    padding: 18,
+    paddingBottom: 14,
+  },
+  ideaBadge: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ideaBadgeText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  ideaName: { fontSize: 20, fontWeight: '700', color: '#1A1A1A', marginTop: 20, marginRight: 50 },
+  ideaLatin: { fontSize: 12, color: '#888', fontStyle: 'italic', marginTop: 2 },
+  ideaBody: { padding: 18, paddingTop: 14 },
+  ideaMeta: { flexDirection: 'row', gap: 16, marginBottom: 10 },
+  ideaMetaText: { fontSize: 13, color: '#666', fontWeight: '500' },
+  ideaTip: { fontSize: 13, color: '#795548', fontStyle: 'italic', lineHeight: 18 },
+
+  knowledgeCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderLeftWidth: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  knowledgeTitle: { fontSize: 17, fontWeight: '700', color: '#1A1A1A', marginBottom: 14 },
+  knowledgeTips: { gap: 10 },
+  knowledgeTip: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
+  knowledgeTipText: { flex: 1, fontSize: 14, color: '#444', lineHeight: 20 },
+
   companionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#56AB2F',
+    borderLeftColor: '#2D9D4F',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  companionCardAvoid: {
-    borderLeftColor: '#FF6B6B',
-  },
-  companionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  companionPlants: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-  },
-  companionBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  badgeGood: {
-    backgroundColor: '#E8F5E9',
-  },
-  badgeAvoid: {
-    backgroundColor: '#FFEBEE',
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  companionReason: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 18,
-  },
+  companionAvoid: { borderLeftColor: '#E53935' },
+  companionPlants: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  companionReason: { fontSize: 12, color: '#888', lineHeight: 18 },
 
-  // Empty State
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyEmoji: {
-    fontSize: 72,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 6,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: '#56AB2F',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  emptyButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-  },
+  chip: { backgroundColor: '#F0F0F0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
+  chipSmall: { paddingHorizontal: 8, paddingVertical: 3 },
+  chipText: { fontSize: 12, fontWeight: '600', color: '#666' },
+  chipTextSmall: { fontSize: 10 },
 
-  // Loading
-  loadingState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  empty: { alignItems: 'center', paddingVertical: 60 },
+  emptyEmoji: { fontSize: 72, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#1A1A1A', marginBottom: 6 },
+  emptySub: { fontSize: 14, color: '#888', marginBottom: 24 },
+  addBtn: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14 },
+  addBtnText: { fontSize: 15, fontWeight: '600', color: '#FFF' },
 
-  // Floating Button
-  floatingButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    backgroundColor: '#56AB2F',
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#56AB2F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
