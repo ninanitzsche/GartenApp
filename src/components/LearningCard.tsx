@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Learning } from '../types/learning';
 import Colors from '../theme/colors';
@@ -10,133 +10,137 @@ interface LearningCardProps {
   onDismiss: () => void;
 }
 
-const categoryIcons: Record<string, string> = {
-  pflege: 'spa',
-  ernte: 'agriculture',
-  schädlinge: 'bug-report',
-  bewässerung: 'water-drop',
-  düngung: 'compost',
-  allgemein: 'lightbulb',
-};
-
-const categoryLabels: Record<string, string> = {
-  pflege: 'Pflege',
-  ernte: 'Ernte',
-  schädlinge: 'Schädlinge',
-  bewässerung: 'Bewässerung',
-  düngung: 'Düngung',
-  allgemein: 'Allgemein',
-};
-
-export default function LearningCard({
-  learning,
-  onRate,
-  onDismiss,
-}: LearningCardProps) {
-  const icon = categoryIcons[learning.category] || 'lightbulb';
-  const categoryLabel = categoryLabels[learning.category] || learning.category;
+export default function LearningCard({ learning, onRate, onDismiss }: LearningCardProps) {
+  const hasRated = learning.user_rating !== undefined;
 
   return (
-    <View style={styles.card}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.categoryBadge}>
-          <MaterialIcons name={icon as any} size={14} color={Colors.primary} />
-          <Text style={styles.categoryText}>{categoryLabel}</Text>
+        <View style={styles.iconContainer}>
+          <MaterialIcons name="lightbulb" size={20} color={Colors.accent} />
         </View>
-        <TouchableOpacity onPress={onDismiss} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <MaterialIcons name="close" size={20} color={Colors.textLight} />
+        <Text style={styles.title} numberOfLines={2}>
+          {learning.title}
+        </Text>
+        <TouchableOpacity onPress={onDismiss} style={styles.dismissButton}>
+          <MaterialIcons name="close" size={18} color={Colors.textLight} />
         </TouchableOpacity>
       </View>
-
-      <Text style={styles.title}>{learning.title}</Text>
-      <Text style={styles.content} numberOfLines={3}>
-        {learning.content}
-      </Text>
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => onRate(false)}
-        >
-          <MaterialIcons name="thumb-down" size={18} color={Colors.textLight} />
-          <Text style={styles.actionText}>Nicht hilfreich</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.helpfulButton]}
-          onPress={() => onRate(true)}
-        >
-          <MaterialIcons name="thumb-up" size={18} color={Colors.success} />
-          <Text style={[styles.actionText, styles.helpfulText]}>Hilfreich</Text>
-        </TouchableOpacity>
+      
+      {learning.content && (
+        <Text style={styles.content} numberOfLines={3}>
+          {learning.content}
+        </Text>
+      )}
+      
+      <View style={styles.footer}>
+        {!hasRated ? (
+          <View style={styles.ratingButtons}>
+            <TouchableOpacity 
+              style={styles.ratingButton} 
+              onPress={() => onRate(true)}
+            >
+              <MaterialIcons name="thumb-up" size={18} color={Colors.textLight} />
+              <Text style={styles.ratingText}>Hilfreich</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.ratingButton} 
+              onPress={() => onRate(false)}
+            >
+              <MaterialIcons name="thumb-down" size={18} color={Colors.textLight} />
+              <Text style={styles.ratingText}>Nicht hilfreich</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.ratedContainer}>
+            <MaterialIcons 
+              name={learning.user_rating === 'helpful' ? 'thumb-up' : 'thumb-down'} 
+              size={16} 
+              color={learning.user_rating === 'helpful' ? Colors.success : Colors.textLight} 
+            />
+            <Text style={styles.ratedText}>
+              {learning.user_rating === 'helpful' ? 'Als hilfreich markiert' : 'Als nicht hilfreich markiert'}
+            </Text>
+          </View>
+        )}
+        
+        {learning.source_name && (
+          <Text style={styles.source}>
+            {learning.source_type === 'knowledge_base' ? '📚' : '📝'} {learning.source_name}
+          </Text>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  container: {
+    padding: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
   },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  categoryText: {
-    fontSize: 11,
-    color: Colors.primary,
-    fontWeight: '600',
+  iconContainer: {
+    marginRight: 10,
+    marginTop: 2,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: 14,
     color: Colors.text,
-    marginBottom: 6,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  dismissButton: {
+    padding: 2,
   },
   content: {
     fontSize: 13,
     color: Colors.textLight,
+    marginTop: 8,
     lineHeight: 18,
-    marginBottom: 12,
   },
-  actions: {
+  footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
   },
-  actionButton: {
+  ratingButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  ratingButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    backgroundColor: Colors.background,
+    padding: 4,
   },
-  helpfulButton: {
-    backgroundColor: Colors.success + '15',
-  },
-  actionText: {
+  ratingText: {
     fontSize: 12,
     color: Colors.textLight,
-    fontWeight: '500',
   },
-  helpfulText: {
-    color: Colors.success,
+  ratedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratedText: {
+    fontSize: 12,
+    color: Colors.textLight,
+  },
+  source: {
+    fontSize: 11,
+    color: Colors.textLight,
   },
 });
