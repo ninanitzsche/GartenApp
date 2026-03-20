@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +15,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Colors from '../theme/colors';
 import { RootStackParamList } from '../types/navigation';
 import { PlantingCalendarEntry } from '../data/plantingCalendarData';
+import { Plant } from '../types/plant';
 import {
   getPlantableNow,
   getPlantableSoon,
@@ -23,8 +25,12 @@ import {
   getActionLabel,
   getDifficultyColor,
   getDifficultyLabel,
+  getUserPlantsStatus,
+  getRecommendedActionsForUserPlants,
+  UserPlantWithCalendar,
   PlantablePlant,
 } from '../services/plantingCalendarService';
+import { fetchPlants } from '../services/plantService';
 import EmptyState from '../components/EmptyState';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -32,7 +38,33 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function SaisonPlanerScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'now' | 'soon' | 'all'>('now');
+  const [selectedTab, setSelectedTab] = useState<'my' | 'ideas'>('my');
+  const [userPlants, setUserPlants] = useState<Plant[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const loadUserPlants = useCallback(async () => {
+    try {
+      setLoading(true);
+      const plants = await fetchPlants();
+      setUserPlants(plants);
+    } catch (error) {
+      console.error('Error loading plants:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    loadUserPlants();
+  }, [loadUserPlants]);
+  
+  const userPlantsWithStatus = useMemo(() => {
+    return getUserPlantsStatus(userPlants);
+  }, [userPlants]);
+  
+  const recommendations = useMemo(() => {
+    return getRecommendedActionsForUserPlants(userPlants);
+  }, [userPlants]);
   
   const seasonStatus = useMemo(() => getSeasonStatus(), []);
   const plantableNow = useMemo(() => getPlantableNow(), []);
@@ -54,16 +86,13 @@ export default function SaisonPlanerScreen() {
     }
     
     switch (selectedTab) {
-      case 'now':
-        return plantableNow;
-      case 'soon':
-        return plantableSoon;
-      case 'all':
-        return [...plantableNow, ...plantableSoon].sort((a, b) => {
-          return a.weeksUntilOptimal - b.weeksUntilOptimal;
-        });
+      case 'my':
+        return [];
+      case 'ideas':
       default:
-        return plantableNow;
+        return [...plantableNow, ...plantableSoon].sort((a, b) => 
+          a.weeksUntilOptimal - b.weeksUntilOptimal
+        );
     }
   }, [searchQuery, selectedTab, searchResults, plantableNow, plantableSoon]);
   
@@ -204,34 +233,110 @@ export default function SaisonPlanerScreen() {
       {!searchQuery && (
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tab, selectedTab === 'now' && styles.tabActive]}
-            onPress={() => setSelectedTab('now')}
+            style={[styles.tab, selectedTab === 'my' && styles.tabActive]}
+            onPress={() => setSelectedTab('my')}
           >
-            <Text style={[styles.tabText, selectedTab === 'now' && styles.tabTextActive]}>
-              Jetzt
+            <Text style={[styles.tabText, selectedTab === 'my' && styles.tabTextActive]}>
+              Meine Pflanzen
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, selectedTab === 'soon' && styles.tabActive]}
-            onPress={() => setSelectedTab('soon')}
+            style={[styles.tab, selectedTab === 'ideas' && styles.tabActive]}
+            onPress={() => setSelectedTab('ideas')}
           >
-            <Text style={[styles.tabText, selectedTab === 'soon' && styles.tabTextActive]}>
-              Bald
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'all' && styles.tabActive]}
-            onPress={() => setSelectedTab('all')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'all' && styles.tabTextActive]}>
-              Alle
+            <Text style={[styles.tabText, selectedTab === 'ideas' && styles.tabTextActive]}>
+              Pflanz-Ideen
             </Text>
           </TouchableOpacity>
         </View>
       )}
       
       {/* Plant List */}
-      {displayedPlants.length > 0 ? (
+      {selectedTab === 'my' ? (
+        loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Lade deine Pflanzen...</Text>
+          </View>
+        ) : userPlantsWithStatus.length > 0 ? (
+          <FlatList
+            data={userPlantsWithStatus}
+            keyExtractor={(item) => item.plantId}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={
+              recommendations.length > 0 ? (
+                <View style={styles.recommendationSection}>
+                  <Text style={styles.sectionTitle}>📋 Empfehlungen</Text>
+                  {recommendations.slice(0, 3).map((rec, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.recommendationCard,
+                        rec.urgency === 'high' && styles.recommendationHigh,
+                        rec.urgency === 'medium' && styles.recommendationMedium,
+                      ]}
+                    >
+                      <Text style={styles.recommendationText}>{rec.recommendation}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null
+            }
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.userPlantCard}
+                onPress={() => navigation.navigate('PlantDetail', { plantId: item.plantId })}
+              >
+                <View style={styles.userPlantInfo}>
+                  <Text style={styles.userPlantName}>{item.plantName}</Text>
+                  <View style={styles.userPlantMeta}>
+                    <Text style={styles.userPlantStatus}>{item.statusLabel}</Text>
+                    {item.calendarEntry && (
+                      <View style={[
+                        styles.nextActionBadge,
+                        item.isOnTrack && styles.nextActionOnTrack,
+                        item.isOverdue && styles.nextActionOverdue,
+                      ]}>
+                        <Text style={styles.nextActionText}>
+                          Nächste: {getActionLabel(item.nextAction)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <MaterialIcons 
+                  name="chevron-right" 
+                  size={24} 
+                  color={Colors.textLight} 
+                />
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <EmptyState
+                icon="eco"
+                title="Keine Pflanzen vorhanden"
+                message="Füge deine erste Pflanze hinzu!"
+                action={{
+                  label: 'Pflanze hinzufügen',
+                  onPress: () => navigation.navigate('AddPlant', {}),
+                }}
+                containerStyle={styles.emptyContainer}
+              />
+            }
+          />
+        ) : (
+          <EmptyState
+            icon="eco"
+            title="Keine Pflanzen vorhanden"
+            message="Füge deine erste Pflanze hinzu!"
+            action={{
+              label: 'Pflanze hinzufügen',
+              onPress: () => navigation.navigate('AddPlant', {}),
+            }}
+            containerStyle={styles.emptyContainer}
+          />
+        )
+      ) : displayedPlants.length > 0 ? (
         <FlatList
           data={displayedPlants}
           renderItem={renderPlantCard}
@@ -242,13 +347,11 @@ export default function SaisonPlanerScreen() {
       ) : (
         <EmptyState
           icon="eco"
-          title={searchQuery ? 'Keine Pflanzen gefunden' : 'Keine Pflanzen verfügbar'}
+          title={searchQuery ? 'Keine Pflanzen gefunden' : 'Keine Ideen verfügbar'}
           message={
             searchQuery 
               ? 'Versuche einen anderen Suchbegriff'
-              : selectedTab === 'now' 
-                ? 'Im Moment keine Pflanzen zum Pflanzen. Versuche "Bald" oder "Alle".'
-                : 'Keine Pflanzen in dieser Kategorie.'
+              : 'Keine Pflanzen in dieser Kategorie.'
           }
           containerStyle={styles.emptyContainer}
         />
@@ -467,5 +570,89 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
     marginLeft: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.textLight,
+  },
+  recommendationSection: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  recommendationCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  recommendationHigh: {
+    borderLeftColor: Colors.error,
+    backgroundColor: '#FFF3F3',
+  },
+  recommendationMedium: {
+    borderLeftColor: Colors.warning,
+    backgroundColor: '#FFF8E1',
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  userPlantCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  userPlantInfo: {
+    flex: 1,
+  },
+  userPlantName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  userPlantMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  userPlantStatus: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginRight: 8,
+  },
+  nextActionBadge: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  nextActionOnTrack: {
+    backgroundColor: '#E8F5E9',
+  },
+  nextActionOverdue: {
+    backgroundColor: '#FFEBEE',
+  },
+  nextActionText: {
+    fontSize: 11,
+    color: Colors.text,
   },
 });

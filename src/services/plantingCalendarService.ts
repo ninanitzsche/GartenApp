@@ -304,11 +304,13 @@ export function getDifficultyLabel(difficulty: 'easy' | 'medium' | 'hard'): stri
   }
 }
 
-export function getActionLabel(action: 'pre_cultivate' | 'direct_sow' | 'transplant'): string {
+export function getActionLabel(action: 'pre_cultivate' | 'direct_sow' | 'transplant' | 'harvest' | 'none'): string {
   switch (action) {
     case 'pre_cultivate': return 'Vorkultur';
     case 'direct_sow': return 'Direktsaat';
     case 'transplant': return 'Auspflanzen';
+    case 'harvest': return 'Ernte';
+    case 'none': return '-';
     default: return '';
   }
 }
@@ -320,6 +322,175 @@ export function getSunlightLabel(sunlight: 'full' | 'partial' | 'shade'): string
     case 'shade': return 'Schatten';
     default: return '';
   }
+}
+
+export interface UserPlantWithCalendar {
+  plantId: string;
+  plantName: string;
+  status: string;
+  plantedDate?: string;
+  calendarEntry?: PlantingCalendarEntry;
+  nextAction: 'pre_cultivate' | 'direct_sow' | 'transplant' | 'harvest' | 'none';
+  nextActionMonth?: number;
+  isOnTrack: boolean;
+  isOverdue: boolean;
+  statusLabel: string;
+}
+
+export function getPlantStatusFromDate(plantedDate: string): string {
+  if (!plantedDate) return 'unbekannt';
+  
+  const planted = new Date(plantedDate);
+  const now = new Date();
+  const daysSincePlanting = Math.floor((now.getTime() - planted.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (daysSincePlanting < 14) return 'Keimung';
+  if (daysSincePlanting < 30) return 'Sämling';
+  if (daysSincePlanting < 60) return 'Wachstum';
+  if (daysSincePlanting < 90) return 'Blüte';
+  return 'Frucht/Ernte';
+}
+
+export function getNextActionForPlant(
+  calendarEntry: PlantingCalendarEntry,
+  plantedDate?: string,
+  currentStatus?: string
+): { action: 'pre_cultivate' | 'direct_sow' | 'transplant' | 'harvest' | 'none'; month?: number } {
+  const currentMonth = getCurrentMonth();
+  
+  if (currentStatus === 'geerntet' || currentStatus === 'entfernt') {
+    return { action: 'none' };
+  }
+  
+  if (!plantedDate) {
+    if (calendarEntry.pre_cultivation_month_start !== null) {
+      return { 
+        action: 'pre_cultivate', 
+        month: calendarEntry.pre_cultivation_month_start 
+      };
+    }
+    if (calendarEntry.direct_sowing_month_start !== null) {
+      return { 
+        action: 'direct_sow', 
+        month: calendarEntry.direct_sowing_month_start 
+      };
+    }
+    return { action: 'none' };
+  }
+  
+  const planted = new Date(plantedDate);
+  const plantedMonth = planted.getMonth() + 1;
+  
+  if (isInMonthRange(currentMonth, calendarEntry.harvest_month_start, calendarEntry.harvest_month_end)) {
+    return { action: 'harvest', month: currentMonth };
+  }
+  
+  if (isInMonthRange(plantedMonth, calendarEntry.pre_cultivation_month_start, calendarEntry.pre_cultivation_month_end)) {
+    if (isInMonthRange(currentMonth, calendarEntry.transplant_month_start, calendarEntry.transplant_month_end)) {
+      return { action: 'transplant', month: calendarEntry.transplant_month_start ?? currentMonth + 1 };
+    }
+    return { action: 'transplant', month: calendarEntry.transplant_month_start ?? currentMonth + 1 };
+  }
+  
+  if (isInMonthRange(plantedMonth, calendarEntry.direct_sowing_month_start, calendarEntry.direct_sowing_month_end)) {
+    if (isInMonthRange(currentMonth, calendarEntry.harvest_month_start, calendarEntry.harvest_month_end)) {
+      return { action: 'harvest', month: currentMonth };
+    }
+  }
+  
+  return { action: 'none' };
+}
+
+export function getUserPlantsStatus(
+  userPlants: Array<{ id: string; name: string; status: string; planted_date?: string }>
+): UserPlantWithCalendar[] {
+  const currentMonth = getCurrentMonth();
+  
+  return userPlants.map(userPlant => {
+    const calendarEntry = getPlantByName(userPlant.name);
+    const nextActionInfo = calendarEntry 
+      ? getNextActionForPlant(calendarEntry, userPlant.planted_date, userPlant.status)
+      : { action: 'none' as const };
+    
+    let isOnTrack = false;
+    let isOverdue = false;
+    
+    if (calendarEntry && nextActionInfo.month) {
+      const monthsDiff = nextActionInfo.month - currentMonth;
+      isOnTrack = monthsDiff >= -1 && monthsDiff <= 1;
+      isOverdue = monthsDiff < -1 && nextActionInfo.action !== 'none';
+    }
+    
+    return {
+      plantId: userPlant.id,
+      plantName: userPlant.name,
+      status: userPlant.status,
+      plantedDate: userPlant.planted_date,
+      calendarEntry,
+      nextAction: nextActionInfo.action,
+      nextActionMonth: nextActionInfo.month,
+      isOnTrack,
+      isOverdue,
+      statusLabel: getStatusLabel(userPlant.status)
+    };
+  });
+}
+
+function getStatusLabel(status: string): string {
+  const statusLabels: Record<string, string> = {
+    'geplant': 'Geplant',
+    'bestellt': 'Bestellt',
+    'ausgesät': 'Ausgesät',
+    'pikiert': 'Pikiert',
+    'ausgepflanzt': 'Ausgepflanzt',
+    'etabliert': 'Etabliert',
+    'geerntet': 'Geerntet',
+    'unklar': 'Unklar',
+    'entfernt': 'Entfernt'
+  };
+  return statusLabels[status] || status;
+}
+
+export function getMyPlantsNeedingAttention(): UserPlantWithCalendar[] {
+  return [];
+}
+
+export function getRecommendedActionsForUserPlants(
+  userPlants: Array<{ id: string; name: string; status: string; planted_date?: string }>
+): Array<{
+  plant: UserPlantWithCalendar;
+  recommendation: string;
+  urgency: 'high' | 'medium' | 'low';
+}> {
+  const plantsWithStatus = getUserPlantsStatus(userPlants);
+  const recommendations: Array<{
+    plant: UserPlantWithCalendar;
+    recommendation: string;
+    urgency: 'high' | 'medium' | 'low';
+  }> = [];
+  
+  plantsWithStatus.forEach(plant => {
+    if (!plant.calendarEntry) return;
+    
+    if (plant.isOverdue) {
+      recommendations.push({
+        plant,
+        recommendation: `${plant.plantName} sollte jetzt ${getActionLabel(plant.nextAction)} werden!`,
+        urgency: 'high'
+      });
+    } else if (plant.nextActionMonth && plant.nextActionMonth <= getCurrentMonth() + 1) {
+      recommendations.push({
+        plant,
+        recommendation: `${plant.plantName}: ${getActionLabel(plant.nextAction)} in ${plant.nextActionMonth ? getMonthName(plant.nextActionMonth) : 'bald'}`,
+        urgency: 'medium'
+      });
+    }
+  });
+  
+  return recommendations.sort((a, b) => {
+    const urgencyOrder = { high: 0, medium: 1, low: 2 };
+    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+  });
 }
 
 export default {
