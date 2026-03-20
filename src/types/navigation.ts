@@ -19,6 +19,7 @@ export type RootStackParamList = {
   AddPlant: { prefillName?: string; prefillLatinName?: string; identificationSource?: 'ai' | 'manual' };
   EditPlant: { plantId: string };
   CompanionSearch: undefined;
+  SaisonPlaner: undefined;
 
   // Profile Stack
   Profile: undefined;

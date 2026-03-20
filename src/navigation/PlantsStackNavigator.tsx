@@ -11,6 +11,7 @@ import PlantDetailScreen from '../screens/PlantDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import PhotoUploadScreen from '../screens/PhotoUploadScreen';
 import CompanionSearchScreen from '../screens/CompanionSearchScreen';
+import SaisonPlanerScreen from '../screens/SaisonPlanerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -76,6 +77,14 @@ export default function PlantsStackNavigator() {
         component={CompanionSearchScreen}
         options={{
           title: 'Mischkultur-Suche',
+        }}
+      />
+      <Stack.Screen
+        name="SaisonPlaner"
+        component={SaisonPlanerScreen}
+        options={{
+          title: 'Saison-Planer',
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
