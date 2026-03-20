@@ -17,11 +17,9 @@ import {
 
 /**
  * Pflanzen-spezifische Zeiträume
- * Wann sollte diese Pflanze typischerweise gepflanzt/gepflegt/geerntet werden?
- * Array von Tupeln [pflanzenName, zeitraum]
+ * Array für Multi-Season Pflanzen (Tomaten, Gurken etc.)
  */
 const PFLANZEN_ZEITRAUM: [string, Zeitraum][] = [
-  // Frühjahr - frühe Aussaat (Direktsaat)
   ['Radieschen', Zeitraum.FRUEHJAHR_FRUH],
   ['Spinat', Zeitraum.FRUEHJAHR_FRUH],
   ['Erbsen', Zeitraum.FRUEHJAHR_FRUH],
@@ -29,67 +27,51 @@ const PFLANZEN_ZEITRAUM: [string, Zeitraum][] = [
   ['Karotten', Zeitraum.FRUEHJAHR_FRUH],
   ['Salat', Zeitraum.FRUEHJAHR_FRUH],
   ['Rucola', Zeitraum.FRUEHJAHR_FRUH],
-
-  // Frühjahr - mittlere Phase (Vorkultur pikieren, Freilandaussaat)
   ['Kohlrabi', Zeitraum.FRUEHJAHR_MITTE],
   ['Brokkoli', Zeitraum.FRUEHJAHR_MITTE],
   ['Lauch', Zeitraum.FRUEHJAHR_MITTE],
-
-  // Frühjahr - späte Phase (Auspflanzen nach drinnen)
   ['Tomaten', Zeitraum.FRUEHJAHR_SPAET],
   ['Paprika', Zeitraum.FRUEHJAHR_SPAET],
   ['Aubergine', Zeitraum.FRUEHJAHR_SPAET],
   ['Gurken', Zeitraum.FRUEHJAHR_SPAET],
   ['Zucchini', Zeitraum.FRUEHJAHR_SPAET],
   ['Kürbis', Zeitraum.FRUEHJAHR_SPAET],
-
-  // Sommer - frühe Phase (Auspflanzen nach draußen)
   ['Tomaten', Zeitraum.SOMMER_FRUH],
   ['Paprika', Zeitraum.SOMMER_FRUH],
   ['Aubergine', Zeitraum.SOMMER_FRUH],
   ['Gurken', Zeitraum.SOMMER_FRUH],
   ['Zucchini', Zeitraum.SOMMER_FRUH],
-
-  // Sommer - mittlere Phase (Haupternte, Pflege)
   ['Bohnen', Zeitraum.SOMMER_MITTE],
   ['Zucchini', Zeitraum.SOMMER_MITTE],
   ['Gurken', Zeitraum.SOMMER_MITTE],
-
-  // Sommer - späte Phase (Letzte Ernten, Folientunnel)
   ['Tomaten', Zeitraum.SOMMER_SPAET],
   ['Paprika', Zeitraum.SOMMER_SPAET],
-
-  // Herbst - frühe Phase (Haupternte)
   ['Kürbis', Zeitraum.HERBST_FRUH],
   ['Tomaten', Zeitraum.HERBST_FRUH],
   ['Gurken', Zeitraum.HERBST_FRUH],
   ['Bohnen', Zeitraum.HERBST_FRUH],
   ['Zucchini', Zeitraum.HERBST_FRUH],
-
-  // Herbst - mittlere Phase (Bodenpflege)
   ['Knoblauch', Zeitraum.HERBST_MITTE],
-
-  // Herbst - späte Phase (Vorbereitung Winter)
   ['Spinat', Zeitraum.HERBST_SPAET],
   ['Mangold', Zeitraum.HERBST_SPAET],
-
-  // Winter - späte Phase (Anzucht beginnt)
   ['Tomaten', Zeitraum.WINTER_SPAET],
   ['Paprika', Zeitraum.WINTER_SPAET],
 ];
 
 /**
- * Kategorie-basierte Zeiträume (Fallback)
+ * Plant lookup index for O(1) existence check
+ * Maps lowercase plant name → array indices (since plants can have multiple entries)
  */
-const KATEGORIE_ZEITRAUM: Record<string, ZeitraumPhase> = {
-  'Aussaat': ZeitraumPhase.FRUEH,
-  'Pflanzen': ZeitraumPhase.MITTE,
-  'Ernten': ZeitraumPhase.SPAET,
-  'Bodenpflege': ZeitraumPhase.MITTE,
-  'Bewässerung': ZeitraumPhase.FRUEH,
-  'Düngung': ZeitraumPhase.MITTE,
-  'Schädlingsbekämpfung': ZeitraumPhase.MITTE,
-};
+const PFLANZEN_INDEX: Map<string, number[]> = (() => {
+  const index = new Map<string, number[]>();
+  PFLANZEN_ZEITRAUM.forEach(([name], i) => {
+    const key = name.toLowerCase();
+    const existing = index.get(key) || [];
+    existing.push(i);
+    index.set(key, existing);
+  });
+  return index;
+})();
 
 export const zeitraumService = {
   /**
@@ -117,15 +99,11 @@ export const zeitraumService = {
    * Schlägt einen Zeitraum basierend auf Pflanzenname und Kategorie vor
    */
   suggestZeitraum(plantName: string, kategorie?: string): Zeitraum {
-    // Versuche zuerst Pflanzen-Mapping
     const plantNameLower = plantName.toLowerCase();
-    for (const [key, zeitraum] of Object.entries(PFLANZEN_ZEITRAUM)) {
-      if (plantNameLower.includes(key.toLowerCase())) {
-        return zeitraum;
-      }
+    const indices = PFLANZEN_INDEX.get(plantNameLower) || [];
+    for (const idx of indices) {
+      return PFLANZEN_ZEITRAUM[idx][1];
     }
-
-    // Fallback zu aktueller Saison
     return getAktuelleSaison();
   },
 

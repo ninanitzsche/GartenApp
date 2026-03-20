@@ -13,9 +13,14 @@ interface TaskCardProps {
   onPress: () => void;
 }
 
+function getTaskZeitraum(task: Task): Zeitraum | undefined {
+  if (!task.zeitraum) return undefined;
+  return task.zeitraum as Zeitraum;
+}
+
 export default function TaskCard({ task, onToggle, onPress }: TaskCardProps) {
   const isCompleted = !!task.completed_at;
-  const zeitraum = (task as any).zeitraum as Zeitraum | undefined;
+  const zeitraum = getTaskZeitraum(task);
   const zeitraumIcon = zeitraum ? getZeitraumIcon(zeitraum) : '';
   const zeitraumLabel = zeitraum ? getZeitraumShortLabel(zeitraum) : '';
 
