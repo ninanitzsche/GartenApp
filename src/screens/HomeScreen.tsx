@@ -26,7 +26,7 @@ import { formatTimeSpent, fetchTasks, toggleTaskCompletion } from '../services/t
 import { Task } from '../types/task';
 import TaskCard from '../components/TaskCard';
 import { Learning } from '../types/learning';
-import { learningService } from '../services/learningService';
+import { fetchLearningsForSeason, rateLearning, dismissLearning } from '../services/learningService';
 import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit, getZeitraumShortLabel, sortZeitraeume } from '../utils/zeitraumUtils';
 import { Zeitraum } from '../types/zeitraum';
 import LearningCard from '../components/LearningCard';
@@ -147,7 +147,7 @@ export default function HomeScreen({ navigation }: Props) {
   const loadLearnings = async () => {
     try {
       const currentZeitraum = getAktuelleSaison();
-      const data = await learningService.getLearningsForSeason([], currentZeitraum);
+      const data = await fetchLearningsForSeason([], currentZeitraum);
       setLearnings(data);
     } catch (error) {
       console.error('Error loading learnings:', error);
@@ -167,7 +167,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   const handleRateLearning = async (id: string, helpful: boolean) => {
     try {
-      await learningService.rateLearning(id, helpful ? 'helpful' : 'not_helpful');
+      await rateLearning(id, helpful ? 'helpful' : 'not_helpful');
       await loadLearnings();
       showToast(helpful ? 'Als hilfreich markiert' : 'Als nicht hilfreich markiert', 'success');
     } catch (error) {
@@ -178,7 +178,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   const handleDismissLearning = async (id: string) => {
     try {
-      await learningService.dismissLearning(id);
+      await dismissLearning(id);
       await loadLearnings();
       showToast('Tipp verworfen', 'info');
     } catch (error) {

@@ -70,7 +70,7 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
           {zeitraumLabel && zeitraum && (
             <View style={styles.zeitraumRow}>
               {getZeitraumIconComponent(zeitraum, 14, Colors.primary)}
-              <Text style={styles.zeitraumText}> {zeitraumLabel}</Text>
+              <Text style={styles.zeitraumText}>{zeitraumLabel}</Text>
             </View>
           )}
         </View>
