@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Task } from '../types/task';
 import { Zeitraum } from '../types/zeitraum';
-import { getZeitraumShortLabel, getZeitraumIcon } from '../utils/zeitraumUtils';
+import { getZeitraumShortLabel, getZeitraumIconComponent } from '../utils/zeitraumUtils';
 import Colors from '../theme/colors';
 import PrioritaetBadge from './PrioritaetBadge';
 
@@ -11,6 +11,7 @@ interface TaskCardProps {
   task: Task;
   onToggle: () => void;
   onPress: () => void;
+  loading?: boolean;
 }
 
 function getTaskZeitraum(task: Task): Zeitraum | undefined {
@@ -18,10 +19,31 @@ function getTaskZeitraum(task: Task): Zeitraum | undefined {
   return task.zeitraum as Zeitraum;
 }
 
-export default function TaskCard({ task, onToggle, onPress }: TaskCardProps) {
+function SkeletonCard() {
+  return (
+    <View style={styles.container}>
+      <View style={styles.checkbox}>
+        <ActivityIndicator size="small" color={Colors.textLight} />
+      </View>
+      <View style={styles.content}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.meta}>
+          <View style={styles.skeletonMeta} />
+          <View style={styles.skeletonMeta} />
+        </View>
+      </View>
+      <View style={[styles.skeletonBadge]} />
+    </View>
+  );
+}
+
+export default function TaskCard({ task, onToggle, onPress, loading = false }: TaskCardProps) {
+  if (loading) {
+    return <SkeletonCard />;
+  }
+
   const isCompleted = !!task.completed_at;
   const zeitraum = getTaskZeitraum(task);
-  const zeitraumIcon = zeitraum ? getZeitraumIcon(zeitraum) : '';
   const zeitraumLabel = zeitraum ? getZeitraumShortLabel(zeitraum) : '';
 
   return (
@@ -39,10 +61,11 @@ export default function TaskCard({ task, onToggle, onPress }: TaskCardProps) {
         </Text>
         <View style={styles.meta}>
           {task.location && <Text style={styles.location}>{task.location}</Text>}
-          {zeitraumLabel && (
-            <Text style={styles.zeitraum}>
-              {zeitraumIcon} {zeitraumLabel}
-            </Text>
+          {zeitraumLabel && zeitraum && (
+            <View style={styles.zeitraumRow}>
+              {getZeitraumIconComponent(zeitraum, 14, Colors.primary)}
+              <Text style={styles.zeitraumText}> {zeitraumLabel}</Text>
+            </View>
           )}
         </View>
       </View>
@@ -64,6 +87,10 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     marginRight: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
@@ -86,8 +113,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textLight,
   },
-  zeitraum: {
+  zeitraumRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  zeitraumText: {
     fontSize: 12,
     color: Colors.primary,
+  },
+  skeletonTitle: {
+    height: 14,
+    width: '70%',
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+  },
+  skeletonMeta: {
+    height: 10,
+    width: 60,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    marginTop: 6,
+  },
+  skeletonBadge: {
+    width: 50,
+    height: 18,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
   },
 });

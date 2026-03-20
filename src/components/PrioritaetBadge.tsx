@@ -11,7 +11,7 @@ export default function PrioritaetBadge({ prioritaet, size = 'small' }: Priorita
   const colors = {
     hoch: Colors.priorityHigh,
     mittel: Colors.priorityMedium,
-    niedrig: Colors.textLight,
+    niedrig: '#757575',
   };
 
   const labels = {

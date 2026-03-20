@@ -62,29 +62,29 @@ export const ZEITRAUM_LABELS: Record<Zeitraum, string> = {
 };
 
 export const ZEITRAUM_SHORT_LABELS: Record<Zeitraum, string> = {
-  [Zeitraum.FRUEHJAHR_FRUH]: '🌱 Frühjahr, früh',
-  [Zeitraum.FRUEHJAHR_MITTE]: '🌱 Frühjahr, mitte',
-  [Zeitraum.FRUEHJAHR_SPAET]: '🌱 Frühjahr, spät',
-  [Zeitraum.SOMMER_FRUH]: '☀️ Sommer, früh',
-  [Zeitraum.SOMMER_MITTE]: '☀️ Sommer, mitte',
-  [Zeitraum.SOMMER_SPAET]: '☀️ Sommer, spät',
-  [Zeitraum.HERBST_FRUH]: '🍂 Herbst, früh',
-  [Zeitraum.HERBST_MITTE]: '🍂 Herbst, mitte',
-  [Zeitraum.HERBST_SPAET]: '🍂 Herbst, spät',
-  [Zeitraum.WINTER_FRUH]: '❄️ Winter, früh',
-  [Zeitraum.WINTER_MITTE]: '❄️ Winter, mitte',
-  [Zeitraum.WINTER_SPAET]: '❄️ Winter, spät',
-  [Zeitraum.DIESE_WOCHE]: '📅 Diese Woche',
-  [Zeitraum.FLEXIBEL]: '⚪ Flexibel',
+  [Zeitraum.FRUEHJAHR_FRUH]: 'Frühjahr, früh',
+  [Zeitraum.FRUEHJAHR_MITTE]: 'Frühjahr, mitte',
+  [Zeitraum.FRUEHJAHR_SPAET]: 'Frühjahr, spät',
+  [Zeitraum.SOMMER_FRUH]: 'Sommer, früh',
+  [Zeitraum.SOMMER_MITTE]: 'Sommer, mitte',
+  [Zeitraum.SOMMER_SPAET]: 'Sommer, spät',
+  [Zeitraum.HERBST_FRUH]: 'Herbst, früh',
+  [Zeitraum.HERBST_MITTE]: 'Herbst, mitte',
+  [Zeitraum.HERBST_SPAET]: 'Herbst, spät',
+  [Zeitraum.WINTER_FRUH]: 'Winter, früh',
+  [Zeitraum.WINTER_MITTE]: 'Winter, mitte',
+  [Zeitraum.WINTER_SPAET]: 'Winter, spät',
+  [Zeitraum.DIESE_WOCHE]: 'Diese Woche',
+  [Zeitraum.FLEXIBEL]: 'Flexibel',
 };
 
-export const ZEITRAUM_ICONS: Record<Jahreszeit | 'diese_woche' | 'flexibel', string> = {
-  [Jahreszeit.FRUEHJAHR]: '🌱',
-  [Jahreszeit.SOMMER]: '☀️',
-  [Jahreszeit.HERBST]: '🍂',
-  [Jahreszeit.WINTER]: '❄️',
-  'diese_woche': '📅',
-  'flexibel': '⚪',
+export const ZEITRAUM_ICON_NAMES: Record<Jahreszeit | 'diese_woche' | 'flexibel', string> = {
+  [Jahreszeit.FRUEHJAHR]: 'eco',
+  [Jahreszeit.SOMMER]: 'wb-sunny',
+  [Jahreszeit.HERBST]: 'park',
+  [Jahreszeit.WINTER]: 'ac-unit',
+  'diese_woche': 'event',
+  'flexibel': 'schedule',
 };
 
 export const JAHRESZEIT_LABELS: Record<Jahreszeit, string> = {

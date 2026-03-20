@@ -2,6 +2,7 @@
  * ZeitraumUtils Tests
  */
 
+import React from 'react';
 import { describe, it, expect } from '@jest/globals';
 import {
   getJahreszeit,
@@ -10,6 +11,7 @@ import {
   getZeitraumLabel,
   getZeitraumShortLabel,
   getZeitraumIcon,
+  getZeitraumIconComponent,
   getJahreszeitLabel,
   getPhaseLabel,
   isRelevantForCurrentPhase,
@@ -102,15 +104,33 @@ describe('zeitraumUtils', () => {
     });
 
     it('getZeitraumShortLabel returns label from ZEITRAUM_SHORT_LABELS', () => {
-      expect(getZeitraumShortLabel(Zeitraum.FRUEHJAHR_FRUH)).toBeTruthy();
-      expect(getZeitraumShortLabel(Zeitraum.DIESE_WOCHE)).toBe('📅 Diese Woche');
+      expect(getZeitraumShortLabel(Zeitraum.FRUEHJAHR_FRUH)).toBe('Frühjahr, früh');
+      expect(getZeitraumShortLabel(Zeitraum.DIESE_WOCHE)).toBe('Diese Woche');
     });
 
-    it('getZeitraumIcon returns icon for jahreszeit', () => {
-      expect(getZeitraumIcon(Zeitraum.FRUEHJAHR_FRUH)).toBe('🌱');
-      expect(getZeitraumIcon(Zeitraum.SOMMER_MITTE)).toBe('☀️');
-      expect(getZeitraumIcon(Zeitraum.HERBST_SPAET)).toBe('🍂');
-      expect(getZeitraumIcon(Zeitraum.WINTER_MITTE)).toBe('❄️');
+    it('getZeitraumIcon returns icon name for jahreszeit', () => {
+      expect(getZeitraumIcon(Zeitraum.FRUEHJAHR_FRUH)).toBe('eco');
+      expect(getZeitraumIcon(Zeitraum.SOMMER_MITTE)).toBe('wb-sunny');
+      expect(getZeitraumIcon(Zeitraum.HERBST_SPAET)).toBe('park');
+      expect(getZeitraumIcon(Zeitraum.WINTER_MITTE)).toBe('ac-unit');
+    });
+
+    it('getZeitraumIcon returns event icon for DIESE_WOCHE', () => {
+      expect(getZeitraumIcon(Zeitraum.DIESE_WOCHE)).toBe('event');
+    });
+
+    it('getZeitraumIcon returns schedule icon for FLEXIBEL', () => {
+      expect(getZeitraumIcon(Zeitraum.FLEXIBEL)).toBe('schedule');
+    });
+
+    it('getZeitraumIconComponent returns React element', () => {
+      const component = getZeitraumIconComponent(Zeitraum.FRUEHJAHR_FRUH);
+      expect(React.isValidElement(component)).toBe(true);
+    });
+
+    it('getZeitraumIconComponent accepts size and color props', () => {
+      const component = getZeitraumIconComponent(Zeitraum.SOMMER_MITTE, 24, '#ff0000');
+      expect(React.isValidElement(component)).toBe(true);
     });
 
     it('getJahreszeitLabel returns label from JAHRESZEIT_LABELS', () => {

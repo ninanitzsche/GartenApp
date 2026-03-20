@@ -3,13 +3,15 @@
  * Hilfsfunktionen für das phase-basierte Zeitraum-System
  */
 
+import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 import {
   Zeitraum,
   Jahreszeit,
   ZeitraumPhase,
   ZEITRAUM_LABELS,
   ZEITRAUM_SHORT_LABELS,
-  ZEITRAUM_ICONS,
+  ZEITRAUM_ICON_NAMES,
   JAHRESZEIT_LABELS,
   PHASE_LABELS,
 } from '../types/zeitraum';
@@ -125,17 +127,31 @@ export function getZeitraumShortLabel(zeitraum: Zeitraum): string {
 }
 
 /**
- * Gibt das Icon für einen Zeitraum zurück
+ * Gibt den Icon-Namen für einen Zeitraum zurück
  */
 export function getZeitraumIcon(zeitraum: Zeitraum): string {
   const jahreszeit = getJahreszeit(zeitraum);
   if (jahreszeit) {
-    return ZEITRAUM_ICONS[jahreszeit];
+    return ZEITRAUM_ICON_NAMES[jahreszeit];
   }
   if (zeitraum === Zeitraum.DIESE_WOCHE) {
-    return ZEITRAUM_ICONS['diese_woche'];
+    return ZEITRAUM_ICON_NAMES['diese_woche'];
   }
-  return ZEITRAUM_ICONS['flexibel'];
+  return ZEITRAUM_ICON_NAMES['flexibel'];
+}
+
+/**
+ * Gibt die Icon-Komponente für einen Zeitraum zurück
+ */
+export function getZeitraumIconComponent(zeitraum: Zeitraum, size?: number, color?: string): React.ReactElement {
+  const iconName = getZeitraumIcon(zeitraum);
+  return (
+    <MaterialIcons 
+      name={iconName as any} 
+      size={size || 16} 
+      color={color || '#666'} 
+    />
+  );
 }
 
 /**
