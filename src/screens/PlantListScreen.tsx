@@ -117,6 +117,10 @@ export default function PlantListScreen({ navigation }: Props) {
     setShowAIPicker(true);
   };
 
+  const handleCompanionSearch = () => {
+    navigation.navigate('CompanionSearch');
+  };
+
   const handlePlantIdentified = (result: PlantIdentificationResult) => {
     navigation.navigate('AddPlant', {
       prefillName: result.name,
@@ -412,6 +416,22 @@ export default function PlantListScreen({ navigation }: Props) {
               ]}
             >
               Essbar
+            </Text>
+          </TouchableOpacity>
+
+          {/* Mischkultur Search Button */}
+          <TouchableOpacity
+            style={[styles.filterChip, styles.companionChip]}
+            onPress={handleCompanionSearch}
+          >
+            <MaterialIcons
+              name="group"
+              size={14}
+              color={Colors.primary}
+              style={styles.chipIcon}
+            />
+            <Text style={[styles.filterChipText, styles.companionChipText]}>
+              Mischkultur
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -732,6 +752,14 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     // Type chips have specific styling
+  },
+  companionChip: {
+    borderColor: Colors.primary,
+    borderWidth: 1,
+  },
+  companionChipText: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
   activeSummaryContainer: {
     flexDirection: 'row',
