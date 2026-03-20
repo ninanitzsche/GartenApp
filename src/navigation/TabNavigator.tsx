@@ -7,11 +7,8 @@ import { TabParamList } from '../types/navigation';
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
 import PlantsStackNavigator from './PlantsStackNavigator';
-import ShoppingStackNavigator from './ShoppingStackNavigator';
-import MoreMenuStackNavigator from './MoreMenuStackNavigator';
-import TaskStackNavigator from './TaskStackNavigator';
-import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import GardenStackNavigator from './GardenStackNavigator';
+import MoreMenuStackNavigator from './MoreMenuStackNavigator';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -51,48 +48,10 @@ export default function TabNavigator() {
         component={PlantsStackNavigator}
         options={{
           title: 'Pflanzen',
-          tabBarLabel: 'Inventar',
+          tabBarLabel: 'Pflanzen',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="eco" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Tasks"
-        component={TaskStackNavigator}
-        options={{
-          title: 'Aufgaben',
-          tabBarLabel: 'Aufgaben',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="checklist" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Photos"
-        component={PhotoGalleryScreen}
-        options={{
-          title: 'Fotos',
-          tabBarLabel: 'Fotos',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="photo-library" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Shopping"
-        component={ShoppingStackNavigator}
-        options={{
-          title: 'Einkaufsliste',
-          tabBarLabel: 'Einkaufen',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="shopping-cart" size={size} color={color} />
           ),
         }}
       />

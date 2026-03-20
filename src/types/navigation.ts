@@ -58,13 +58,10 @@ export type RootStackParamList = {
   MoreMenu: undefined;
 };
 
-// Tab navigator - bottom tabs
+// Tab navigator - bottom tabs (4 tabs - Approach B)
 export type TabParamList = {
   Home: undefined;
   Plants: undefined;
-  Tasks: undefined;
-  Photos: undefined;
-  Shopping: undefined;
   GardenOverview: undefined;
   More: undefined;
 };

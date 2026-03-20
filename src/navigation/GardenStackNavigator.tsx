@@ -1,6 +1,7 @@
 /**
  * Garden Stack Navigator
  * Handles navigation for garden overview feature
+ * Includes PhotoGallery (moved from TabNavigator - Approach B)
  */
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,6 +12,7 @@ import { RootStackParamList } from '../types/navigation';
 import GardenOverviewScreen from '../screens/GardenOverviewScreen';
 import GardenSettingsScreen from '../screens/GardenSettingsScreen';
 import GardenPhotoGalleryScreen from '../screens/GardenPhotoGalleryScreen';
+import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import BedDetailScreen from '../screens/BedDetailScreen';
 import AddBedScreen from '../screens/AddBedScreen';
 import EditBedScreen from '../screens/EditBedScreen';
@@ -49,6 +51,13 @@ export default function GardenStackNavigator() {
         component={GardenPhotoGalleryScreen}
         options={{
           title: 'Gartenfotos',
+        }}
+      />
+      <Stack.Screen
+        name="PhotoGallery"
+        component={PhotoGalleryScreen}
+        options={{
+          title: 'Fotos',
         }}
       />
       <Stack.Screen

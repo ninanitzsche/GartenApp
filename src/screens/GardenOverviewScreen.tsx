@@ -172,6 +172,10 @@ export default function GardenOverviewScreen({ navigation }: Props) {
     navigation.navigate('GardenSettings');
   };
 
+  const handlePhotos = () => {
+    navigation.navigate('PhotoGallery', {});
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -197,13 +201,22 @@ export default function GardenOverviewScreen({ navigation }: Props) {
             <Text style={styles.subtitle}>{garden.location}</Text>
           )}
         </View>
-        <MaterialIcons
-          name="settings"
-          size={24}
-          color={Colors.primary}
-          onPress={handleSettings}
-          style={styles.settingsIcon}
-        />
+        <View style={styles.headerIcons}>
+          <MaterialIcons
+            name="photo-library"
+            size={24}
+            color={Colors.primary}
+            onPress={handlePhotos}
+            style={styles.headerIcon}
+          />
+          <MaterialIcons
+            name="settings"
+            size={24}
+            color={Colors.primary}
+            onPress={handleSettings}
+            style={styles.headerIcon}
+          />
+        </View>
       </View>
 
       {/* Stats */}
@@ -280,10 +293,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
   },
-  settingsIcon: {
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerIcon: {
     padding: 8,
-    marginRight: -8,
-    marginTop: -8,
   },
   statsContainer: {
     paddingHorizontal: 16,
