@@ -309,6 +309,18 @@ export default function PlantListScreen({ navigation }: Props) {
         {/* Only show plant-specific filters when on Pflanzen tab */}
         {selectedTab === 0 && (
           <>
+            {/* Saison-Planer Button */}
+            <TouchableOpacity
+              style={styles.saisonPlanerButton}
+              onPress={() => navigation.navigate('SaisonPlaner')}
+              accessibilityLabel="Saison-Planer öffnen"
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="calendar-today" size={20} color={Colors.primary} />
+              <Text style={styles.saisonPlanerButtonText}>🌱 Saison-Planer</Text>
+              <MaterialIcons name="chevron-right" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+
             {/* Search Bar */}
             <View style={styles.searchContainer}>
               <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
@@ -571,6 +583,25 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     color: Colors.text,
+  },
+  saisonPlanerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  saisonPlanerButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginLeft: 12,
   },
   filterChipsContainer: {
     maxHeight: 50,
