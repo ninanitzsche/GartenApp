@@ -2,6 +2,9 @@
  * Task type definitions matching Supabase schema
  */
 
+// Import Plant type for plant_tasks
+import { Plant } from './plant';
+
 export interface Task {
   id: string;
   user_id: string;
@@ -15,6 +18,10 @@ export interface Task {
   updated_at?: string;
   completed_at?: string | null;
   linked_plants?: Plant[];
+  
+  // Neue Felder für Zeitraum-System (Approach B)
+  zeitraum?: string;
+  due_date?: string | null;
 }
 
 export interface TaskFormData {
@@ -25,6 +32,10 @@ export interface TaskFormData {
   location?: string;
   time_spent_minutes?: number;
   plant_ids?: string[];
+  
+  // Neue Felder für Zeitraum-System (Approach B)
+  zeitraum?: string;
+  due_date?: string | null;
 }
 
 export interface TaskListItem extends Task {
@@ -37,12 +48,9 @@ export interface PlantTask {
 }
 
 // Sort options for task list
-export type TaskSortOption = 'priority' | 'created_at' | 'category' | 'title';
+export type TaskSortOption = 'priority' | 'created_at' | 'category' | 'title' | 'zeitraum';
 
 export interface TaskSortPreference {
   sortBy: TaskSortOption;
   ascending: boolean;
 }
-
-// Import Plant type for plant_tasks
-import { Plant } from './plant';
