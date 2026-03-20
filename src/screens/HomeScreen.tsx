@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,9 +22,21 @@ import {
   PlantStatusDistribution,
   RecentActivity,
 } from '../services/dashboardService';
-import { formatTimeSpent } from '../services/taskService';
+import { formatTimeSpent, fetchTasks, toggleTaskCompletion } from '../services/taskService';
+import { Task } from '../types/task';
+import TaskCard from '../components/TaskCard';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
+
+interface DashboardCache {
+  harvests: HarvestMetrics;
+  tasks: TaskMetrics;
+  statusDistribution: PlantStatusDistribution[];
+  recentActivity: RecentActivity[];
+  timestamp: number;
+}
+
+const CACHE_TTL_MS = 60000; // 60 seconds
 
 export default function HomeScreen({ navigation }: Props) {
   const [harvests, setHarvests] = useState<HarvestMetrics>({
@@ -42,35 +54,84 @@ export default function HomeScreen({ navigation }: Props) {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [prioritizedTasks, setPrioritizedTasks] = useState<Task[]>([]);
+  
+  // PERFORMANCE FIX: Dashboard data cache
+  const cacheRef = useRef<DashboardCache | null>(null);
 
-  // Load dashboard data on focus
-  useFocusEffect(
-    useCallback(() => {
-      loadDashboard();
-    }, [])
-  );
+  const loadDashboard = useCallback(async (forceRefresh = false) => {
+    // PERFORMANCE FIX: Return cached data if valid
+    if (!forceRefresh && cacheRef.current && 
+        Date.now() - cacheRef.current.timestamp < CACHE_TTL_MS) {
+      setHarvests(cacheRef.current.harvests);
+      setTasks(cacheRef.current.tasks);
+      setStatusDistribution(cacheRef.current.statusDistribution);
+      setRecentActivity(cacheRef.current.recentActivity);
+      setLoading(false);
+      return;
+    }
 
-  const loadDashboard = async () => {
     try {
-      setLoading(true);
+      if (!forceRefresh) setLoading(true);
       const data = await getDashboardData();
+      
+      // Update state
       setHarvests(data.harvests);
       setTasks(data.tasks);
       setStatusDistribution(data.statusDistribution);
       setRecentActivity(data.recentActivity);
+      
+      // Update cache
+      cacheRef.current = {
+        ...data,
+        timestamp: Date.now(),
+      };
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Load dashboard data on focus - only refresh if cache is stale
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+      loadPrioritizedTasks();
+    }, [loadDashboard])
+  );
 
   const onRefresh = async () => {
     try {
       setRefreshing(true);
-      await loadDashboard();
+      // Force refresh to bypass cache
+      await loadDashboard(true);
+      await loadPrioritizedTasks();
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const loadPrioritizedTasks = async () => {
+    try {
+      const tasks = await fetchTasks();
+      const incompleteTasks = tasks.filter(t => !t.completed_at);
+      const sortedTasks = incompleteTasks.sort((a, b) => {
+        const priorityOrder = { hoch: 0, mittel: 1, niedrig: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      });
+      setPrioritizedTasks(sortedTasks.slice(0, 10));
+    } catch (error: any) {
+      console.error('Error loading prioritized tasks:', error);
+    }
+  };
+
+  const handleToggleTask = async (taskId: string) => {
+    try {
+      await toggleTaskCompletion(taskId);
+      await loadPrioritizedTasks();
+    } catch (error: any) {
+      console.error('Error toggling task:', error);
     }
   };
 
@@ -199,6 +260,67 @@ export default function HomeScreen({ navigation }: Props) {
             color={Colors.success}
             style={styles.progressBar}
           />
+        </View>
+      )}
+
+      {/* Prioritized Tasks */}
+      {prioritizedTasks.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Priorisierte Aufgaben</Text>
+
+          {prioritizedTasks.filter(t => t.priority === 'hoch').length > 0 && (
+            <View style={styles.priorityGroup}>
+              <Text style={styles.priorityLabel}>
+                <MaterialIcons name="circle" size={10} color={Colors.priorityHigh} /> Hohe Priorität
+              </Text>
+              {prioritizedTasks
+                .filter(t => t.priority === 'hoch')
+                .map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggle={() => handleToggleTask(task.id)}
+                    onPress={() => {}}
+                  />
+                ))}
+            </View>
+          )}
+
+          {prioritizedTasks.filter(t => t.priority === 'mittel').length > 0 && (
+            <View style={styles.priorityGroup}>
+              <Text style={styles.priorityLabel}>
+                <MaterialIcons name="circle" size={10} color={Colors.priorityMedium} /> Mittlere Priorität
+              </Text>
+              {prioritizedTasks
+                .filter(t => t.priority === 'mittel')
+                .map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggle={() => handleToggleTask(task.id)}
+                    onPress={() => {}}
+                  />
+                ))}
+            </View>
+          )}
+
+          {prioritizedTasks.filter(t => t.priority === 'niedrig').length > 0 && (
+            <View style={styles.priorityGroup}>
+              <Text style={styles.priorityLabel}>
+                <MaterialIcons name="circle" size={10} color={Colors.textLight} /> Niedrige Priorität
+              </Text>
+              {prioritizedTasks
+                .filter(t => t.priority === 'niedrig')
+                .map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggle={() => handleToggleTask(task.id)}
+                    onPress={() => {}}
+                  />
+                ))}
+            </View>
+          )}
         </View>
       )}
 
@@ -443,5 +565,16 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 20,
+  },
+  priorityGroup: {
+    marginBottom: 16,
+  },
+  priorityLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
