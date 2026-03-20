@@ -23,7 +23,7 @@ export async function fetchLearningsForSeason(
       .select('*')
       .eq('user_id', user.id)
       .eq('dismissed', false)
-      .or(`valid_for_zeitraeume.cs.${zeitraum},flexible.eq.true`)
+      .or(`valid_for_zeitraeume.cs.${zeitraum},valid_for_zeitraeume.cs.{flexibel}`)
       .order('relevance_score', { ascending: false })
       .limit(10);
 
