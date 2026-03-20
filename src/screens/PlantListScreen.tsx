@@ -475,6 +475,18 @@ export default function PlantListScreen({ navigation }: Props) {
             ) : null}
           </View>
 
+          {/* Mischkultur Button */}
+          <TouchableOpacity
+            style={styles.companionBanner}
+            onPress={handleCompanionSearch}
+            accessibilityLabel="Mischkultur-Partner finden"
+            accessibilityRole="button"
+          >
+            <MaterialIcons name="group" size={20} color={Colors.primary} />
+            <Text style={styles.companionBannerText}>Mischkultur-Partner finden</Text>
+            <MaterialIcons name="chevron-right" size={20} color={Colors.primary} />
+          </TouchableOpacity>
+
           {/* Filter Chips Section */}
           <ScrollView
             horizontal
@@ -760,6 +772,25 @@ const styles = StyleSheet.create({
   companionChipText: {
     color: Colors.primary,
     fontWeight: '600',
+  },
+  companionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  companionBannerText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   activeSummaryContainer: {
     flexDirection: 'row',
