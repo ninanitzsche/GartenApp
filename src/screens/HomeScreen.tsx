@@ -25,6 +25,10 @@ import {
 import { formatTimeSpent, fetchTasks, toggleTaskCompletion } from '../services/taskService';
 import { Task } from '../types/task';
 import TaskCard from '../components/TaskCard';
+import { Learning } from '../types/learning';
+import { learningService } from '../services/learningService';
+import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit } from '../utils/zeitraumUtils';
+import LearningCard from '../components/LearningCard';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -55,6 +59,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [prioritizedTasks, setPrioritizedTasks] = useState<Task[]>([]);
+  const [learnings, setLearnings] = useState<Learning[]>([]);
   
   // PERFORMANCE FIX: Dashboard data cache
   const cacheRef = useRef<DashboardCache | null>(null);
@@ -98,6 +103,7 @@ export default function HomeScreen({ navigation }: Props) {
     useCallback(() => {
       loadDashboard();
       loadPrioritizedTasks();
+      loadLearnings();
     }, [loadDashboard])
   );
 
@@ -107,6 +113,7 @@ export default function HomeScreen({ navigation }: Props) {
       // Force refresh to bypass cache
       await loadDashboard(true);
       await loadPrioritizedTasks();
+      await loadLearnings();
     } finally {
       setRefreshing(false);
     }
@@ -126,12 +133,40 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
+  const loadLearnings = async () => {
+    try {
+      const currentZeitraum = getAktuelleSaison();
+      const data = await learningService.getLearningsForSeason([], currentZeitraum);
+      setLearnings(data);
+    } catch (error) {
+      console.error('Error loading learnings:', error);
+    }
+  };
+
   const handleToggleTask = async (taskId: string) => {
     try {
       await toggleTaskCompletion(taskId);
       await loadPrioritizedTasks();
     } catch (error: any) {
       console.error('Error toggling task:', error);
+    }
+  };
+
+  const handleRateLearning = async (id: string, helpful: boolean) => {
+    try {
+      await learningService.rateLearning(id, helpful ? 'helpful' : 'not_helpful');
+      await loadLearnings();
+    } catch (error) {
+      console.error('Error rating learning:', error);
+    }
+  };
+
+  const handleDismissLearning = async (id: string) => {
+    try {
+      await learningService.dismissLearning(id);
+      await loadLearnings();
+    } catch (error) {
+      console.error('Error dismissing learning:', error);
     }
   };
 
@@ -321,6 +356,23 @@ export default function HomeScreen({ navigation }: Props) {
                 ))}
             </View>
           )}
+        </View>
+      )}
+
+      {/* Learnings Section */}
+      {learnings.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Tipps für {getJahreszeitLabel(getJahreszeit(getAktuelleSaison()))}
+          </Text>
+          {learnings.map(learning => (
+            <LearningCard
+              key={learning.id}
+              learning={learning}
+              onRate={(helpful) => handleRateLearning(learning.id, helpful)}
+              onDismiss={() => handleDismissLearning(learning.id)}
+            />
+          ))}
         </View>
       )}
 
