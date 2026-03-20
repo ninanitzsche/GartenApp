@@ -21,8 +21,8 @@ export default function PrioritaetBadge({ prioritaet, size = 'small' }: Priorita
   };
 
   return (
-    <View style={[styles.badge, { backgroundColor: colors[prioritaet] }]}>
-      <Text style={[styles.text, size === 'medium' && styles.medium]}>
+    <View style={[styles.badge, { backgroundColor: colors[prioritaet] }]} testID="badge">
+      <Text style={[styles.text, size === 'medium' && styles.medium]} testID="text">
         {labels[prioritaet]}
       </Text>
     </View>
