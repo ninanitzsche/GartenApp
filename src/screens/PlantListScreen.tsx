@@ -22,6 +22,8 @@ import EmptyState from '../components/EmptyState';
 import AIPhotoPicker from '../components/AIPhotoPicker';
 import { PlantIdentificationResult } from '../types/ai';
 import SegmentedControl from '../components/SegmentedControl';
+import TaskListContent from '../components/TaskListContent';
+import ShoppingListContent from '../components/ShoppingListContent';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
@@ -119,6 +121,14 @@ export default function PlantListScreen({ navigation }: Props) {
 
   const handleCompanionSearch = () => {
     navigation.navigate('CompanionSearch');
+  };
+
+  const handleAddTask = () => {
+    navigation.navigate('AddTask');
+  };
+
+  const handleAddShoppingItem = () => {
+    navigation.navigate('AddShoppingItem');
   };
 
   const handlePlantIdentified = (result: PlantIdentificationResult) => {
@@ -287,7 +297,7 @@ export default function PlantListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Tab Header Section */}
+      {/* Tab Header Section - Always visible */}
       <View style={styles.filterSection}>
         <SegmentedControl
           segments={tabs}
@@ -295,321 +305,176 @@ export default function PlantListScreen({ navigation }: Props) {
           selectedIndex={selectedTab}
           onSelect={setSelectedTab}
         />
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Pflanze suchen..."
-            placeholderTextColor={Colors.textDisabled}
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialIcons name="close" size={20} color={Colors.textLight} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
 
-        {/* Filter Chips Section */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterChipsContainer}
-          contentContainerStyle={styles.filterChipsContent}
-        >
-          {/* Status Filters */}
-          {PLANT_STATUSES.map(status => (
-            <TouchableOpacity
-              key={status.value}
-              style={[
-                styles.filterChip,
-                filterStatusList.includes(status.value) && styles.filterChipActive,
-              ]}
-              onPress={() => handleStatusFilterToggle(status.value)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterStatusList.includes(status.value) && styles.filterChipTextActive,
-                ]}
-              >
-                {status.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Secondary Filters Row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.secondaryFilterContainer}
-          contentContainerStyle={styles.secondaryFilterContent}
-        >
-          {/* Location Filters */}
-          {locations.map(location => (
-            <TouchableOpacity
-              key={location}
-              style={[
-                styles.filterChip,
-                styles.locationChip,
-                filterLocationList.includes(location) && styles.filterChipActive,
-              ]}
-              onPress={() => handleLocationFilterToggle(location)}
-            >
-              <MaterialIcons
-                name="place"
-                size={14}
-                color={filterLocationList.includes(location) ? '#fff' : Colors.textLight}
-                style={styles.chipIcon}
+        {/* Only show plant-specific filters when on Pflanzen tab */}
+        {selectedTab === 0 && (
+          <>
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Pflanze suchen..."
+                placeholderTextColor={Colors.textDisabled}
+                value={searchQuery}
+                onChangeText={handleSearchChange}
               />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterLocationList.includes(location) && styles.filterChipTextActive,
-                ]}
-              >
-                {location}
-              </Text>
-            </TouchableOpacity>
-          ))}
-
-          {/* Type Filters */}
-          {PLANT_TYPES.map(type => (
-            <TouchableOpacity
-              key={type.value}
-              style={[
-                styles.filterChip,
-                styles.typeChip,
-                filterType === type.value && styles.filterChipActive,
-              ]}
-              onPress={() => handleTypeFilterChange(type.value)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterType === type.value && styles.filterChipTextActive,
-                ]}
-              >
-                {type.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-
-          {/* Essbar Toggle */}
-          <TouchableOpacity
-            style={[styles.filterChip, filterEssbar && styles.filterChipActive]}
-            onPress={() => setFilterEssbar(!filterEssbar)}
-          >
-            <MaterialIcons
-              name="restaurant"
-              size={14}
-              color={filterEssbar ? '#fff' : Colors.textLight}
-              style={styles.chipIcon}
-            />
-            <Text
-              style={[
-                styles.filterChipText,
-                filterEssbar && styles.filterChipTextActive,
-              ]}
-            >
-              Essbar
-            </Text>
-          </TouchableOpacity>
-
-          {/* Mischkultur Search Button */}
-          <TouchableOpacity
-            style={[styles.filterChip, styles.companionChip]}
-            onPress={handleCompanionSearch}
-          >
-            <MaterialIcons
-              name="group"
-              size={14}
-              color={Colors.primary}
-              style={styles.chipIcon}
-            />
-            <Text style={[styles.filterChipText, styles.companionChipText]}>
-              Mischkultur
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Active Filters Summary */}
-        {hasActiveFilters && (
-          <View style={styles.activeSummaryContainer}>
-            <View style={styles.activeSummaryContent}>
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{filterCount}</Text>
-              </View>
-              <Text style={styles.activeSummaryText}>Filter aktiv</Text>
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <MaterialIcons name="close" size={20} color={Colors.textLight} />
+                </TouchableOpacity>
+              ) : null}
             </View>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={clearAllFilters}
+
+            {/* Filter Chips Section */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterChipsContainer}
+              contentContainerStyle={styles.filterChipsContent}
             >
-              <MaterialIcons name="clear-all" size={18} color={Colors.primary} />
-              <Text style={styles.clearButtonText}>Löschen</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {selectedTab === 0 && (
-        <>
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Pflanze suchen..."
-              placeholderTextColor={Colors.textDisabled}
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialIcons name="close" size={20} color={Colors.textLight} />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-
-          {/* Mischkultur Button */}
-          <TouchableOpacity
-            style={styles.companionBanner}
-            onPress={handleCompanionSearch}
-            accessibilityLabel="Mischkultur-Partner finden"
-            accessibilityRole="button"
-          >
-            <MaterialIcons name="group" size={20} color={Colors.primary} />
-            <Text style={styles.companionBannerText}>Mischkultur-Partner finden</Text>
-            <MaterialIcons name="chevron-right" size={20} color={Colors.primary} />
-          </TouchableOpacity>
-
-          {/* Filter Chips Section */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterChipsContainer}
-            contentContainerStyle={styles.filterChipsContent}
-          >
-            {PLANT_STATUSES.map(status => (
-              <TouchableOpacity
-                key={status.value}
-                style={[
-                  styles.filterChip,
-                  filterStatusList.includes(status.value) && styles.filterChipActive,
-                ]}
-                onPress={() => handleStatusFilterToggle(status.value)}
-              >
-                <Text
+              {/* Status Filters */}
+              {PLANT_STATUSES.map(status => (
+                <TouchableOpacity
+                  key={status.value}
                   style={[
-                    styles.filterChipText,
-                    filterStatusList.includes(status.value) && styles.filterChipTextActive,
+                    styles.filterChip,
+                    filterStatusList.includes(status.value) && styles.filterChipActive,
                   ]}
+                  onPress={() => handleStatusFilterToggle(status.value)}
                 >
-                  {status.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filterStatusList.includes(status.value) && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {status.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
-          {/* Secondary Filters Row */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.secondaryFilterContainer}
-            contentContainerStyle={styles.secondaryFilterContent}
-          >
-            {locations.map(location => (
+            {/* Secondary Filters Row */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.secondaryFilterContainer}
+              contentContainerStyle={styles.secondaryFilterContent}
+            >
+              {/* Location Filters */}
+              {locations.map(location => (
+                <TouchableOpacity
+                  key={location}
+                  style={[
+                    styles.filterChip,
+                    styles.locationChip,
+                    filterLocationList.includes(location) && styles.filterChipActive,
+                  ]}
+                  onPress={() => handleLocationFilterToggle(location)}
+                >
+                  <MaterialIcons
+                    name="place"
+                    size={14}
+                    color={filterLocationList.includes(location) ? '#fff' : Colors.textLight}
+                    style={styles.chipIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filterLocationList.includes(location) && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {location}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              {/* Type Filters */}
+              {PLANT_TYPES.map(type => (
+                <TouchableOpacity
+                  key={type.value}
+                  style={[
+                    styles.filterChip,
+                    styles.typeChip,
+                    filterType === type.value && styles.filterChipActive,
+                  ]}
+                  onPress={() => handleTypeFilterChange(type.value)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filterType === type.value && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              {/* Essbar Toggle */}
               <TouchableOpacity
-                key={location}
-                style={[
-                  styles.filterChip,
-                  styles.locationChip,
-                  filterLocationList.includes(location) && styles.filterChipActive,
-                ]}
-                onPress={() => handleLocationFilterToggle(location)}
+                style={[styles.filterChip, filterEssbar && styles.filterChipActive]}
+                onPress={() => setFilterEssbar(!filterEssbar)}
               >
                 <MaterialIcons
-                  name="place"
+                  name="restaurant"
                   size={14}
-                  color={filterLocationList.includes(location) ? '#fff' : Colors.textLight}
+                  color={filterEssbar ? '#fff' : Colors.textLight}
                   style={styles.chipIcon}
                 />
                 <Text
                   style={[
                     styles.filterChipText,
-                    filterLocationList.includes(location) && styles.filterChipTextActive,
+                    filterEssbar && styles.filterChipTextActive,
                   ]}
                 >
-                  {location}
+                  Essbar
                 </Text>
               </TouchableOpacity>
-            ))}
 
-            {PLANT_TYPES.map(type => (
+              {/* Mischkultur Search Button */}
               <TouchableOpacity
-                key={type.value}
-                style={[
-                  styles.filterChip,
-                  styles.typeChip,
-                  filterType === type.value && styles.filterChipActive,
-                ]}
-                onPress={() => handleTypeFilterChange(type.value)}
+                style={[styles.filterChip, styles.companionChip]}
+                onPress={handleCompanionSearch}
               >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    filterType === type.value && styles.filterChipTextActive,
-                  ]}
-                >
-                  {type.label}
+                <MaterialIcons
+                  name="group"
+                  size={14}
+                  color={Colors.primary}
+                  style={styles.chipIcon}
+                />
+                <Text style={[styles.filterChipText, styles.companionChipText]}>
+                  Mischkultur
                 </Text>
               </TouchableOpacity>
-            ))}
+            </ScrollView>
 
-            <TouchableOpacity
-              style={[styles.filterChip, filterEssbar && styles.filterChipActive]}
-              onPress={() => setFilterEssbar(!filterEssbar)}
-            >
-              <MaterialIcons
-                name="restaurant"
-                size={14}
-                color={filterEssbar ? '#fff' : Colors.textLight}
-                style={styles.chipIcon}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterEssbar && styles.filterChipTextActive,
-                ]}
-              >
-                Essbar
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-
-          {/* Active Filters Summary */}
-          {hasActiveFilters && (
-            <View style={styles.activeSummaryContainer}>
-              <View style={styles.activeSummaryContent}>
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{filterCount}</Text>
+            {/* Active Filters Summary */}
+            {hasActiveFilters && (
+              <View style={styles.activeSummaryContainer}>
+                <View style={styles.activeSummaryContent}>
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>{filterCount}</Text>
+                  </View>
+                  <Text style={styles.activeSummaryText}>Filter aktiv</Text>
                 </View>
-                <Text style={styles.activeSummaryText}>Filter aktiv</Text>
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearAllFilters}
+                >
+                  <MaterialIcons name="clear-all" size={18} color={Colors.primary} />
+                  <Text style={styles.clearButtonText}>Löschen</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={clearAllFilters}
-              >
-                <MaterialIcons name="clear-all" size={18} color={Colors.primary} />
-                <Text style={styles.clearButtonText}>Löschen</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            )}
+          </>
+        )}
+      </View>
 
+      {/* Tab Content */}
+      {selectedTab === 0 && (
+        <>
           {/* Plants List */}
           <FlatList
             data={plants}
@@ -651,29 +516,21 @@ export default function PlantListScreen({ navigation }: Props) {
       )}
 
       {selectedTab === 1 && (
-        <View style={styles.tabContentPlaceholder}>
-          <MaterialIcons name="check-circle" size={48} color={Colors.textLight} />
-          <Text style={styles.placeholderText}>Aufgaben werden hier angezeigt</Text>
-          <TouchableOpacity 
-            style={styles.placeholderButton}
-            onPress={() => navigation.navigate('TaskList' as any)}
-          >
-            <Text style={styles.placeholderButtonText}>Alle Aufgaben anzeigen</Text>
-          </TouchableOpacity>
-        </View>
+        <TaskListContent
+          navigation={navigation}
+          onAddTask={handleAddTask}
+          embedded
+          showHeader={true}
+        />
       )}
 
       {selectedTab === 2 && (
-        <View style={styles.tabContentPlaceholder}>
-          <MaterialIcons name="shopping-cart" size={48} color={Colors.textLight} />
-          <Text style={styles.placeholderText}>Einkaufsliste wird hier angezeigt</Text>
-          <TouchableOpacity 
-            style={styles.placeholderButton}
-            onPress={() => navigation.navigate('ShoppingList' as any)}
-          >
-            <Text style={styles.placeholderButtonText}>Einkaufsliste öffnen</Text>
-          </TouchableOpacity>
-        </View>
+        <ShoppingListContent
+          navigation={navigation}
+          onAddItem={handleAddShoppingItem}
+          embedded
+          showHeader={true}
+        />
       )}
 
       <AIPhotoPicker
