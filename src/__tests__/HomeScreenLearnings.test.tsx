@@ -18,9 +18,7 @@ jest.mock('react-native', () => {
 });
 
 jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn((callback) => {
-    Promise.resolve().then(() => callback());
-  }),
+  useFocusEffect: jest.fn(),
   useNavigation: () => ({ navigate: jest.fn() }),
   useRoute: () => ({ params: {} }),
 }));
@@ -71,7 +69,7 @@ jest.mock('../theme/colors', () => ({
 }));
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import HomeScreen from '../screens/HomeScreen';
 import { Learning } from '../types/learning';
 import { Zeitraum, Jahreszeit } from '../types/zeitraum';
@@ -146,20 +144,28 @@ const flushPromises = () => new Promise(resolve => process.nextTick(resolve));
 describe('HomeScreen Learnings Section', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockGetAktuelleSaison.mockReturnValue(Zeitraum.FRUEHJAHR_FRUH);
     mockGetJahreszeit.mockReturnValue(Jahreszeit.FRUEHJAHR);
     mockGetJahreszeitLabel.mockReturnValue('Frühjahr');
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Learnings section visibility', () => {
     it('renders Learnings section when learnings exist', async () => {
       mockLearningService.getLearningsForSeason.mockResolvedValue(mockLearnings);
 
-      const { getByText } = render(<HomeScreen navigation={{} as any} route={{} as any} />);
-      await flushPromises();
-      await flushPromises();
+      let container: any;
+      await act(async () => {
+        const result = render(<HomeScreen navigation={{} as any} route={{} as any} />);
+        container = result;
+        jest.runAllTimers();
+      });
       
-      expect(getByText('Tipps für Frühjahr')).toBeTruthy();
+      expect(container.getByText('Tipps für Frühjahr')).toBeTruthy();
     });
 
     it('hides Learnings section when no learnings available', async () => {
