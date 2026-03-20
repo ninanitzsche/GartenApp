@@ -398,30 +398,38 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle} accessibilityRole="header">Pflanzen-Status</Text>
 
           <View style={styles.statusDistribution} accessibilityRole="list" aria-label="Pflanzen nach Status">
-            {statusDistribution.map((item, index) => (
-              <View key={index} style={styles.statusItem} accessibilityRole="listitem">
-                <View
-                  style={[
-                    styles.statusBar,
-                    { backgroundColor: getStatusColor(item.status) + '20' },
-                  ]}
-                  accessibilityLabel={`${getStatusLabel(item.status)}: ${item.count} Pflanzen`}
-                >
-                  <View
-                    style={[
-                      styles.statusBarFill,
-                      {
-                        backgroundColor: getStatusColor(item.status),
-                        width: `${Math.round((item.count / statusDistribution.reduce((sum, s) => sum + s.count, 0)) * 100)}%`
-                      },
-                    ]}
-                  />
+            {statusDistribution.map((item, index) => {
+              const total = statusDistribution.reduce((sum, s) => sum + s.count, 0);
+              const percentage = Math.round((item.count / total) * 100);
+              return (
+                <View key={index} style={styles.statusItem} accessibilityRole="listitem">
+                  <View style={styles.statusHeader}>
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+                    <Text style={styles.statusLabel}>{getStatusLabel(item.status)}</Text>
+                    <Text style={styles.statusCount}>{item.count}</Text>
+                    <Text style={styles.statusPercentage}>{percentage}%</Text>
+                  </View>
+                  <View style={styles.statusBarContainer}>
+                    <View
+                      style={[
+                        styles.statusBarTrack,
+                        { backgroundColor: getStatusColor(item.status) + '15' },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.statusBarFill,
+                          {
+                            backgroundColor: getStatusColor(item.status),
+                            width: `${percentage}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
                 </View>
-                <Text style={styles.statusLabel}>
-                  {getStatusLabel(item.status)} ({item.count})
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       )}
@@ -564,24 +572,53 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   statusDistribution: {
-    gap: 10,
+    gap: 12,
   },
   statusItem: {
-    gap: 6,
+    marginBottom: 4,
   },
-  statusBar: {
-    height: 24,
+  statusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  statusLabel: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  statusCount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginRight: 8,
+    minWidth: 24,
+    textAlign: 'right',
+  },
+  statusPercentage: {
+    fontSize: 12,
+    color: Colors.textLight,
+    minWidth: 40,
+    textAlign: 'right',
+  },
+  statusBarContainer: {
+    marginLeft: 18,
+  },
+  statusBarTrack: {
+    height: 8,
     borderRadius: 4,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   statusBarFill: {
     height: '100%',
-  },
-  statusLabel: {
-    fontSize: 11,
-    color: Colors.textLight,
+    borderRadius: 4,
   },
   activityItem: {
     flexDirection: 'row',
