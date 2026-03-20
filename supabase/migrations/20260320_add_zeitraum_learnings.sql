@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS learnings (
 -- 4. Add RLS policies for learnings
 ALTER TABLE learnings ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own learnings" ON learnings;
+DROP POLICY IF EXISTS "Users can insert own learnings" ON learnings;
+DROP POLICY IF EXISTS "Users can update own learnings" ON learnings;
+DROP POLICY IF EXISTS "Users can delete own learnings" ON learnings;
+
 -- Users can only see their own learnings
 CREATE POLICY "Users can view own learnings" ON learnings
   FOR SELECT USING (auth.uid() = user_id);
@@ -66,6 +72,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_learnings_updated_at ON learnings;
 CREATE TRIGGER update_learnings_updated_at
   BEFORE UPDATE ON learnings
   FOR EACH ROW
