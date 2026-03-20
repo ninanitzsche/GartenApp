@@ -27,7 +27,8 @@ import { Task } from '../types/task';
 import TaskCard from '../components/TaskCard';
 import { Learning } from '../types/learning';
 import { learningService } from '../services/learningService';
-import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit } from '../utils/zeitraumUtils';
+import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit, getZeitraumShortLabel, sortZeitraeume } from '../utils/zeitraumUtils';
+import { Zeitraum } from '../types/zeitraum';
 import LearningCard from '../components/LearningCard';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
@@ -298,64 +299,62 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       )}
 
-      {/* Prioritized Tasks */}
+      {/* Nächste Aufgaben - Organized by Zeitraum */}
       {prioritizedTasks.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Priorisierte Aufgaben</Text>
-
-          {prioritizedTasks.filter(t => t.priority === 'hoch').length > 0 && (
-            <View style={styles.priorityGroup}>
-              <Text style={styles.priorityLabel}>
-                <MaterialIcons name="circle" size={10} color={Colors.priorityHigh} /> Hohe Priorität
-              </Text>
-              {prioritizedTasks
-                .filter(t => t.priority === 'hoch')
-                .map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={() => handleToggleTask(task.id)}
-                    onPress={() => {}}
-                  />
-                ))}
-            </View>
-          )}
-
-          {prioritizedTasks.filter(t => t.priority === 'mittel').length > 0 && (
-            <View style={styles.priorityGroup}>
-              <Text style={styles.priorityLabel}>
-                <MaterialIcons name="circle" size={10} color={Colors.priorityMedium} /> Mittlere Priorität
-              </Text>
-              {prioritizedTasks
-                .filter(t => t.priority === 'mittel')
-                .map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={() => handleToggleTask(task.id)}
-                    onPress={() => {}}
-                  />
-                ))}
-            </View>
-          )}
-
-          {prioritizedTasks.filter(t => t.priority === 'niedrig').length > 0 && (
-            <View style={styles.priorityGroup}>
-              <Text style={styles.priorityLabel}>
-                <MaterialIcons name="circle" size={10} color={Colors.textLight} /> Niedrige Priorität
-              </Text>
-              {prioritizedTasks
-                .filter(t => t.priority === 'niedrig')
-                .map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={() => handleToggleTask(task.id)}
-                    onPress={() => {}}
-                  />
-                ))}
-            </View>
-          )}
+          <Text style={styles.sectionTitle}>Nächste Aufgaben</Text>
+          
+          {(() => {
+            const aktuellerZeitraum = getAktuelleSaison();
+            
+            const getTaskZeitraum = (task: Task): Zeitraum => {
+              if (task.zeitraum) return task.zeitraum as Zeitraum;
+              return Zeitraum.FLEXIBEL;
+            };
+            
+            const groupedByZeitraum = prioritizedTasks.reduce((acc, task) => {
+              const z = getTaskZeitraum(task);
+              if (!acc[z]) acc[z] = [];
+              acc[z].push(task);
+              return acc;
+            }, {} as Record<Zeitraum, Task[]>);
+            
+            const sortedZeitraeume = sortZeitraeume(Object.keys(groupedByZeitraum) as Zeitraum[]);
+            const priorityOrder = { hoch: 0, mittel: 1, niedrig: 2 };
+            
+            return sortedZeitraeume.map(zeitraum => {
+              const tasksInZeitraum = groupedByZeitraum[zeitraum]
+                .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+              
+              const isCurrent = zeitraum === aktuellerZeitraum;
+              
+              return (
+                <View key={zeitraum} style={styles.priorityGroup}>
+                  <View style={styles.zeitraumGroupHeader}>
+                    <Text style={[styles.priorityLabel, isCurrent && styles.currentZeitraumLabel]}>
+                      <MaterialIcons 
+                        name="circle" 
+                        size={10} 
+                        color={isCurrent ? Colors.primary : Colors.textLight} 
+                      /> 
+                      {isCurrent ? 'Jetzt: ' : ''}{getZeitraumShortLabel(zeitraum)}
+                    </Text>
+                    {isCurrent && (
+                      <Text style={styles.currentBadge}>Aktiv</Text>
+                    )}
+                  </View>
+                  {tasksInZeitraum.map(task => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onToggle={() => handleToggleTask(task.id)}
+                      onPress={() => {}}
+                    />
+                  ))}
+                </View>
+              );
+            });
+          })()}
         </View>
       )}
 
@@ -628,5 +627,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  zeitraumGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  currentZeitraumLabel: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
+  currentBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primary,
+    backgroundColor: Colors.primaryLight + '30',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 });

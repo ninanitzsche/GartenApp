@@ -21,6 +21,7 @@ import { fetchPlants, getUniqueLocations, PlantFilters } from '../services/plant
 import EmptyState from '../components/EmptyState';
 import AIPhotoPicker from '../components/AIPhotoPicker';
 import { PlantIdentificationResult } from '../types/ai';
+import SegmentedControl from '../components/SegmentedControl';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
@@ -36,7 +37,11 @@ export default function PlantListScreen({ navigation }: Props) {
   const [locations, setLocations] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showAIPicker, setShowAIPicker] = useState(false);
+  const [selectedTab, setSelectedTab] = useState(0);
   const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  
+  const tabs = ['Pflanzen', 'Aufgaben', 'Einkauf'];
+  const tabIcons = ['eco', 'check-circle', 'shopping-cart'];
 
   useFocusEffect(
     useCallback(() => {
@@ -278,8 +283,14 @@ export default function PlantListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Filter Header Section */}
+      {/* Tab Header Section */}
       <View style={styles.filterSection}>
+        <SegmentedControl
+          segments={tabs}
+          icons={tabIcons}
+          selectedIndex={selectedTab}
+          onSelect={setSelectedTab}
+        />
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
@@ -425,42 +436,212 @@ export default function PlantListScreen({ navigation }: Props) {
         )}
       </View>
 
-      {/* Plants List */}
-      <FlatList
-        data={plants}
-        renderItem={renderPlantItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={plants.length === 0 ? styles.listEmpty : styles.listContent}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
-          />
-        }
-      />
-
-      {plants.length > 0 && (
+      {selectedTab === 0 && (
         <>
-          <TouchableOpacity 
-            style={styles.aiButton} 
-            onPress={handleAIIdentify}
-            accessibilityLabel="Pflanze mit KI identifizieren"
-            accessibilityRole="button"
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Pflanze suchen..."
+              placeholderTextColor={Colors.textDisabled}
+              value={searchQuery}
+              onChangeText={handleSearchChange}
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <MaterialIcons name="close" size={20} color={Colors.textLight} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {/* Filter Chips Section */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterChipsContainer}
+            contentContainerStyle={styles.filterChipsContent}
           >
-            <MaterialIcons name="camera-alt" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.fab} 
-            onPress={handleAddPlant}
-            accessibilityLabel="Neue Pflanze hinzufügen"
-            accessibilityRole="button"
+            {PLANT_STATUSES.map(status => (
+              <TouchableOpacity
+                key={status.value}
+                style={[
+                  styles.filterChip,
+                  filterStatusList.includes(status.value) && styles.filterChipActive,
+                ]}
+                onPress={() => handleStatusFilterToggle(status.value)}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    filterStatusList.includes(status.value) && styles.filterChipTextActive,
+                  ]}
+                >
+                  {status.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Secondary Filters Row */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.secondaryFilterContainer}
+            contentContainerStyle={styles.secondaryFilterContent}
           >
-            <MaterialIcons name="add" size={28} color="#fff" />
-          </TouchableOpacity>
+            {locations.map(location => (
+              <TouchableOpacity
+                key={location}
+                style={[
+                  styles.filterChip,
+                  styles.locationChip,
+                  filterLocationList.includes(location) && styles.filterChipActive,
+                ]}
+                onPress={() => handleLocationFilterToggle(location)}
+              >
+                <MaterialIcons
+                  name="place"
+                  size={14}
+                  color={filterLocationList.includes(location) ? '#fff' : Colors.textLight}
+                  style={styles.chipIcon}
+                />
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    filterLocationList.includes(location) && styles.filterChipTextActive,
+                  ]}
+                >
+                  {location}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            {PLANT_TYPES.map(type => (
+              <TouchableOpacity
+                key={type.value}
+                style={[
+                  styles.filterChip,
+                  styles.typeChip,
+                  filterType === type.value && styles.filterChipActive,
+                ]}
+                onPress={() => handleTypeFilterChange(type.value)}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    filterType === type.value && styles.filterChipTextActive,
+                  ]}
+                >
+                  {type.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              style={[styles.filterChip, filterEssbar && styles.filterChipActive]}
+              onPress={() => setFilterEssbar(!filterEssbar)}
+            >
+              <MaterialIcons
+                name="restaurant"
+                size={14}
+                color={filterEssbar ? '#fff' : Colors.textLight}
+                style={styles.chipIcon}
+              />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  filterEssbar && styles.filterChipTextActive,
+                ]}
+              >
+                Essbar
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* Active Filters Summary */}
+          {hasActiveFilters && (
+            <View style={styles.activeSummaryContainer}>
+              <View style={styles.activeSummaryContent}>
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{filterCount}</Text>
+                </View>
+                <Text style={styles.activeSummaryText}>Filter aktiv</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearAllFilters}
+              >
+                <MaterialIcons name="clear-all" size={18} color={Colors.primary} />
+                <Text style={styles.clearButtonText}>Löschen</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Plants List */}
+          <FlatList
+            data={plants}
+            renderItem={renderPlantItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={plants.length === 0 ? styles.listEmpty : styles.listContent}
+            ListEmptyComponent={renderEmptyState}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={Colors.primary}
+                colors={[Colors.primary]}
+              />
+            }
+          />
+
+          {plants.length > 0 && (
+            <>
+              <TouchableOpacity 
+                style={styles.aiButton} 
+                onPress={handleAIIdentify}
+                accessibilityLabel="Pflanze mit KI identifizieren"
+                accessibilityRole="button"
+              >
+                <MaterialIcons name="camera-alt" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.fab} 
+                onPress={handleAddPlant}
+                accessibilityLabel="Neue Pflanze hinzufügen"
+                accessibilityRole="button"
+              >
+                <MaterialIcons name="add" size={28} color="#fff" />
+              </TouchableOpacity>
+            </>
+          )}
         </>
+      )}
+
+      {selectedTab === 1 && (
+        <View style={styles.tabContentPlaceholder}>
+          <MaterialIcons name="check-circle" size={48} color={Colors.textLight} />
+          <Text style={styles.placeholderText}>Aufgaben werden hier angezeigt</Text>
+          <TouchableOpacity 
+            style={styles.placeholderButton}
+            onPress={() => navigation.navigate('TaskList' as any)}
+          >
+            <Text style={styles.placeholderButtonText}>Alle Aufgaben anzeigen</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {selectedTab === 2 && (
+        <View style={styles.tabContentPlaceholder}>
+          <MaterialIcons name="shopping-cart" size={48} color={Colors.textLight} />
+          <Text style={styles.placeholderText}>Einkaufsliste wird hier angezeigt</Text>
+          <TouchableOpacity 
+            style={styles.placeholderButton}
+            onPress={() => navigation.navigate('ShoppingList' as any)}
+          >
+            <Text style={styles.placeholderButtonText}>Einkaufsliste öffnen</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       <AIPhotoPicker
@@ -762,5 +943,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
+  },
+  tabContentPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: Colors.textLight,
+    marginTop: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  placeholderButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+  },
+  placeholderButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
