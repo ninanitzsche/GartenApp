@@ -1,6 +1,5 @@
 /**
- * Garden Overview Screen
- * Main screen showing garden beds map and statistics
+ * Garden Overview Screen - 2026 Glassmorphism
  */
 import React, { useState, useCallback } from 'react';
 import {
@@ -11,12 +10,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   Text,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { Camera, Settings, Plus } from 'lucide-react-native';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { Garden } from '../types/garden';
 import { Bed } from '../types/bed';
 import { supabase } from '../services/supabase';
@@ -64,13 +65,11 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 
       let bedsData = await fetchBeds(gardenData.id);
 
-      // Auto-create beds from plant locations if no beds exist
       if (bedsData.length === 0) {
         await autoCreateBedsFromLocations(gardenData.id);
         bedsData = await fetchBeds(gardenData.id);
       }
 
-      // Get plant counts by fetching all bed_plants and counting
       const { data: allBedPlants } = await supabase
         .from('bed_plants')
         .select('bed_id');
@@ -97,7 +96,6 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 
   const autoCreateBedsFromLocations = async (gardenId?: string) => {
     try {
-      // Fetch all plants to get unique locations
       const plants = await fetchPlants();
 
       const locations = new Set(
@@ -110,7 +108,6 @@ export default function GardenOverviewScreen({ navigation }: Props) {
         return;
       }
 
-      // Create a bed for each location
       const colors = ['#4CAF50', '#8D6E63', '#2196F3', '#FF9800', '#9C27B0'];
       let colorIndex = 0;
 
@@ -132,7 +129,6 @@ export default function GardenOverviewScreen({ navigation }: Props) {
         try {
           const createdBed = await createBed(bedData);
 
-          // Link plants with this location to the bed (case-insensitive!)
           const plantsForLocation = plants.filter(
             (p) => p.location?.toLowerCase() === location.toLowerCase()
           );
@@ -179,7 +175,7 @@ export default function GardenOverviewScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -189,35 +185,30 @@ export default function GardenOverviewScreen({ navigation }: Props) {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors2026.primary} />
       }
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{garden?.name || 'Mein Garten'}</Text>
-          {garden?.location && (
-            <Text style={styles.subtitle}>{garden.location}</Text>
-          )}
+      {/* Glass Header */}
+      <BlurView intensity={60} style={styles.glassHeader}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>{garden?.name || 'Mein Garten'}</Text>
+            {garden?.location && (
+              <Text style={styles.headerSubtitle}>{garden.location}</Text>
+            )}
+          </View>
+          <View style={styles.headerActions}>
+            <Pressable onPress={handlePhotos} style={styles.headerIcon}>
+              <Camera size={20} color={Colors2026.primary} />
+            </Pressable>
+            <Pressable onPress={handleSettings} style={styles.headerIcon}>
+              <Settings size={20} color={Colors2026.primary} />
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.headerIcons}>
-          <MaterialIcons
-            name="photo-library"
-            size={24}
-            color={Colors.primary}
-            onPress={handlePhotos}
-            style={styles.headerIcon}
-          />
-          <MaterialIcons
-            name="settings"
-            size={24}
-            color={Colors.primary}
-            onPress={handleSettings}
-            style={styles.headerIcon}
-          />
-        </View>
-      </View>
+      </BlurView>
 
       {/* Stats */}
       <View style={styles.statsContainer}>
@@ -225,14 +216,12 @@ export default function GardenOverviewScreen({ navigation }: Props) {
       </View>
 
       {beds.length === 0 ? (
-        /* Empty State */
         <View style={styles.section}>
           <EmptyState
             icon="dashboard"
             title="Noch keine Beete"
             message="Erstellen Sie Ihre ersten Beete, um Ihren Garten zu planen."
-            actionLabel="Beet hinzufügen"
-            onAction={handleAddBed}
+            action={{ label: 'Beet hinzufügen', onPress: handleAddBed }}
           />
         </View>
       ) : (
@@ -249,7 +238,12 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 
           {/* Beds List */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Beete ({beds.length})</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Beete ({beds.length})</Text>
+              <Pressable onPress={handleAddBed} style={styles.addButton}>
+                <Plus size={18} color={Colors2026.primary} />
+              </Pressable>
+            </View>
             {beds.map((bed) => (
               <BedCard
                 key={bed.id}
@@ -261,6 +255,8 @@ export default function GardenOverviewScreen({ navigation }: Props) {
           </View>
         </>
       )}
+
+      <View style={styles.spacer} />
     </ScrollView>
   );
 }
@@ -268,50 +264,87 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
+  },
+  content: {
+    paddingBottom: Spacing2026.xxxl * 2,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
   },
-  header: {
+  glassHeader: {
+    paddingTop: 60,
+    paddingBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    padding: 16,
-    paddingBottom: 12,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
+  headerLeft: {
+    flex: 1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textLight,
+  headerTitle: {
+    fontSize: Typography2026.headline.fontSize,
+    fontWeight: '800',
+    color: Colors2026.text,
+    letterSpacing: -0.8,
   },
-  headerIcons: {
+  headerSubtitle: {
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
+    marginTop: Spacing2026.xs,
+  },
+  headerActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: Spacing2026.sm,
   },
   headerIcon: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: Spacing2026.xl,
+    marginTop: Spacing2026.lg,
   },
   section: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    paddingHorizontal: Spacing2026.xl,
+    marginBottom: Spacing2026.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing2026.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
+    fontSize: Typography2026.title.fontSize,
+    fontWeight: '700',
+    color: Colors2026.text,
+    letterSpacing: -0.3,
+    marginBottom: Spacing2026.md,
+  },
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing2026.md,
+  },
+  spacer: {
+    height: Spacing2026.xl,
   },
 });
