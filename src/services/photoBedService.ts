@@ -92,8 +92,9 @@ export async function uploadPhotoForBed(
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (!user || userError) throw new Error('User not authenticated');
 
-  // 1. Generate unique filename
-  const fileExt = imageUri.split('.').pop() || 'jpg';
+  // 1. Generate unique filename (handle blob: URIs from web image picker)
+  const isBlobUrl = imageUri.startsWith('blob:');
+  const fileExt = isBlobUrl ? 'jpg' : (imageUri.split('.').pop()?.split('?')[0] || 'jpg');
   const fileName = `${user.id}/${bedId}/${Date.now()}-bed.${fileExt}`;
 
   // 2. Fetch the image and convert to ArrayBuffer
@@ -107,6 +108,7 @@ export async function uploadPhotoForBed(
     throw new Error('Image blob is empty');
   }
 
+  const contentType = isBlobUrl ? 'image/jpeg' : (blob.type || 'image/jpeg');
   const arrayBuffer = await blob.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
 
@@ -114,7 +116,7 @@ export async function uploadPhotoForBed(
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('plant-photos')
     .upload(fileName, uint8Array, {
-      contentType: `image/${fileExt}`,
+      contentType,
       upsert: false,
     });
 
