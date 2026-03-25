@@ -3,6 +3,10 @@
  * Permakultur-inspirierte Farbpalette
  */
 
+/**
+ * @deprecated Use designSystemV2.ts instead. This file is kept for migration reference only.
+ */
+
 export const Colors = {
   // Primary Colors
   primary: '#4CAF50',      // Grün - Natur, Wachstum
