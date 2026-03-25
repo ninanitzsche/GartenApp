@@ -15,7 +15,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useReduceMotion } from '../utils/accessibility';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -180,10 +180,13 @@ export default function PlantListScreen({ navigation }: Props) {
   };
 
   const renderTabContent = () => {
+    const Wrapper = reduceMotion ? View : Animated.View;
+    const entering = reduceMotion ? undefined : FadeIn.duration(200);
+
     switch (selectedTab) {
       case 0:
         return (
-          <View style={styles.tabContent}>
+          <Wrapper entering={entering} style={styles.tabContent}>
             {/* Search Bar */}
             <GlassInput
               value={searchQuery}
@@ -254,12 +257,12 @@ export default function PlantListScreen({ navigation }: Props) {
                 />
               }
             />
-          </View>
+          </Wrapper>
         );
       case 1:
-        return <TaskListContent navigation={navigation} showHeader={false} />;
+        return <Wrapper entering={entering}><TaskListContent navigation={navigation} showHeader={false} /></Wrapper>;
       case 2:
-        return <ShoppingListContent />;
+        return <Wrapper entering={entering}><ShoppingListContent /></Wrapper>;
       default:
         return null;
     }
