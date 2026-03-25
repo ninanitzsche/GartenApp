@@ -10,3 +10,4 @@ export { default as SectionHeader } from './SectionHeader';
 export { default as StatusBadge } from './StatusBadge';
 export { default as EmptyState } from './EmptyState';
 export { default as FloatingAction } from './FloatingAction';
+export { default as GlassTabBar } from './GlassTabBar';
