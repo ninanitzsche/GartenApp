@@ -1,11 +1,18 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import { Circle, CheckCircle2 } from 'lucide-react-native';
 import { Task } from '../types/task';
 import { Zeitraum } from '../types/zeitraum';
 import { getZeitraumShortLabel, getZeitraumIconComponent } from '../utils/zeitraumUtils';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import PrioritaetBadge from './PrioritaetBadge';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface TaskCardProps {
   task: Task;
@@ -23,7 +30,7 @@ function SkeletonCard() {
   return (
     <View style={styles.container}>
       <View style={styles.checkbox}>
-        <ActivityIndicator size="small" color={Colors.textLight} />
+        <ActivityIndicator size="small" color={Colors2026.textLight} />
       </View>
       <View style={styles.content}>
         <View style={styles.skeletonTitle} />
@@ -46,21 +53,31 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
   const zeitraum = getTaskZeitraum(task);
   const zeitraumLabel = zeitraum ? getZeitraumShortLabel(zeitraum) : '';
 
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <TouchableOpacity 
-        style={styles.checkbox} 
+    <AnimatedPressable
+      style={[styles.container, animatedStyle]}
+      onPress={onPress}
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+    >
+      <Pressable
+        style={styles.checkbox}
         onPress={onToggle}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isCompleted }}
         accessibilityLabel={isCompleted ? `${task.title} erledigt` : `${task.title} nicht erledigt`}
       >
-        <MaterialIcons
-          name={isCompleted ? 'check-circle' : 'radio-button-unchecked'}
-          size={24}
-          color={isCompleted ? Colors.success : Colors.textLight}
-        />
-      </TouchableOpacity>
+        {isCompleted ? (
+          <CheckCircle2 size={24} color={Colors2026.status.success} />
+        ) : (
+          <Circle size={24} color={Colors2026.textLight} />
+        )}
+      </Pressable>
       <View style={styles.content}>
         <Text style={[styles.title, isCompleted && styles.completed]}>
           {task.title}
@@ -69,14 +86,14 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
           {task.location && <Text style={styles.location}>{task.location}</Text>}
           {zeitraumLabel && zeitraum && (
             <View style={styles.zeitraumRow}>
-              {getZeitraumIconComponent(zeitraum, 14, Colors.primary)}
+              {getZeitraumIconComponent(zeitraum, 14, Colors2026.primary)}
               <Text style={styles.zeitraumText}>{zeitraumLabel}</Text>
             </View>
           )}
         </View>
       </View>
       <PrioritaetBadge prioritaet={task.priority} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -84,15 +101,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    padding: Spacing2026.md,
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.lg,
+    marginBottom: Spacing2026.sm,
+    ...Shadows2026.md,
   },
   checkbox: {
-    marginRight: 8,
+    marginRight: Spacing2026.sm,
     width: 44,
     height: 44,
     justifyContent: 'center',
@@ -102,48 +118,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: '500',
+    ...Typography2026.caption,
+    color: Colors2026.text,
+    fontWeight: '600',
   },
   completed: {
     textDecorationLine: 'line-through',
-    color: Colors.textLight,
+    color: Colors2026.textLight,
   },
   meta: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
+    gap: Spacing2026.sm,
+    marginTop: Spacing2026.xs,
   },
   location: {
-    fontSize: 12,
-    color: Colors.textLight,
+    ...Typography2026.small,
+    color: Colors2026.textSecondary,
   },
   zeitraumRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   zeitraumText: {
-    fontSize: 12,
-    color: Colors.primary,
+    ...Typography2026.small,
+    color: Colors2026.primary,
   },
   skeletonTitle: {
     height: 14,
     width: '70%',
-    backgroundColor: Colors.border,
-    borderRadius: 4,
+    backgroundColor: Colors2026.border,
+    borderRadius: Radius2026.sm,
   },
   skeletonMeta: {
     height: 10,
     width: 60,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    marginTop: 6,
+    backgroundColor: Colors2026.border,
+    borderRadius: Radius2026.sm,
+    marginTop: Spacing2026.xs,
   },
   skeletonBadge: {
     width: 50,
     height: 18,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
+    backgroundColor: Colors2026.border,
+    borderRadius: Radius2026.sm,
   },
 });
