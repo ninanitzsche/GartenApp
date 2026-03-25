@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withSequence,
   FadeInUp,
 } from 'react-native-reanimated';
 import { Circle, CheckCircle2 } from 'lucide-react-native';
@@ -61,6 +62,11 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
     transform: [{ scale: scale.value }],
   }));
 
+  const checkScale = useSharedValue(1);
+  const checkAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
   const CardWrapper = reduceMotion ? View : Animated.View;
   const enteringProp = reduceMotion ? undefined : FadeInUp.duration(300);
 
@@ -74,16 +80,23 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
       >
         <Pressable
           style={styles.checkbox}
-          onPress={onToggle}
+          onPress={() => {
+            if (!reduceMotion) {
+              checkScale.value = withSequence(withSpring(1.3, { damping: 10 }), withSpring(1, { damping: 15 }));
+            }
+            onToggle();
+          }}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: isCompleted }}
           accessibilityLabel={isCompleted ? `${task.title} erledigt` : `${task.title} nicht erledigt`}
         >
-          {isCompleted ? (
-            <CheckCircle2 size={24} color={Colors2026.status.success} />
-          ) : (
-            <Circle size={24} color={Colors2026.textLight} />
-          )}
+          <Animated.View style={checkAnimatedStyle}>
+            {isCompleted ? (
+              <CheckCircle2 size={24} color={Colors2026.status.success} />
+            ) : (
+              <Circle size={24} color={Colors2026.textLight} />
+            )}
+          </Animated.View>
         </Pressable>
         <View style={styles.content}>
           <Text style={[styles.title, isCompleted && styles.completed]}>
