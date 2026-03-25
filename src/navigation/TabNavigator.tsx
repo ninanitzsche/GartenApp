@@ -1,8 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
 import { TabParamList } from '../types/navigation';
+import GlassTabBar from '../components/ui/GlassTabBar';
 
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -15,20 +14,9 @@ const Tab = createBottomTabNavigator<TabParamList>();
 export default function TabNavigator() {
   return (
     <Tab.Navigator
+      tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Colors.tabActive,
-        tabBarInactiveTintColor: Colors.tabInactive,
-        tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
-        },
-        headerStyle: {
-          backgroundColor: Colors.primary,
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerShown: false,
       }}
     >
       <Tab.Screen
@@ -37,9 +25,6 @@ export default function TabNavigator() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
-          ),
         }}
       />
 
@@ -50,9 +35,6 @@ export default function TabNavigator() {
           title: 'Pflanzen',
           tabBarLabel: 'Pflanzen',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="eco" size={size} color={color} />
-          ),
         }}
       />
 
@@ -63,9 +45,6 @@ export default function TabNavigator() {
           title: 'Garten',
           tabBarLabel: 'Garten',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="yard" size={size} color={color} />
-          ),
         }}
       />
 
@@ -76,9 +55,6 @@ export default function TabNavigator() {
           title: 'Mehr',
           tabBarLabel: 'Mehr',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="menu" size={size} color={color} />
-          ),
         }}
       />
     </Tab.Navigator>
