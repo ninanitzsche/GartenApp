@@ -68,6 +68,47 @@ export function createMockQueryBuilder(initialData: any = []) {
       }
       return this;
     }),
+    filter: jest.fn(function (column: string, operator: string, value: any) {
+      lastFilters.filter = { column, operator, value };
+      if (Array.isArray(queryData)) {
+        if (operator === 'cs') {
+          queryData = queryData.filter((item: any) => {
+            const arr = item[column];
+            if (Array.isArray(arr)) return arr.includes(value);
+            return false;
+          });
+        } else if (operator === 'ov') {
+          const values = Array.isArray(value) ? value : [value];
+          queryData = queryData.filter((item: any) => {
+            const arr = item[column];
+            if (Array.isArray(arr)) return values.some((v: any) => arr.includes(v));
+            return false;
+          });
+        }
+      }
+      return this;
+    }),
+    contains: jest.fn(function (column: string, value: any) {
+      lastFilters.contains = { column, value };
+      if (Array.isArray(queryData)) {
+        queryData = queryData.filter((item: any) => {
+          const arr = item[column];
+          if (Array.isArray(arr)) {
+            if (Array.isArray(value)) return value.every(v => arr.includes(v));
+            return arr.includes(value);
+          }
+          return false;
+        });
+      }
+      return this;
+    }),
+    limit: jest.fn(function (n: number) {
+      lastFilters.limit = n;
+      if (Array.isArray(queryData)) {
+        queryData = queryData.slice(0, n);
+      }
+      return this;
+    }),
     single: jest.fn(function () {
       if (shouldError) {
         return Promise.resolve({ data: null, error: new Error(errorMessage) });

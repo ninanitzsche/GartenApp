@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+/**
+ * TaskListContent - Enhanced with Search & Filter
+ * Story 049: Task Suche & Filter
+ */
+
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,13 +13,16 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
 import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { fetchTasks, toggleTaskCompletion, sortTasks, getSortLabel } from '../services/taskService';
-import EmptyState from '../components/EmptyState';
+import EmptyState from './ui/EmptyState';
 import TaskListItemComp from '../components/TaskListItem';
 
 interface TaskListContentProps {
@@ -24,6 +32,9 @@ interface TaskListContentProps {
   embedded?: boolean;
 }
 
+const PRIORITIES = ['hoch', 'mittel', 'niedrig'];
+const CATEGORIES = ['pflege', 'ernte', 'garten', 'sonstiges'];
+
 export default function TaskListContent({ 
   navigation, 
   onAddTask,
@@ -31,21 +42,22 @@ export default function TaskListContent({
   embedded = false 
 }: TaskListContentProps) {
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
-  const [sortedTasks, setSortedTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('priority');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterPriorities, setFilterPriorities] = useState<string[]>([]);
+  const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     loadTasks();
   }, []);
-
-  useEffect(() => {
-    const sorted = sortTasks(tasks, sortBy);
-    setSortedTasks(sorted);
-  }, [tasks, sortBy]);
 
   useEffect(() => {
     if (!navigation) return;
@@ -77,6 +89,34 @@ export default function TaskListContent({
       setRefreshing(false);
     }
   }, [loadTasks]);
+
+  // Filter & Sort Tasks
+  const filteredAndSortedTasks = useMemo(() => {
+    let result = [...tasks];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(task =>
+        task.title.toLowerCase().includes(query) ||
+        task.description?.toLowerCase().includes(query) ||
+        task.category?.toLowerCase().includes(query)
+      );
+    }
+
+    // Priority filter
+    if (filterPriorities.length > 0) {
+      result = result.filter(task => filterPriorities.includes(task.priority));
+    }
+
+    // Category filter
+    if (filterCategories.length > 0) {
+      result = result.filter(task => filterCategories.includes(task.category));
+    }
+
+    // Sort
+    return sortTasks(result, sortBy);
+  }, [tasks, searchQuery, filterPriorities, filterCategories, sortBy]);
 
   const handleAddTask = () => {
     if (onAddTask) {
@@ -111,6 +151,30 @@ export default function TaskListContent({
     }
   }, []);
 
+  const togglePriorityFilter = (priority: string) => {
+    setFilterPriorities(prev =>
+      prev.includes(priority)
+        ? prev.filter(p => p !== priority)
+        : [...prev, priority]
+    );
+  };
+
+  const toggleCategoryFilter = (category: string) => {
+    setFilterCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterPriorities([]);
+    setFilterCategories([]);
+  };
+
+  const hasActiveFilters = searchQuery || filterPriorities.length > 0 || filterCategories.length > 0;
+
   const renderTaskItem = useCallback(
     ({ item }: { item: TaskListItem }) => (
       <TaskListItemComp
@@ -126,17 +190,26 @@ export default function TaskListContent({
   const renderEmptyState = useCallback(
     () => (
       <EmptyState
-        icon="assignment"
-        title="Keine Aufgaben"
-        message="Planen Sie Ihre Gartenpflege mit Aufgaben"
-        action={{
-          label: 'Aufgabe erstellen',
-          onPress: handleAddTask,
-        }}
+        icon={<MaterialIcons name="assignment" size={40} color={Colors2026.primary} />}
+        title={hasActiveFilters ? 'Keine Aufgaben gefunden' : 'Keine Aufgaben'}
+        subtitle={hasActiveFilters 
+          ? 'Passen Sie Ihre Filter an, um weitere Aufgaben zu finden'
+          : 'Planen Sie Ihre Gartenpflege mit Aufgaben'
+        }
+        action={
+          <TouchableOpacity
+            onPress={hasActiveFilters ? clearFilters : handleAddTask}
+            style={styles.emptyAction}
+          >
+            <Text style={styles.emptyActionText}>
+              {hasActiveFilters ? 'Filter zurücksetzen' : 'Aufgabe erstellen'}
+            </Text>
+          </TouchableOpacity>
+        }
         containerStyle={styles.emptyStateContainer}
       />
     ),
-    [handleAddTask]
+    [handleAddTask, hasActiveFilters]
   );
 
   if (loading && tasks.length === 0) {
@@ -155,7 +228,9 @@ export default function TaskListContent({
           <View>
             <Text style={styles.headerTitle}>Aufgaben</Text>
             <Text style={styles.headerSubtitle}>
-              {tasks.length === 1 ? '1 Aufgabe' : `${tasks.length} Aufgaben`}
+              {filteredAndSortedTasks.length === 1 
+                ? '1 Aufgabe' 
+                : `${filteredAndSortedTasks.length} Aufgaben`}
             </Text>
           </View>
           {tasks.length > 0 && (
@@ -171,62 +246,161 @@ export default function TaskListContent({
         </View>
       )}
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={20} color={Colors.textLight} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Aufgabe suchen..."
+            placeholderTextColor={Colors.textDisabled}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <MaterialIcons name="close" size={20} color={Colors.textLight} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Filter Chips */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterChipsContainer}
+        contentContainerStyle={styles.filterChipsContent}
+      >
+        {/* Filter Toggle */}
+        <TouchableOpacity
+          style={[
+            styles.filterChip,
+            showFilters && styles.filterChipActive,
+          ]}
+          onPress={() => setShowFilters(!showFilters)}
+        >
+          <MaterialIcons 
+            name="filter-list" 
+            size={16} 
+            color={showFilters ? '#fff' : Colors.primary} 
+          />
+          <Text style={[
+            styles.filterChipText,
+            showFilters && styles.filterChipTextActive,
+          ]}>
+            Filter
+          </Text>
+        </TouchableOpacity>
+
+        {/* Sort Button */}
+        <TouchableOpacity
+          style={styles.filterChip}
+          onPress={() => setShowSortMenu(!showSortMenu)}
+        >
+          <MaterialIcons name="sort" size={16} color={Colors.primary} />
+          <Text style={styles.filterChipText}>{getSortLabel(sortBy)}</Text>
+        </TouchableOpacity>
+
+        {/* Clear Filters */}
+        {hasActiveFilters && (
+          <TouchableOpacity
+            style={styles.clearFilterChip}
+            onPress={clearFilters}
+          >
+            <MaterialIcons name="close" size={14} color={Colors.error} />
+            <Text style={styles.clearFilterText}>Zurücksetzen</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+
+      {/* Expanded Filters */}
+      {showFilters && (
+        <View style={styles.expandedFilters}>
+          {/* Priority Filters */}
+          <Text style={styles.filterLabel}>Priorität</Text>
+          <View style={styles.filterRow}>
+            {PRIORITIES.map(priority => (
+              <TouchableOpacity
+                key={priority}
+                style={[
+                  styles.priorityChip,
+                  filterPriorities.includes(priority) && styles.priorityChipActive,
+                ]}
+                onPress={() => togglePriorityFilter(priority)}
+              >
+                <Text style={[
+                  styles.priorityChipText,
+                  filterPriorities.includes(priority) && styles.priorityChipTextActive,
+                ]}>
+                  {priority}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Category Filters */}
+          <Text style={styles.filterLabel}>Kategorie</Text>
+          <View style={styles.filterRow}>
+            {CATEGORIES.map(category => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.categoryChip,
+                  filterCategories.includes(category) && styles.categoryChipActive,
+                ]}
+                onPress={() => toggleCategoryFilter(category)}
+              >
+                <Text style={[
+                  styles.categoryChipText,
+                  filterCategories.includes(category) && styles.categoryChipTextActive,
+                ]}>
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Sort Menu */}
+      {showSortMenu && (
+        <View style={styles.sortMenu} accessibilityLabel="Sortieroptionen">
+          {['priority', 'created_at', 'category', 'title'].map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.sortOption,
+                sortBy === option && styles.sortOptionActive,
+              ]}
+              onPress={() => {
+                setSortBy(option);
+                setShowSortMenu(false);
+              }}
+              accessibilityLabel={`Sortieren nach ${getSortLabel(option)}`}
+              accessibilityRole="button"
+            >
+              <Text style={[
+                styles.sortOptionText,
+                sortBy === option && styles.sortOptionTextActive,
+              ]}>
+                {getSortLabel(option)}
+              </Text>
+              {sortBy === option && (
+                <MaterialIcons name="check" size={18} color={Colors.primary} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Task List */}
       <FlatList
-        data={sortedTasks}
+        data={filteredAndSortedTasks}
         renderItem={renderTaskItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
-        ListHeaderComponent={
-          <View style={styles.sortHeader}>
-            <TouchableOpacity
-              style={styles.sortButton}
-              onPress={() => setShowSortMenu(!showSortMenu)}
-              accessibilityLabel="Sortieren"
-              accessibilityRole="button"
-            >
-              <MaterialIcons name="sort" size={20} color={Colors.primary} />
-              <Text style={styles.sortButtonText}>{getSortLabel(sortBy)}</Text>
-              <MaterialIcons
-                name={showSortMenu ? 'expand-less' : 'expand-more'}
-                size={20}
-                color={Colors.primary}
-              />
-            </TouchableOpacity>
-
-            {showSortMenu && (
-              <View style={styles.sortMenu} accessibilityLabel="Sortieroptionen">
-                {['priority', 'created_at', 'category', 'title'].map((option) => (
-                  <TouchableOpacity
-                    key={option}
-                    style={[
-                      styles.sortOption,
-                      sortBy === option && styles.sortOptionActive,
-                    ]}
-                    onPress={() => {
-                      setSortBy(option);
-                      setShowSortMenu(false);
-                    }}
-                    accessibilityLabel={`Sortieren nach ${getSortLabel(option)}`}
-                    accessibilityRole="button"
-                  >
-                    <Text
-                      style={[
-                        styles.sortOptionText,
-                        sortBy === option && styles.sortOptionTextActive,
-                      ]}
-                    >
-                      {getSortLabel(option)}
-                    </Text>
-                    {sortBy === option && (
-                      <MaterialIcons name="check" size={18} color={Colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -287,51 +461,145 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
+  searchContainer: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    flexGrow: 1,
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  sortHeader: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  sortButton: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  filterChipsContainer: {
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  filterChipsContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: Colors.primaryLight,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.primary,
   },
-  sortButtonText: {
-    fontSize: 14,
+  filterChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterChipText: {
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.primary,
-    flex: 1,
   },
-  sortMenu: {
-    marginTop: 8,
+  filterChipTextActive: {
+    color: '#fff',
+  },
+  clearFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#ffebee',
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  clearFilterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.error,
+  },
+  expandedFilters: {
     backgroundColor: Colors.surface,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textLight,
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  priorityChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
+  },
+  priorityChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  priorityChipText: {
+    fontSize: 12,
+    color: Colors.textLight,
+  },
+  priorityChipTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  categoryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  categoryChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    color: Colors.textLight,
+  },
+  categoryChipTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  sortMenu: {
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   sortOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -346,5 +614,28 @@ const styles = StyleSheet.create({
   sortOptionTextActive: {
     fontWeight: '600',
     color: Colors.primary,
+  },
+  listContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexGrow: 1,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyAction: {
+    backgroundColor: Colors2026.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

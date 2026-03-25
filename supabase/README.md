@@ -158,10 +158,81 @@ All tables have RLS enabled. Users can only access their own data.
 supabase/
 ├── README.md (this file)
 └── migrations/
-    ├── 001_initial_schema.sql     # Creates all 11 tables
-    ├── 002_row_level_security.sql # RLS policies
-    └── 003_storage_buckets.sql    # Photo/plan storage
+    ├── 001_initial_schema.sql                  # Creates all 11 tables
+    ├── 002_row_level_security.sql              # RLS policies
+    ├── 003_storage_buckets.sql                 # Photo/plan storage
+    ├── 004_ai_metadata.sql                    # AI photo identification metadata
+    ├── add_identification_source.sql            # Plant identification source field
+    ├── add_scheduled_date.sql                  # Task scheduling fields
+    ├── 20260320_add_zeitraum_learnings.sql    # Zeitraum + Learnings tables
+    ├── 20260321_add_plant_companions.sql       # Plant companion enhancements
+    └── 20260322_add_plant_companions_seed.sql  # Companion planting seed data
 ```
+
+---
+
+## 📜 Migration Details
+
+### Migrations Applied (Chronological Order)
+
+| # | File | Purpose | Tables Affected |
+|---|------|---------|----------------|
+| 1 | `001_initial_schema.sql` | Creates all core tables | plants, tasks, photos, shopping_items, harvests, plans, knowledge_articles, plant_companions |
+| 2 | `002_row_level_security.sql` | RLS policies | All tables |
+| 3 | `003_storage_buckets.sql` | Storage buckets | garden-photos, garden-plans |
+| 4 | `004_ai_metadata.sql` | AI photo metadata | photos |
+| 5 | `add_identification_source.sql` | Plant ID source | plants |
+| 6 | `add_scheduled_date.sql` | Task scheduling | tasks |
+| 7 | `20260320_add_zeitraum_learnings.sql` | Zeitraum + Learnings | tasks, learnings |
+| 8 | `20260321_add_plant_companions.sql` | Companion enhancements | plant_companions |
+| 9 | `20260322_add_plant_companions_seed.sql` | Seed data | plant_companions |
+
+### Migration 7: Zeitraum + Learnings (UX Redesign)
+
+**New Features:**
+- `zeitraum` column on tasks (phases-based scheduling)
+- `learnings` table for seasonal gardening tips
+
+**Zeitraum Values:**
+```
+fruehjahr_frueh, fruehjahr_mitte, fruehjahr_spaet,
+sommer_frueh, sommer_mitte, sommer_spaet,
+herbst_frueh, herbst_mitte, herbst_spaet,
+winter_frueh, winter_mitte, winter_spaet,
+diese_woche, flexibilitaet
+```
+
+**Learnings Table Features:**
+- Source tracking (knowledge_base or manual)
+- Zeitraum relevance (which seasons/phases)
+- User ratings (helpful/not_helpful)
+- Relevance scoring
+
+### Migration 8-9: Plant Companions
+
+**Enhanced Columns:**
+- `plant_name_de` - German plant name
+- `category` - Plant category
+- `good_reasons` - Why companion works
+- `bad_reasons` - Why companion doesn't work
+- `distance_cm` - Recommended spacing
+- `nitrogen_fixer` - Nitrogen fixing plants
+- `pest_repellent` - Pest repelling properties
+
+---
+
+## 🔄 Running Migrations
+
+### For New Projects:
+Run all migrations in order (1-9) using Supabase SQL Editor.
+
+### For Existing Projects:
+1. Check which migrations have been applied
+2. Run only pending migrations
+3. Verify with `SELECT * FROM learnings LIMIT 1;`
+
+### Rollback Instructions:
+See `Rollback:` comments in each migration file.
 
 ---
 

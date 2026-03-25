@@ -22,8 +22,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Photo, PhotoFilters } from '../types/photo';
 import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { fetchAllPhotos, deletePhoto } from '../services/photoService';
-import EmptyState from '../components/EmptyState';
+import EmptyState from '../components/ui/EmptyState';
 import { getAnalysesForPhoto, fetchCloudAnalysisForPhoto } from '../services/aiMetadataService';
 import { AIIdentification } from '../types/ai';
 
@@ -225,9 +226,9 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
         />
       ) : (
         <EmptyState
-          icon="photo-library"
+          icon={<MaterialIcons name="photo-library" size={40} color={Colors2026.primary} />}
           title="Keine Fotos"
-          message="Fügen Sie Fotos Ihres Gartens hinzu."
+          subtitle="Fügen Sie Fotos Ihres Gartens hinzu."
         />
       )}
 

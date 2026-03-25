@@ -1,19 +1,28 @@
+/**
+ * LoginScreen - Redesigned 2026
+ * Glassmorphism + Seasonal Colors
+ */
+
 import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
   ActivityIndicator,
+  Pressable,
+  ScrollView,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { Leaf, Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import GlassInput from '../components/ui/GlassInput';
+import AnimatedButton from '../components/ui/AnimatedButton';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -26,6 +35,7 @@ export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScr
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -52,62 +62,91 @@ export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScr
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>Gartenplaner</Text>
-        <Text style={styles.subtitle}>Anmelden</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* Background Gradient */}
+        <View style={styles.backgroundGradient} />
 
-        <TextInput
-          style={styles.input}
-          placeholder="E-Mail"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          editable={!loading}
-        />
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <BlurView intensity={40} style={styles.logoBlur}>
+              <Leaf size={48} color={Colors2026.primary} />
+            </BlurView>
+          </View>
+          <Text style={styles.title}>Gartenplaner</Text>
+          <Text style={styles.subtitle}>Willkommen zurück</Text>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Passwort (min. 8 Zeichen)"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          editable={!loading}
-        />
+        {/* Glass Card */}
+        <BlurView intensity={60} style={styles.glassCard}>
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>Anmelden</Text>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Anmelden</Text>
-          )}
-        </TouchableOpacity>
+            <GlassInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="E-Mail"
+              icon={<Mail size={20} color={Colors2026.textMuted} />}
+              keyboardType="email-address"
+              disabled={loading}
+            />
 
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={() => navigation?.navigate('ForgotPassword')}
-          disabled={loading}
-        >
-          <Text style={styles.linkText}>
-            Passwort vergessen?
-          </Text>
-        </TouchableOpacity>
+            <GlassInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Passwort (min. 8 Zeichen)"
+              icon={<Lock size={20} color={Colors2026.textMuted} />}
+              secureTextEntry={!showPassword}
+              disabled={loading}
+            />
 
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={onSwitchToRegister}
-          disabled={loading}
-        >
-          <Text style={styles.linkText}>
-            Noch kein Konto? Jetzt registrieren
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Pressable
+              style={styles.showPasswordButton}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff size={16} color={Colors2026.textMuted} />
+              ) : (
+                <Eye size={16} color={Colors2026.textMuted} />
+              )}
+              <Text style={styles.showPasswordText}>
+                {showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+              </Text>
+            </Pressable>
+
+            <AnimatedButton
+              title={loading ? 'Anmelden...' : 'Anmelden'}
+              onPress={handleLogin}
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={loading}
+            />
+
+            <Pressable
+              style={styles.forgotPassword}
+              onPress={() => navigation?.navigate('ForgotPassword')}
+              disabled={loading}
+            >
+              <Text style={styles.forgotPasswordText}>
+                Passwort vergessen?
+              </Text>
+            </Pressable>
+          </View>
+        </BlurView>
+
+        {/* Register Link */}
+        <View style={styles.registerSection}>
+          <Text style={styles.registerText}>Noch kein Konto?</Text>
+          <Pressable onPress={onSwitchToRegister} disabled={loading}>
+            <Text style={styles.registerLink}>Jetzt registrieren</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -115,56 +154,108 @@ export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: Spacing2026.xl,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: Colors2026.seasonal.spring.bg,
+    opacity: 0.5,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: Spacing2026.xxxl,
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing2026.lg,
+    ...Shadows2026.md,
+  },
+  logoBlur: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    textAlign: 'center',
-    marginBottom: 10,
+    fontSize: Typography2026.display.fontSize,
+    fontWeight: '800',
+    color: Colors2026.text,
+    letterSpacing: -1.5,
+    marginBottom: Spacing2026.xs,
   },
   subtitle: {
-    fontSize: 20,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 40,
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textMuted,
   },
-  input: {
-    backgroundColor: Colors.surface,
+  glassCard: {
+    borderRadius: Radius2026.xl,
+    backgroundColor: 'rgba(255,255,255,0.85)',
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-    marginBottom: 15,
+    borderColor: 'rgba(255,255,255,0.3)',
+    overflow: 'hidden',
+    ...Shadows2026.lg,
   },
-  button: {
-    backgroundColor: Colors.primary,
-    padding: 15,
-    borderRadius: 8,
+  form: {
+    padding: Spacing2026.xxl,
+  },
+  formTitle: {
+    fontSize: Typography2026.headline.fontSize,
+    fontWeight: '700',
+    color: Colors2026.text,
+    letterSpacing: -0.8,
+    marginBottom: Spacing2026.xl,
+    textAlign: 'center',
+  },
+  showPasswordButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    gap: Spacing2026.xs,
+    marginBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xs,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  showPasswordText: {
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkButton: {
-    marginTop: 20,
+  forgotPassword: {
     alignItems: 'center',
+    marginTop: Spacing2026.xl,
+    paddingVertical: Spacing2026.md,
   },
-  linkText: {
-    color: Colors.primary,
-    fontSize: 14,
+  forgotPasswordText: {
+    fontSize: Typography2026.caption.fontSize,
+    fontWeight: '600',
+    color: Colors2026.primary,
+  },
+  registerSection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing2026.sm,
+    marginTop: Spacing2026.xxl,
+  },
+  registerText: {
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textMuted,
+  },
+  registerLink: {
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '600',
+    color: Colors2026.primary,
   },
 });

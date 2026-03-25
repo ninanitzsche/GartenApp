@@ -11,11 +11,13 @@ import {
   RefreshControl,
   Text,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { Camera, Settings, Plus } from 'lucide-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { Garden } from '../types/garden';
@@ -32,7 +34,7 @@ import { fetchPlants } from '../services/plantService';
 import BedMapView from '../components/BedMapView';
 import BedCard from '../components/BedCard';
 import GardenStatsCard from '../components/GardenStatsCard';
-import EmptyState from '../components/EmptyState';
+import EmptyState from '../components/ui/EmptyState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GardenOverview'>;
 
@@ -218,10 +220,14 @@ export default function GardenOverviewScreen({ navigation }: Props) {
       {beds.length === 0 ? (
         <View style={styles.section}>
           <EmptyState
-            icon="dashboard"
+            icon={<MaterialIcons name="dashboard" size={40} color={Colors2026.primary} />}
             title="Noch keine Beete"
-            message="Erstellen Sie Ihre ersten Beete, um Ihren Garten zu planen."
-            action={{ label: 'Beet hinzufügen', onPress: handleAddBed }}
+            subtitle="Erstellen Sie Ihre ersten Beete, um Ihren Garten zu planen."
+            action={
+              <TouchableOpacity onPress={handleAddBed} style={styles.emptyAction}>
+                <Text style={styles.emptyActionText}>Beet hinzufügen</Text>
+              </TouchableOpacity>
+            }
           />
         </View>
       ) : (
@@ -343,6 +349,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing2026.md,
+  },
+  emptyAction: {
+    backgroundColor: Colors2026.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: Spacing2026.xl,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   spacer: {
     height: Spacing2026.xl,

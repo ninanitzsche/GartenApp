@@ -17,8 +17,9 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { Photo } from '../types/photo';
 import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { fetchAllPhotos, fetchPhotos as fetchPhotosForPlant, deletePhoto, PhotoFilters } from '../services/photoService';
-import EmptyState from '../components/EmptyState';
+import EmptyState from '../components/ui/EmptyState';
 import PhotoFilterModal from '../components/PhotoFilterModal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoGallery'>;
@@ -196,9 +197,9 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
   const renderEmptyState = useCallback(
     () => (
       <EmptyState
-        icon="image-not-supported"
+        icon={<MaterialIcons name="image-not-supported" size={40} color={Colors2026.primary} />}
         title="Keine Fotos vorhanden"
-        message={isPlantSpecific ? "Diese Pflanze hat noch keine Fotos" : "Sie haben noch keine Fotos in Ihrer Galerie"}
+        subtitle={isPlantSpecific ? "Diese Pflanze hat noch keine Fotos" : "Sie haben noch keine Fotos in Ihrer Galerie"}
         containerStyle={styles.emptyStateContainer}
       />
     ),

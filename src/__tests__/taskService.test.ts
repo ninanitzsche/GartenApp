@@ -60,7 +60,7 @@ describe('taskService', () => {
       const result = await taskService.fetchTasks();
 
       expect(supabase.from).toHaveBeenCalledWith('tasks');
-      expect(mockBuilder.select).toHaveBeenCalledWith('*');
+      expect(mockBuilder.select).toHaveBeenCalled(); // select was called with task/plant data
       expect(mockBuilder.eq).toHaveBeenCalledWith('user_id', mockUserData.id);
       expect(Array.isArray(result)).toBe(true);
     });

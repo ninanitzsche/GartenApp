@@ -1,3 +1,8 @@
+/**
+ * HomeScreen - Redesigned 2026
+ * Glassmorphism + Bold Cards + Seasonal Colors
+ */
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -5,16 +10,20 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { Leaf, Sprout, Sun, Droplets, TreePine, Flower2, Calendar, CheckCircle2, Clock, Sparkles } from 'lucide-react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { TabParamList } from '../types/navigation';
-import Colors from '../theme/colors';
-import MetricCard from '../components/MetricCard';
-import ProgressBar from '../components/ProgressBar';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import GlassCard from '../components/ui/GlassCard';
+import SectionHeader from '../components/ui/SectionHeader';
+import EmptyState from '../components/ui/EmptyState';
+import StatusBadge from '../components/ui/StatusBadge';
+import AnimatedButton from '../components/ui/AnimatedButton';
 import {
   getDashboardData,
   HarvestMetrics,
@@ -42,7 +51,7 @@ interface DashboardCache {
   timestamp: number;
 }
 
-const CACHE_TTL_MS = 60000; // 60 seconds
+const CACHE_TTL_MS = 60000;
 
 export default function HomeScreen({ navigation }: Props) {
   const [harvests, setHarvests] = useState<HarvestMetrics>({
@@ -67,17 +76,15 @@ export default function HomeScreen({ navigation }: Props) {
     message: '',
     type: 'success',
   });
-  
-  // PERFORMANCE FIX: Dashboard data cache
+
   const cacheRef = useRef<DashboardCache | null>(null);
-  
+
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ visible: true, message, type });
   };
 
   const loadDashboard = useCallback(async (forceRefresh = false) => {
-    // PERFORMANCE FIX: Return cached data if valid
-    if (!forceRefresh && cacheRef.current && 
+    if (!forceRefresh && cacheRef.current &&
         Date.now() - cacheRef.current.timestamp < CACHE_TTL_MS) {
       setHarvests(cacheRef.current.harvests);
       setTasks(cacheRef.current.tasks);
@@ -90,14 +97,12 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       if (!forceRefresh) setLoading(true);
       const data = await getDashboardData();
-      
-      // Update state
+
       setHarvests(data.harvests);
       setTasks(data.tasks);
       setStatusDistribution(data.statusDistribution);
       setRecentActivity(data.recentActivity);
-      
-      // Update cache
+
       cacheRef.current = {
         ...data,
         timestamp: Date.now(),
@@ -109,7 +114,6 @@ export default function HomeScreen({ navigation }: Props) {
     }
   }, []);
 
-  // Load dashboard data on focus - only refresh if cache is stale
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
@@ -121,7 +125,6 @@ export default function HomeScreen({ navigation }: Props) {
   const onRefresh = async () => {
     try {
       setRefreshing(true);
-      // Force refresh to bypass cache
       await loadDashboard(true);
       await loadPrioritizedTasks();
       await loadLearnings();
@@ -189,16 +192,16 @@ export default function HomeScreen({ navigation }: Props) {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      geplant: Colors.statusGeplant,
-      bestellt: Colors.statusBestellt,
-      ausgesät: Colors.statusAusgesaet,
-      pikiert: Colors.statusPikiert,
-      ausgepflanzt: Colors.statusAusgepflanzt,
-      etabliert: Colors.statusEtabliert,
-      geerntet: Colors.statusGeerntet,
-      unklar: Colors.statusUnklar,
+      geplant: Colors2026.plantStatus.geplant,
+      bestellt: Colors2026.plantStatus.bestellt,
+      ausgesät: Colors2026.plantStatus.ausgesät,
+      pikiert: Colors2026.plantStatus.pikiert,
+      ausgepflanzt: Colors2026.plantStatus.ausgepflanzt,
+      etabliert: Colors2026.plantStatus.etabliert,
+      geerntet: Colors2026.plantStatus.geerntet,
+      unklar: Colors2026.plantStatus.unklar,
     };
-    return colors[status.toLowerCase()] || Colors.textLight;
+    return colors[status.toLowerCase()] || Colors2026.textMuted;
   };
 
   const getStatusLabel = (statusValue: string): string => {
@@ -233,262 +236,203 @@ export default function HomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
+
+  const isEmpty = harvests.totalHarvests === 0 && tasks.totalTasks === 0;
 
   return (
     <>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors2026.primary} />}
       >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Gartenplaner</Text>
-        <Text style={styles.subtitle}>Dashboard</Text>
-      </View>
-
-      {/* Harvest Summary Card */}
-      {(harvests.totalHarvests > 0 || harvests.totalByPlant.length > 0) && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ernte-Übersicht</Text>
-
-          <View style={styles.metricsGrid}>
-            <MetricCard
-              title="Gesamte Ernten"
-              value={harvests.totalHarvests}
-              icon="agriculture"
-              color="#F44336"
-              style={styles.metricCard}
-            />
-          </View>
-
-          {harvests.totalByPlant.length > 0 && (
-            <View style={styles.topPlantsContainer}>
-              <Text style={styles.topPlantsTitle}>Top Pflanzen nach Ertrag</Text>
-              {harvests.totalByPlant.map((plant, index) => (
-                <View key={index} style={styles.plantYield}>
-                  <Text style={styles.plantYieldName}>{plant.plantName}</Text>
-                  <Text style={styles.plantYieldValue}>
-                    {plant.quantity.toFixed(1)} {plant.unit}
-                  </Text>
-                </View>
-              ))}
+        {/* Glass Header */}
+        <BlurView intensity={60} style={styles.glassHeader}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.greeting}>Guten Tag!</Text>
+              <Text style={styles.title}>Dein Garten</Text>
             </View>
-          )}
+            <View style={styles.headerIcon}>
+              <Leaf size={32} color={Colors2026.primary} />
+            </View>
+          </View>
+        </BlurView>
+
+        {/* Quick Stats */}
+        <View style={styles.statsRow}>
+          <GlassCard variant="tint" animated={false}>
+            <View style={styles.statItem}>
+              <Sprout size={20} color={Colors2026.primary} />
+              <Text style={styles.statValue}>{harvests.totalHarvests}</Text>
+              <Text style={styles.statLabel}>Ernten</Text>
+            </View>
+          </GlassCard>
+
+          <GlassCard variant="tint" animated={false}>
+            <View style={styles.statItem}>
+              <CheckCircle2 size={20} color={Colors2026.primary} />
+              <Text style={styles.statValue}>{tasks.completedTasks}/{tasks.totalTasks}</Text>
+              <Text style={styles.statLabel}>Aufgaben</Text>
+            </View>
+          </GlassCard>
+
+          <GlassCard variant="tint" animated={false}>
+            <View style={styles.statItem}>
+              <Sparkles size={20} color={Colors2026.primary} />
+              <Text style={styles.statValue}>{statusDistribution.length}</Text>
+              <Text style={styles.statLabel}>Status</Text>
+            </View>
+          </GlassCard>
         </View>
-      )}
 
-      {/* Task Completion Card */}
-      {tasks.totalTasks > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Aufgaben-Status</Text>
-
-          <View style={styles.metricsGrid}>
-            <MetricCard
-              title="Abgeschlossen"
-              value={`${tasks.completedTasks}/${tasks.totalTasks}`}
-              icon="check-circle"
-              color={Colors.success}
-              style={styles.metricCard}
+        {/* Tasks Section */}
+        {prioritizedTasks.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Nächste Aufgaben"
+              subtitle={`${prioritizedTasks.length} Aufgaben`}
+              icon={<Calendar size={20} color={Colors2026.primary} />}
+              animated={true}
             />
-            {tasks.avgTimeSpent > 0 && (
-              <MetricCard
-                title="Durchschn. Zeit"
-                value={`${Math.round(tasks.avgTimeSpent)}m`}
-                subtitle={`${formatTimeSpent(tasks.totalTimeSpent)} gesamt`}
-                icon="timer"
-                color={Colors.info}
-                style={styles.metricCard}
+
+            {prioritizedTasks.slice(0, 3).map((task, index) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggle={() => handleToggleTask(task.id)}
+                onPress={() => {}}
               />
+            ))}
+
+            {prioritizedTasks.length > 3 && (
+              <Pressable style={styles.viewAllButton}>
+                <Text style={styles.viewAllText}>
+                  Alle {prioritizedTasks.length} Aufgaben anzeigen
+                </Text>
+              </Pressable>
             )}
           </View>
+        )}
 
-          <ProgressBar
-            percentage={tasks.completionRate}
-            label="Abschlussquote"
-            color={Colors.success}
-            style={styles.progressBar}
-          />
-        </View>
-      )}
+        {/* Learnings Section */}
+        {learnings.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Tipps für dich"
+              subtitle={getJahreszeitLabel(getJahreszeit(getAktuelleSaison())) || undefined}
+              icon={<Flower2 size={20} color={Colors2026.primary} />}
+              animated={true}
+              delay={100}
+            />
 
-      {/* Nächste Aufgaben - Organized by Zeitraum */}
-      {prioritizedTasks.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nächste Aufgaben</Text>
-          
-          {(() => {
-            const aktuellerZeitraum = getAktuelleSaison();
-            
-            const getTaskZeitraum = (task: Task): Zeitraum => {
-              if (task.zeitraum) return task.zeitraum as Zeitraum;
-              return Zeitraum.FLEXIBEL;
-            };
-            
-            const groupedByZeitraum = prioritizedTasks.reduce((acc, task) => {
-              const z = getTaskZeitraum(task);
-              if (!acc[z]) acc[z] = [];
-              acc[z].push(task);
-              return acc;
-            }, {} as Record<Zeitraum, Task[]>);
-            
-            const sortedZeitraeume = sortZeitraeume(Object.keys(groupedByZeitraum) as Zeitraum[]);
-            const priorityOrder = { hoch: 0, mittel: 1, niedrig: 2 };
-            
-            return sortedZeitraeume.map(zeitraum => {
-              const tasksInZeitraum = groupedByZeitraum[zeitraum]
-                .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-              
-              const isCurrent = zeitraum === aktuellerZeitraum;
-              
-              return (
-                <View key={zeitraum} style={styles.priorityGroup}>
-                  <View style={styles.zeitraumGroupHeader}>
-                    <Text style={[styles.priorityLabel, isCurrent && styles.currentZeitraumLabel]}>
-                      <MaterialIcons 
-                        name="circle" 
-                        size={10} 
-                        color={isCurrent ? Colors.primary : Colors.textLight} 
-                      /> 
-                      {isCurrent ? 'Jetzt: ' : ''}{getZeitraumShortLabel(zeitraum)}
-                    </Text>
-                    {isCurrent && (
-                      <Text style={styles.currentBadge}>Aktiv</Text>
+            {learnings.slice(0, 2).map((learning, index) => (
+              <LearningCard
+                key={learning.id}
+                learning={learning}
+                onRate={(helpful) => handleRateLearning(learning.id, helpful)}
+                onDismiss={() => handleDismissLearning(learning.id)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Status Distribution */}
+        {statusDistribution.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Pflanzen-Status"
+              icon={<Droplets size={20} color={Colors2026.primary} />}
+              animated={true}
+              delay={200}
+            />
+
+            <GlassCard variant="light">
+              <View style={styles.statusList}>
+                {statusDistribution.map((item, index) => {
+                  const total = statusDistribution.reduce((sum, s) => sum + s.count, 0);
+                  const percentage = Math.round((item.count / total) * 100);
+                  const color = getStatusColor(item.status);
+
+                  return (
+                    <View key={index} style={styles.statusRow}>
+                      <StatusBadge status={item.status} label={getStatusLabel(item.status)} size="sm" />
+                      <View style={styles.statusBar}>
+                        <View style={[styles.statusBarFill, { backgroundColor: color, width: `${percentage}%` }]} />
+                      </View>
+                      <Text style={styles.statusCount}>{item.count}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </GlassCard>
+          </View>
+        )}
+
+        {/* Recent Activity */}
+        {recentActivity.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Letzte Aktivitäten"
+              icon={<Clock size={20} color={Colors2026.primary} />}
+              animated={true}
+              delay={300}
+            />
+
+            {recentActivity.slice(0, 5).map((activity, index) => (
+              <GlassCard key={index} variant="light">
+                <View style={styles.activityRow}>
+                  <View style={styles.activityIcon}>
+                    {activity.type === 'harvest' ? (
+                      <Sprout size={16} color={Colors2026.plantStatus.geerntet} />
+                    ) : (
+                      <CheckCircle2 size={16} color={Colors2026.status.success} />
                     )}
                   </View>
-                  {tasksInZeitraum.map(task => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onToggle={() => handleToggleTask(task.id)}
-                      onPress={() => {}}
-                    />
-                  ))}
-                </View>
-              );
-            });
-          })()}
-        </View>
-      )}
-
-      {/* Learnings Section */}
-      {learnings.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Tipps für {getJahreszeitLabel(getJahreszeit(getAktuelleSaison()))}
-          </Text>
-          {learnings.map(learning => (
-            <LearningCard
-              key={learning.id}
-              learning={learning}
-              onRate={(helpful) => handleRateLearning(learning.id, helpful)}
-              onDismiss={() => handleDismissLearning(learning.id)}
-            />
-          ))}
-        </View>
-      )}
-
-      {/* Plant Status Distribution */}
-      {statusDistribution.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle} accessibilityRole="header">Pflanzen-Status</Text>
-
-          <View style={styles.statusDistribution} accessibilityRole="list" aria-label="Pflanzen nach Status">
-            {statusDistribution.map((item, index) => {
-              const total = statusDistribution.reduce((sum, s) => sum + s.count, 0);
-              const percentage = Math.round((item.count / total) * 100);
-              return (
-                <View key={index} style={styles.statusItem} accessibilityRole="listitem">
-                  <View style={styles.statusHeader}>
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-                    <Text style={styles.statusLabel}>{getStatusLabel(item.status)}</Text>
-                    <Text style={styles.statusCount}>{item.count}</Text>
-                    <Text style={styles.statusPercentage}>{percentage}%</Text>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>{activity.title}</Text>
+                    {activity.detail && (
+                      <Text style={styles.activityDetail} numberOfLines={1}>
+                        {activity.detail}
+                      </Text>
+                    )}
                   </View>
-                  <View style={styles.statusBarContainer}>
-                    <View
-                      style={[
-                        styles.statusBarTrack,
-                        { backgroundColor: getStatusColor(item.status) + '15' },
-                      ]}
-                    >
-                      <View
-                        style={[
-                          styles.statusBarFill,
-                          {
-                            backgroundColor: getStatusColor(item.status),
-                            width: `${percentage}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                  </View>
+                  <Text style={styles.activityDate}>{formatDate(activity.date)}</Text>
                 </View>
-              );
-            })}
+              </GlassCard>
+            ))}
           </View>
-        </View>
-      )}
+        )}
 
-      {/* Recent Activity */}
-      {recentActivity.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Letzte Aktivitäten</Text>
-
-          {recentActivity.map((activity, index) => (
-            <View key={index} style={styles.activityItem}>
-              <View style={styles.activityIcon}>
-                <MaterialIcons
-                  name={activity.type === 'harvest' ? 'agriculture' : 'check-circle'}
-                  size={18}
-                  color={
-                    activity.type === 'harvest' ? '#F44336' : Colors.success
-                  }
-                />
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>{activity.title}</Text>
-                {activity.detail && (
-                  <Text style={styles.activityDetail} numberOfLines={2}>
-                    {activity.detail}
-                  </Text>
-                )}
-              </View>
-              <Text style={styles.activityDate}>{formatDate(activity.date)}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Empty State */}
-      {harvests.totalHarvests === 0 && tasks.totalTasks === 0 && (
-        <View style={styles.emptyState} accessibilityLabel="Keine Daten vorhanden. Fügen Sie Pflanzen, Aufgaben oder Ernten hinzu.">
-          <MaterialIcons
-            name="dashboard"
-            size={48}
-            color={Colors.textLight}
+        {/* Empty State */}
+        {isEmpty && (
+          <EmptyState
+            icon={<TreePine size={40} color={Colors2026.primary} />}
+            title="Willkommen!"
+            subtitle="Füge Pflanzen, Aufgaben oder Ernten hinzu, um loszulegen"
+            action={
+              <AnimatedButton
+                title="Pflanze hinzufügen"
+                onPress={() => navigation.navigate('PlantList')}
+                variant="primary"
+              />
+            }
           />
-          <Text style={styles.emptyStateText}>Keine Daten vorhanden</Text>
-          <Text style={styles.emptyStateSubtext}>
-            Starten Sie mit dem Hinzufügen von Pflanzen, Aufgaben oder Ernten
-          </Text>
-        </View>
-      )}
+        )}
 
-      {/* Spacer */}
-      <View style={styles.spacer} />
-    </ScrollView>
+        <View style={styles.spacer} />
+      </ScrollView>
 
-    <Toast
-      visible={toast.visible}
-      message={toast.message}
-      type={toast.type}
-      onHide={() => setToast(prev => ({ ...prev, visible: false }))}
-    />
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
     </>
   );
 }
@@ -496,123 +440,97 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    paddingBottom: Spacing2026.xxxl * 2,
   },
-  header: {
-    marginBottom: 24,
+  glassHeader: {
+    paddingTop: 60,
+    paddingBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  metricCard: {
-    flex: 1,
-  },
-  topPlantsContainer: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  topPlantsTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textLight,
-    marginBottom: 10,
-  },
-  plantYield: {
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    alignItems: 'center',
   },
-  plantYieldName: {
-    fontSize: 12,
-    color: Colors.text,
-    fontWeight: '500',
+  headerLeft: {
+    flex: 1,
   },
-  plantYieldValue: {
-    fontSize: 12,
-    color: Colors.primary,
+  greeting: {
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
+    letterSpacing: -0.2,
+    marginBottom: Spacing2026.xs,
+  },
+  title: {
+    fontSize: Typography2026.display.fontSize,
+    fontWeight: '800',
+    color: Colors2026.text,
+    letterSpacing: -1.5,
+  },
+  headerIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing2026.sm,
+    padding: Spacing2026.xl,
+  },
+  statItem: {
+    alignItems: 'center',
+    gap: Spacing2026.xs,
+  },
+  statValue: {
+    fontSize: Typography2026.headline.fontSize,
+    fontWeight: '700',
+    color: Colors2026.text,
+    letterSpacing: -0.8,
+  },
+  statLabel: {
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textMuted,
+  },
+  section: {
+    marginBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+  },
+  viewAllButton: {
+    paddingVertical: Spacing2026.md,
+    alignItems: 'center',
+  },
+  viewAllText: {
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
+    color: Colors2026.primary,
   },
-  progressBar: {
-    marginTop: 12,
+  statusList: {
+    gap: Spacing2026.md,
   },
-  statusDistribution: {
-    gap: 12,
-  },
-  statusItem: {
-    marginBottom: 4,
-  },
-  statusHeader: {
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    gap: Spacing2026.md,
   },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  statusLabel: {
+  statusBar: {
     flex: 1,
-    fontSize: 13,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  statusCount: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.text,
-    marginRight: 8,
-    minWidth: 24,
-    textAlign: 'right',
-  },
-  statusPercentage: {
-    fontSize: 12,
-    color: Colors.textLight,
-    minWidth: 40,
-    textAlign: 'right',
-  },
-  statusBarContainer: {
-    marginLeft: 18,
-  },
-  statusBarTrack: {
     height: 8,
+    backgroundColor: Colors2026.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -620,94 +538,44 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  activityItem: {
+  statusCount: {
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '600',
+    color: Colors2026.text,
+    minWidth: 24,
+    textAlign: 'right',
+  },
+  activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    gap: Spacing2026.md,
   },
   activityIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.background,
-    justifyContent: 'center',
+    backgroundColor: Colors2026.bg,
     alignItems: 'center',
-    marginRight: 12,
+    justifyContent: 'center',
   },
   activityContent: {
     flex: 1,
   },
   activityTitle: {
-    fontSize: 12,
+    fontSize: Typography2026.body.fontSize,
     fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 2,
+    color: Colors2026.text,
   },
   activityDetail: {
-    fontSize: 11,
-    color: Colors.textLight,
-    fontStyle: 'italic',
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
+    marginTop: 2,
   },
   activityDate: {
-    fontSize: 11,
-    color: Colors.textLight,
-    marginLeft: 8,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 12,
-  },
-  emptyStateSubtext: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 6,
-    textAlign: 'center',
-    maxWidth: 200,
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
   },
   spacer: {
     height: 20,
-  },
-  priorityGroup: {
-    marginBottom: 16,
-  },
-  priorityLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  zeitraumGroupHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  currentZeitraumLabel: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  currentBadge: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.primary,
-    backgroundColor: Colors.primaryLight + '30',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    overflow: 'hidden',
   },
 });

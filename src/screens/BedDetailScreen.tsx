@@ -19,10 +19,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { Bed } from '../types/bed';
 import { Plant } from '../types/plant';
 import { fetchBed, fetchBedPlants, unlinkBedFromPlant } from '../services/bedService';
-import EmptyState from '../components/EmptyState';
+import EmptyState from '../components/ui/EmptyState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
 
@@ -217,11 +218,14 @@ export default function BedDetailScreen({ navigation, route }: Props) {
           />
         ) : (
           <EmptyState
-            icon="eco"
+            icon={<MaterialIcons name="eco" size={40} color={Colors2026.primary} />}
             title="Keine Pflanzen"
-            message="Dieses Beet hat noch keine Pflanzen."
-            actionLabel="Pflanze hinzufügen"
-            onAction={handleAddPlant}
+            subtitle="Dieses Beet hat noch keine Pflanzen."
+            action={
+              <TouchableOpacity onPress={handleAddPlant} style={styles.emptyAction}>
+                <Text style={styles.emptyActionText}>Pflanze hinzufügen</Text>
+              </TouchableOpacity>
+            }
           />
         )}
       </View>
@@ -354,5 +358,17 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: Colors.error,
+  },
+  emptyAction: {
+    backgroundColor: Colors2026.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

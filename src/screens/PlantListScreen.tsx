@@ -1,27 +1,34 @@
+/**
+ * PlantListScreen - Redesigned 2026
+ * Glassmorphism + Bold Cards
+ */
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   RefreshControl,
   Alert,
-  TextInput,
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Search, Filter, X, ChevronRight, Sprout, Leaf, Snowflake, Sparkles, MapPin, Plus } from 'lucide-react-native';
+import { BlurView } from 'expo-blur';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
-import { Plant, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import { Plant, PLANT_STATUSES } from '../types/plant';
 import { fetchPlants, getUniqueLocations, PlantFilters } from '../services/plantService';
-import EmptyState from '../components/EmptyState';
-import AIPhotoPicker from '../components/AIPhotoPicker';
-import { PlantIdentificationResult } from '../types/ai';
-import SegmentedControl from '../components/SegmentedControl';
+import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
+import SectionHeader from '../components/ui/SectionHeader';
+import EmptyState from '../components/ui/EmptyState';
+import FloatingAction from '../components/ui/FloatingAction';
+import StatusBadge from '../components/ui/StatusBadge';
 import TaskListContent from '../components/TaskListContent';
 import ShoppingListContent from '../components/ShoppingListContent';
 
@@ -33,17 +40,12 @@ export default function PlantListScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatusList, setFilterStatusList] = useState<string[]>([]);
-  const [filterLocationList, setFilterLocationList] = useState<string[]>([]);
-  const [filterType, setFilterType] = useState<string | undefined>();
-  const [filterEssbar, setFilterEssbar] = useState(false);
   const [locations, setLocations] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAIPicker, setShowAIPicker] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
   const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  
+
   const tabs = ['Pflanzen', 'Aufgaben', 'Einkauf'];
-  const tabIcons = ['eco', 'check-circle', 'shopping-cart'];
 
   useFocusEffect(
     useCallback(() => {
@@ -52,7 +54,6 @@ export default function PlantListScreen({ navigation }: Props) {
     }, [])
   );
 
-  // Debounce search, filters, and type with 300ms delay
   useEffect(() => {
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
@@ -67,22 +68,18 @@ export default function PlantListScreen({ navigation }: Props) {
         clearTimeout(searchDebounceRef.current);
       }
     };
-  }, [searchQuery, filterStatusList, filterLocationList, filterType, filterEssbar]);
+  }, [searchQuery, filterStatusList]);
 
   const loadPlants = async () => {
     try {
       const filters: PlantFilters = {
         searchQuery: searchQuery || undefined,
         statuses: filterStatusList.length > 0 ? filterStatusList : undefined,
-        locations: filterLocationList.length > 0 ? filterLocationList : undefined,
-        type: filterType,
-        essbar: filterEssbar || undefined,
       };
       const data = await fetchPlants(filters);
       setPlants(data);
     } catch (error) {
       console.error('Error loading plants:', error);
-      Alert.alert('Fehler', 'Pflanzen konnten nicht geladen werden.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -103,453 +100,199 @@ export default function PlantListScreen({ navigation }: Props) {
     loadPlants();
   };
 
-  const handleSearchChange = (text: string) => {
-    setSearchQuery(text);
-  };
-
-  const handleAddPlant = () => {
-    navigation.navigate('AddPlant');
-  };
-
-  const handlePlantPress = (plantId: string) => {
-    navigation.navigate('PlantDetail', { plantId });
-  };
-
-  const handleAIIdentify = () => {
-    setShowAIPicker(true);
-  };
-
-  const handleCompanionSearch = () => {
-    navigation.navigate('CompanionSearch');
-  };
-
-  const handleAddTask = () => {
-    navigation.navigate('AddTask');
-  };
-
-  const handleAddShoppingItem = () => {
-    navigation.navigate('AddShoppingItem');
-  };
-
-  const handlePlantIdentified = (result: PlantIdentificationResult) => {
-    navigation.navigate('AddPlant', {
-      prefillName: result.name,
-      prefillLatinName: result.scientificName,
-      identificationSource: 'ai',
-    });
-  };
-
   const handleStatusFilterToggle = (status: string) => {
     setFilterStatusList(prev =>
       prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
     );
   };
 
-  const handleLocationFilterToggle = (location: string) => {
-    setFilterLocationList(prev =>
-      prev.includes(location) ? prev.filter(l => l !== location) : [...prev, location]
-    );
-  };
-
-  const handleTypeFilterChange = (type: string) => {
-    setFilterType(filterType === type ? undefined : type);
-  };
-
-  const clearAllFilters = () => {
-    setSearchQuery('');
-    setFilterStatusList([]);
-    setFilterLocationList([]);
-    setFilterType(undefined);
-    setFilterEssbar(false);
-  };
-
-  const hasActiveFilters =
-    searchQuery ||
-    filterStatusList.length > 0 ||
-    filterLocationList.length > 0 ||
-    filterType ||
-    filterEssbar;
-
-  const filterCount =
-    (searchQuery ? 1 : 0) +
-    filterStatusList.length +
-    filterLocationList.length +
-    (filterType ? 1 : 0) +
-    (filterEssbar ? 1 : 0);
-
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      geplant: Colors.statusGeplant,
-      bestellt: Colors.statusBestellt,
-      ausgesät: Colors.statusAusgesaet,
-      pikiert: Colors.statusPikiert,
-      ausgepflanzt: Colors.statusAusgepflanzt,
-      etabliert: Colors.statusEtabliert,
-      geerntet: Colors.statusGeerntet,
-      unklar: Colors.statusUnklar,
-      entfernt: Colors.textDisabled,
-    };
-    return colors[status.toLowerCase()] || Colors.textLight;
-  };
-
-  const getStatusLabel = (statusValue: string): string => {
-    const statusMap: Record<string, string> = {
-      geplant: 'Geplant',
-      bestellt: 'Bestellt',
-      ausgesät: 'Ausgesät',
-      pikiert: 'Pikiert',
-      ausgepflanzt: 'Ausgepflanzt',
-      etabliert: 'Etabliert',
-      geerntet: 'Geerntet',
-      unklar: 'Unklar',
-      entfernt: 'Entfernt',
-    };
-    return statusMap[statusValue.toLowerCase()] || statusValue;
-  };
-
-  const renderPlantItem = ({ item }: { item: Plant }) => (
-    <TouchableOpacity
+  const renderPlantItem = ({ item, index }: { item: Plant; index: number }) => (
+    <Pressable
       style={styles.plantCard}
-      onPress={() => handlePlantPress(item.id)}
-      activeOpacity={0.7}
+      onPress={() => navigation.navigate('PlantDetail', { plantId: item.id })}
     >
       <View style={styles.plantHeader}>
-        <View style={styles.plantTitleContainer}>
+        <View style={styles.plantIcon}>
+          <Leaf size={20} color={Colors2026.primary} />
+        </View>
+        <View style={styles.plantInfo}>
           <Text style={styles.plantName}>{item.name}</Text>
           {item.latin_name && (
-            <Text style={styles.plantLatinName}>{item.latin_name}</Text>
+            <Text style={styles.plantLatin}>{item.latin_name}</Text>
           )}
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} />
-      </View>
-
-      <View style={styles.plantDetails}>
-        {item.location && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name="place" size={16} color={Colors.textLight} />
-            <Text style={styles.detailText}>{item.location}</Text>
-          </View>
-        )}
-
-        <View style={styles.detailRow}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
-          </View>
-        </View>
+        <ChevronRight size={20} color={Colors2026.textMuted} />
       </View>
 
       <View style={styles.plantMeta}>
-        {item.identification_source === 'ai' && (
-          <View style={[styles.metaChip, styles.aiChip]}>
-            <MaterialIcons name="auto-awesome" size={14} color={Colors.accent} />
-            <Text style={[styles.metaText, styles.aiChipText]}>KI</Text>
-          </View>
-        )}
-        {item.essbar && (
-          <View style={styles.metaChip}>
-            <MaterialIcons name="restaurant" size={14} color={Colors.primary} />
-            <Text style={styles.metaText}>Essbar</Text>
-          </View>
-        )}
-        {item.winterhart && (
-          <View style={styles.metaChip}>
-            <MaterialIcons name="ac-unit" size={14} color={Colors.info} />
-            <Text style={styles.metaText}>Winterhart</Text>
-          </View>
-        )}
-        {item.quantity && item.quantity > 1 && (
-          <View style={styles.metaChip}>
-            <Text style={styles.metaText}>{item.quantity}x</Text>
+        <StatusBadge
+          status={item.status}
+          size="sm"
+        />
+        {item.location && (
+          <View style={styles.locationChip}>
+            <MapPin size={12} color={Colors2026.textMuted} />
+            <Text style={styles.locationText}>{item.location}</Text>
           </View>
         )}
       </View>
-    </TouchableOpacity>
+
+      <View style={styles.plantBadges}>
+        {item.essbar && (
+          <View style={styles.badge}>
+            <Sprout size={14} color={Colors2026.status.success} />
+            <Text style={styles.badgeText}>Essbar</Text>
+          </View>
+        )}
+        {item.winterhart && (
+          <View style={styles.badge}>
+            <Snowflake size={14} color={Colors2026.status.info} />
+            <Text style={styles.badgeText}>Winterhart</Text>
+          </View>
+        )}
+        {item.identification_source === 'ai' && (
+          <View style={styles.badge}>
+            <Sparkles size={14} color={Colors2026.plantStatus.bestellt} />
+            <Text style={styles.badgeText}>KI</Text>
+          </View>
+        )}
+        {item.quantity && item.quantity > 1 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.quantity}x</Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 
-  const renderEmptyState = useCallback(
-    () => (
-      <EmptyState
-        icon="eco"
-        title={hasActiveFilters ? 'Keine Pflanzen gefunden' : 'Noch keine Pflanzen'}
-        message={
-          hasActiveFilters
-            ? 'Passen Sie Ihre Filter an, um weitere Pflanzen zu finden.'
-            : 'Fügen Sie Ihre erste Pflanze hinzu, um Ihr Garten-Inventar zu verwalten.'
-        }
-        action={{
-          label: 'Pflanze hinzufügen',
-          onPress: handleAddPlant,
-        }}
-        containerStyle={styles.emptyContainer}
-      />
-    ),
-    [handleAddPlant, hasActiveFilters]
-  );
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case 0:
+        return (
+          <View style={styles.tabContent}>
+            {/* Search Bar */}
+            <GlassInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Pflanze suchen..."
+              icon={<Search size={20} color={Colors2026.textMuted} />}
+            />
+
+            {/* Filter Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterChips}
+            >
+              <Pressable
+                style={[
+                  styles.filterChip,
+                  showFilters && styles.filterChipActive,
+                ]}
+                onPress={() => setShowFilters(!showFilters)}
+              >
+                <Filter size={16} color={showFilters ? '#fff' : Colors2026.primary} />
+                <Text style={[
+                  styles.filterChipText,
+                  showFilters && styles.filterChipTextActive,
+                ]}>
+                  Filter
+                </Text>
+              </Pressable>
+
+              {showFilters && PLANT_STATUSES.map(status => (
+                <Pressable
+                  key={status}
+                  style={[
+                    styles.statusChip,
+                    filterStatusList.includes(status) && styles.statusChipActive,
+                  ]}
+                  onPress={() => handleStatusFilterToggle(status)}
+                >
+                  <Text style={[
+                    styles.statusChipText,
+                    filterStatusList.includes(status) && styles.statusChipTextActive,
+                  ]}>
+                    {status}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            {/* Plants List */}
+            <FlatList
+              data={plants}
+              renderItem={renderPlantItem}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors2026.primary} />
+              }
+              ListEmptyComponent={
+                <EmptyState
+                  icon={<Leaf size={40} color={Colors2026.primary} />}
+                  title={filterStatusList.length > 0 ? 'Keine Pflanzen gefunden' : 'Noch keine Pflanzen'}
+                  subtitle={filterStatusList.length > 0
+                    ? 'Passen Sie Ihre Filter an'
+                    : 'Fügen Sie Ihre erste Pflanze hinzu'
+                  }
+                />
+              }
+            />
+          </View>
+        );
+      case 1:
+        return <TaskListContent navigation={navigation} showHeader={false} />;
+      case 2:
+        return <ShoppingListContent />;
+      default:
+        return null;
+    }
+  };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Lade Pflanzen...</Text>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Tab Header Section - Always visible */}
-      <View style={styles.filterSection}>
-        <SegmentedControl
-          segments={tabs}
-          icons={tabIcons}
-          selectedIndex={selectedTab}
-          onSelect={setSelectedTab}
-        />
+      {/* Glass Header */}
+      <BlurView intensity={60} style={styles.glassHeader}>
+        <Text style={styles.title}>Pflanzen</Text>
+        <Text style={styles.subtitle}>{plants.length} Pflanzen</Text>
+      </BlurView>
 
-        {/* Only show plant-specific filters when on Pflanzen tab */}
-        {selectedTab === 0 && (
-          <>
-            {/* Saison-Planer Button */}
-            <TouchableOpacity
-              style={styles.saisonPlanerButton}
-              onPress={() => navigation.navigate('SaisonPlaner')}
-              accessibilityLabel="Saison-Planer öffnen"
-              accessibilityRole="button"
-            >
-              <MaterialIcons name="calendar-today" size={20} color={Colors.primary} />
-              <Text style={styles.saisonPlanerButtonText}>🌱 Saison-Planer</Text>
-              <MaterialIcons name="chevron-right" size={20} color={Colors.primary} />
-            </TouchableOpacity>
-
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <MaterialIcons name="search" size={20} color={Colors.textLight} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Pflanze suchen..."
-                placeholderTextColor={Colors.textDisabled}
-                value={searchQuery}
-                onChangeText={handleSearchChange}
-              />
-              {searchQuery ? (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <MaterialIcons name="close" size={20} color={Colors.textLight} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-
-            {/* Filter Chips Section */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.filterChipsContainer}
-              contentContainerStyle={styles.filterChipsContent}
-            >
-              {/* Status Filters */}
-              {PLANT_STATUSES.map(status => (
-                <TouchableOpacity
-                  key={status.value}
-                  style={[
-                    styles.filterChip,
-                    filterStatusList.includes(status.value) && styles.filterChipActive,
-                  ]}
-                  onPress={() => handleStatusFilterToggle(status.value)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      filterStatusList.includes(status.value) && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {status.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Secondary Filters Row */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.secondaryFilterContainer}
-              contentContainerStyle={styles.secondaryFilterContent}
-            >
-              {/* Location Filters */}
-              {locations.map(location => (
-                <TouchableOpacity
-                  key={location}
-                  style={[
-                    styles.filterChip,
-                    styles.locationChip,
-                    filterLocationList.includes(location) && styles.filterChipActive,
-                  ]}
-                  onPress={() => handleLocationFilterToggle(location)}
-                >
-                  <MaterialIcons
-                    name="place"
-                    size={14}
-                    color={filterLocationList.includes(location) ? '#fff' : Colors.textLight}
-                    style={styles.chipIcon}
-                  />
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      filterLocationList.includes(location) && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {location}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-
-              {/* Type Filters */}
-              {PLANT_TYPES.map(type => (
-                <TouchableOpacity
-                  key={type.value}
-                  style={[
-                    styles.filterChip,
-                    styles.typeChip,
-                    filterType === type.value && styles.filterChipActive,
-                  ]}
-                  onPress={() => handleTypeFilterChange(type.value)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      filterType === type.value && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {type.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-
-              {/* Essbar Toggle */}
-              <TouchableOpacity
-                style={[styles.filterChip, filterEssbar && styles.filterChipActive]}
-                onPress={() => setFilterEssbar(!filterEssbar)}
-              >
-                <MaterialIcons
-                  name="restaurant"
-                  size={14}
-                  color={filterEssbar ? '#fff' : Colors.textLight}
-                  style={styles.chipIcon}
-                />
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    filterEssbar && styles.filterChipTextActive,
-                  ]}
-                >
-                  Essbar
-                </Text>
-              </TouchableOpacity>
-
-              {/* Mischkultur Search Button */}
-              <TouchableOpacity
-                style={[styles.filterChip, styles.companionChip]}
-                onPress={handleCompanionSearch}
-              >
-                <MaterialIcons
-                  name="group"
-                  size={14}
-                  color={Colors.primary}
-                  style={styles.chipIcon}
-                />
-                <Text style={[styles.filterChipText, styles.companionChipText]}>
-                  Mischkultur
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-
-            {/* Active Filters Summary */}
-            {hasActiveFilters && (
-              <View style={styles.activeSummaryContainer}>
-                <View style={styles.activeSummaryContent}>
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>{filterCount}</Text>
-                  </View>
-                  <Text style={styles.activeSummaryText}>Filter aktiv</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={clearAllFilters}
-                >
-                  <MaterialIcons name="clear-all" size={18} color={Colors.primary} />
-                  <Text style={styles.clearButtonText}>Löschen</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </>
-        )}
+      {/* Tab Selector */}
+      <View style={styles.tabSelector}>
+        {tabs.map((tab, index) => (
+          <Pressable
+            key={tab}
+            style={[styles.tab, selectedTab === index && styles.tabActive]}
+            onPress={() => setSelectedTab(index)}
+          >
+            <Text style={[styles.tabText, selectedTab === index && styles.tabTextActive]}>
+              {tab}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {/* Tab Content */}
+      {renderTabContent()}
+
+      {/* FAB */}
       {selectedTab === 0 && (
-        <>
-          {/* Plants List */}
-          <FlatList
-            data={plants}
-            renderItem={renderPlantItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={plants.length === 0 ? styles.listEmpty : styles.listContent}
-            ListEmptyComponent={renderEmptyState}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={Colors.primary}
-                colors={[Colors.primary]}
-              />
-            }
-          />
-
-          {plants.length > 0 && (
-            <>
-              <TouchableOpacity 
-                style={styles.aiButton} 
-                onPress={handleAIIdentify}
-                accessibilityLabel="Pflanze mit KI identifizieren"
-                accessibilityRole="button"
-              >
-                <MaterialIcons name="camera-alt" size={24} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.fab} 
-                onPress={handleAddPlant}
-                accessibilityLabel="Neue Pflanze hinzufügen"
-                accessibilityRole="button"
-              >
-                <MaterialIcons name="add" size={28} color="#fff" />
-              </TouchableOpacity>
-            </>
-          )}
-        </>
-      )}
-
-      {selectedTab === 1 && (
-        <TaskListContent
-          navigation={navigation}
-          onAddTask={handleAddTask}
-          embedded
-          showHeader={true}
+        <FloatingAction
+          onPress={() => navigation.navigate('AddPlant')}
+          icon={<Plus size={24} color="#fff" />}
+          accessibilityLabel="Pflanze hinzufügen"
         />
       )}
-
-      {selectedTab === 2 && (
-        <ShoppingListContent
-          navigation={navigation}
-          onAddItem={handleAddShoppingItem}
-          embedded
-          showHeader={true}
-        />
-      )}
-
-      <AIPhotoPicker
-        visible={showAIPicker}
-        onClose={() => setShowAIPicker(false)}
-        onPlantIdentified={handlePlantIdentified}
-      />
     </View>
   );
 }
@@ -557,370 +300,184 @@ export default function PlantListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.bg,
   },
-  filterSection: {
-    backgroundColor: Colors.background,
-    zIndex: 10,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
+  centerContainer: {
     flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  saisonPlanerButton: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F0FAF0',
-    marginHorizontal: 16,
-    marginTop: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2D9D4F',
+    backgroundColor: Colors2026.bg,
   },
-  saisonPlanerButtonText: {
+  glassHeader: {
+    paddingTop: 60,
+    paddingBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
+  },
+  title: {
+    fontSize: Typography2026.display.fontSize,
+    fontWeight: '800',
+    color: Colors2026.text,
+    letterSpacing: -1.5,
+  },
+  subtitle: {
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
+    marginTop: Spacing2026.xs,
+  },
+  tabSelector: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing2026.xl,
+    paddingVertical: Spacing2026.md,
+    gap: Spacing2026.sm,
+  },
+  tab: {
     flex: 1,
-    fontSize: 16,
+    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    backgroundColor: Colors2026.glass.light,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: Colors2026.primary,
+  },
+  tabText: {
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
-    color: '#1A1A1A',
-    marginLeft: 12,
+    color: Colors2026.textSecondary,
   },
-  filterChipsContainer: {
-    maxHeight: 50,
-    marginHorizontal: 16,
-    marginBottom: 8,
+  tabTextActive: {
+    color: '#fff',
   },
-  filterChipsContent: {
-    gap: 8,
-    paddingHorizontal: 0,
+  tabContent: {
+    flex: 1,
+    paddingHorizontal: Spacing2026.xl,
   },
-  secondaryFilterContainer: {
-    maxHeight: 50,
-    marginHorizontal: 16,
-    marginBottom: 8,
-  },
-  secondaryFilterContent: {
-    gap: 8,
-    paddingHorizontal: 0,
+  filterChips: {
+    marginBottom: Spacing2026.md,
   },
   filterChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: Spacing2026.xs,
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.sm,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.glass.tint,
+    borderWidth: 1,
+    borderColor: 'rgba(45,157,79,0.2)',
+    marginRight: Spacing2026.sm,
   },
   filterChipActive: {
-    backgroundColor: '#2D9D4F',
-    borderColor: '#2D9D4F',
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   filterChipText: {
-    fontSize: 13,
-    color: '#666666',
-    fontWeight: '500',
+    fontSize: Typography2026.small.fontSize,
+    fontWeight: '600',
+    color: Colors2026.primary,
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
-  },
-  chipIcon: {
-    marginRight: 2,
-  },
-  locationChip: {
-    // Location chips have specific styling
-  },
-  typeChip: {
-    // Type chips have specific styling
-  },
-  companionChip: {
-    borderColor: Colors.primary,
-    borderWidth: 1,
-  },
-  companionChipText: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  companionBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  companionBannerText: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  activeSummaryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 8,
-  },
-  activeSummaryContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  filterBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterBadgeText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
   },
-  activeSummaryText: {
-    color: Colors.text,
-    fontWeight: '600',
-    fontSize: 14,
+  statusChip: {
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.sm,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.glass.light,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    marginRight: Spacing2026.sm,
   },
-  clearButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+  statusChipActive: {
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
-  clearButtonText: {
-    color: Colors.primary,
-    fontWeight: '600',
-    fontSize: 13,
+  statusChipText: {
+    fontSize: Typography2026.small.fontSize,
+    fontWeight: '500',
+    color: Colors2026.textSecondary,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: Colors.textLight,
+  statusChipTextActive: {
+    color: '#fff',
   },
   listContent: {
-    padding: 16,
-  },
-  listEmpty: {
-    flexGrow: 1,
+    paddingBottom: 100,
   },
   plantCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.lg,
+    padding: Spacing2026.lg,
+    marginBottom: Spacing2026.md,
+    ...Shadows2026.md,
   },
   plantHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
+    gap: Spacing2026.md,
   },
-  plantTitleContainer: {
+  plantIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plantInfo: {
     flex: 1,
   },
   plantName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '700',
+    color: Colors2026.text,
+    letterSpacing: -0.3,
   },
-  plantLatinName: {
-    fontSize: 14,
+  plantLatin: {
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.textMuted,
     fontStyle: 'italic',
-    color: Colors.textLight,
-  },
-  plantDetails: {
-    marginBottom: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  detailText: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  statusBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
-    textTransform: 'capitalize',
   },
   plantMeta: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
+    alignItems: 'center',
+    gap: Spacing2026.sm,
+    marginTop: Spacing2026.md,
   },
-  metaChip: {
+  locationChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 12,
     gap: 4,
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.bg,
   },
-  aiChip: {
-    backgroundColor: Colors.accent + '20',
-    borderWidth: 1,
-    borderColor: Colors.accent,
+  locationText: {
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textMuted,
   },
-  aiChipText: {
-    color: Colors.accentDark,
+  plantBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing2026.sm,
+    marginTop: Spacing2026.md,
   },
-  metaText: {
-    fontSize: 12,
-    color: Colors.text,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textLight,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: Colors.primary,
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    gap: 8,
+    gap: 4,
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.bg,
   },
-  emptyButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: '#2D9D4F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2D9D4F',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  aiButton: {
-    position: 'absolute',
-    right: 90,
-    bottom: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: '#FFA726',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FFA726',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  tabContentPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: Colors.textLight,
-    marginTop: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  placeholderButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-  },
-  placeholderButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  badgeText: {
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textSecondary,
+    fontWeight: '500',
   },
 });

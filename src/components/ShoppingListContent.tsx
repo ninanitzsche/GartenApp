@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { ShoppingItem, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import {
   fetchShoppingItems,
@@ -20,7 +21,7 @@ import {
   markAsPurchased,
   ShoppingItemFilters,
 } from '../services/shoppingService';
-import EmptyState from '../components/EmptyState';
+import EmptyState from './ui/EmptyState';
 
 interface ShoppingListContentProps {
   navigation?: any;
@@ -374,17 +375,23 @@ export default function ShoppingListContent({
       {/* Items List */}
       {items.length === 0 ? (
         <EmptyState
-          icon="shopping-cart"
+          icon={<MaterialIcons name="shopping-cart" size={40} color={Colors2026.primary} />}
           title={hasActiveFilters ? 'Keine Artikel gefunden' : 'Einkaufsliste leer'}
-          message={
+          subtitle={
             hasActiveFilters
               ? 'Passen Sie Ihre Filter an.'
               : 'Fügen Sie einen Artikel hinzu, um zu beginnen'
           }
-          action={{
-            label: hasActiveFilters ? 'Filter löschen' : 'Artikel hinzufügen',
-            onPress: hasActiveFilters ? clearAllFilters : handleAddItem,
-          }}
+          action={
+            <TouchableOpacity
+              onPress={hasActiveFilters ? clearAllFilters : handleAddItem}
+              style={styles.emptyAction}
+            >
+              <Text style={styles.emptyActionText}>
+                {hasActiveFilters ? 'Filter löschen' : 'Artikel hinzufügen'}
+              </Text>
+            </TouchableOpacity>
+          }
           containerStyle={styles.emptyContainer}
         />
       ) : (
@@ -530,6 +537,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyAction: {
+    backgroundColor: Colors2026.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   itemCard: {
     backgroundColor: Colors.surface,
