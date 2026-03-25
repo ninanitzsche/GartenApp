@@ -277,12 +277,12 @@ export const getSeasonalColor = (zeitraum: string, colors: ThemeColors = LightCo
   return colors.seasonal.spring;
 };
 
-export const getSeasonalGradient = (zeitraum: string): string[] => {
-  if (zeitraum.includes('fruehjahr')) return LightColors.gradients.spring;
-  if (zeitraum.includes('sommer')) return LightColors.gradients.summer;
-  if (zeitraum.includes('herbst')) return LightColors.gradients.autumn;
-  if (zeitraum.includes('winter')) return LightColors.gradients.winter;
-  return LightColors.gradients.spring;
+export const getSeasonalGradient = (zeitraum: string, colors: ThemeColors = LightColors): string[] => {
+  if (zeitraum.includes('fruehjahr') || zeitraum.includes('spring')) return colors.gradients.spring;
+  if (zeitraum.includes('sommer') || zeitraum.includes('summer')) return colors.gradients.summer;
+  if (zeitraum.includes('herbst') || zeitraum.includes('autumn')) return colors.gradients.autumn;
+  if (zeitraum.includes('winter')) return colors.gradients.winter;
+  return colors.gradients.spring;
 };
 
 // Backwards compatibility
