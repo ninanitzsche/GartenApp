@@ -49,6 +49,11 @@ function MenuItem({
 export default function MoreMenuScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
 
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   const handleLogout = () => {
     Alert.alert(
       'Abmelden',
@@ -129,10 +134,10 @@ export default function MoreMenuScreen({ navigation }: Props) {
 
       {/* Logout Button */}
       <AnimatedPressable
-        style={styles.logoutButton}
+        style={[styles.logoutButton, animatedStyle]}
         onPress={handleLogout}
-        onPressIn={() => {}}
-        onPressOut={() => {}}
+        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
       >
         <LogOut size={20} color="#fff" />
         <Text style={styles.logoutText}>Abmelden</Text>
@@ -251,6 +256,6 @@ const styles = StyleSheet.create({
     marginLeft: Spacing2026.sm,
   },
   spacer: {
-    height: 20,
+    height: Spacing2026.xl,
   },
 });
