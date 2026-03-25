@@ -15,6 +15,8 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useReduceMotion } from '../utils/accessibility';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Search, Filter, X, ChevronRight, Sprout, Leaf, Snowflake, Sparkles, MapPin, Plus } from 'lucide-react-native';
@@ -36,6 +38,7 @@ import ShoppingListContent from '../components/ShoppingListContent';
 type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
 export default function PlantListScreen({ navigation }: Props) {
+  const reduceMotion = useReduceMotion();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -107,64 +110,74 @@ export default function PlantListScreen({ navigation }: Props) {
     );
   };
 
-  const renderPlantItem = ({ item, index }: { item: Plant; index: number }) => (
-    <Pressable
-      style={styles.plantCard}
-      onPress={() => navigation.navigate('PlantDetail', { plantId: item.id })}
-    >
-      <View style={styles.plantHeader}>
-        <View style={styles.plantIcon}>
-          <Leaf size={20} color={Colors2026.primary} />
+  const renderPlantItem = ({ item, index }: { item: Plant; index: number }) => {
+    const content = (
+      <Pressable
+        style={styles.plantCard}
+        onPress={() => navigation.navigate('PlantDetail', { plantId: item.id })}
+      >
+        <View style={styles.plantHeader}>
+          <View style={styles.plantIcon}>
+            <Leaf size={20} color={Colors2026.primary} />
+          </View>
+          <View style={styles.plantInfo}>
+            <Text style={styles.plantName}>{item.name}</Text>
+            {item.latin_name && (
+              <Text style={styles.plantLatin}>{item.latin_name}</Text>
+            )}
+          </View>
+          <ChevronRight size={20} color={Colors2026.textMuted} />
         </View>
-        <View style={styles.plantInfo}>
-          <Text style={styles.plantName}>{item.name}</Text>
-          {item.latin_name && (
-            <Text style={styles.plantLatin}>{item.latin_name}</Text>
+
+        <View style={styles.plantMeta}>
+          <StatusBadge
+            status={item.status}
+            size="sm"
+          />
+          {item.location && (
+            <View style={styles.locationChip}>
+              <MapPin size={12} color={Colors2026.textMuted} />
+              <Text style={styles.locationText}>{item.location}</Text>
+            </View>
           )}
         </View>
-        <ChevronRight size={20} color={Colors2026.textMuted} />
-      </View>
 
-      <View style={styles.plantMeta}>
-        <StatusBadge
-          status={item.status}
-          size="sm"
-        />
-        {item.location && (
-          <View style={styles.locationChip}>
-            <MapPin size={12} color={Colors2026.textMuted} />
-            <Text style={styles.locationText}>{item.location}</Text>
-          </View>
-        )}
-      </View>
+        <View style={styles.plantBadges}>
+          {item.essbar && (
+            <View style={styles.badge}>
+              <Sprout size={14} color={Colors2026.status.success} />
+              <Text style={styles.badgeText}>Essbar</Text>
+            </View>
+          )}
+          {item.winterhart && (
+            <View style={styles.badge}>
+              <Snowflake size={14} color={Colors2026.status.info} />
+              <Text style={styles.badgeText}>Winterhart</Text>
+            </View>
+          )}
+          {item.identification_source === 'ai' && (
+            <View style={styles.badge}>
+              <Sparkles size={14} color={Colors2026.plantStatus.bestellt} />
+              <Text style={styles.badgeText}>KI</Text>
+            </View>
+          )}
+          {item.quantity && item.quantity > 1 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{item.quantity}x</Text>
+            </View>
+          )}
+        </View>
+      </Pressable>
+    );
 
-      <View style={styles.plantBadges}>
-        {item.essbar && (
-          <View style={styles.badge}>
-            <Sprout size={14} color={Colors2026.status.success} />
-            <Text style={styles.badgeText}>Essbar</Text>
-          </View>
-        )}
-        {item.winterhart && (
-          <View style={styles.badge}>
-            <Snowflake size={14} color={Colors2026.status.info} />
-            <Text style={styles.badgeText}>Winterhart</Text>
-          </View>
-        )}
-        {item.identification_source === 'ai' && (
-          <View style={styles.badge}>
-            <Sparkles size={14} color={Colors2026.plantStatus.bestellt} />
-            <Text style={styles.badgeText}>KI</Text>
-          </View>
-        )}
-        {item.quantity && item.quantity > 1 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.quantity}x</Text>
-          </View>
-        )}
-      </View>
-    </Pressable>
-  );
+    if (reduceMotion) return content;
+
+    return (
+      <Animated.View entering={FadeInUp.delay(index * 50).duration(300)}>
+        {content}
+      </Animated.View>
+    );
+  };
 
   const renderTabContent = () => {
     switch (selectedTab) {
