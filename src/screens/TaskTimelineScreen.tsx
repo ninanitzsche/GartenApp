@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, SafeAreaView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
+import { Colors2026 } from '../theme/designSystemV2';
 import TaskTimelineView from '../components/TaskTimelineView';
 
 interface Task {
@@ -60,7 +61,7 @@ export const TaskTimelineScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color={Colors2026.primary} />
         </View>
       </SafeAreaView>
     );
@@ -89,7 +90,7 @@ export const TaskTimelineScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors2026.bg,
   },
   centerContent: {
     flex: 1,
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#D32F2F',
+    color: Colors2026.status.error,
     textAlign: 'center',
     paddingHorizontal: 16,
   },
