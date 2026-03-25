@@ -1,21 +1,18 @@
 /**
  * BedMapView Component
- * Gallery-style bed overview with colorful cards
+ * Responsive grid of bed cards
  */
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Dimensions,
   ViewStyle,
   Pressable,
   Image,
 } from 'react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { Sprout, Plus, ChevronRight, Flower2 } from 'lucide-react-native';
-import { BlurView } from 'expo-blur';
 import { Bed } from '../types/bed';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
@@ -29,9 +26,6 @@ interface BedMapViewProps {
   onAddBedPress?: () => void;
   style?: ViewStyle;
 }
-
-const CARD_WIDTH = Dimensions.get('window').width * 0.65;
-const CARD_HEIGHT = 180;
 
 const DEFAULT_COLORS = ['#4CAF50', '#8D6E63', '#2196F3', '#FF9800', '#9C27B0', '#E91E63'];
 
@@ -69,138 +63,132 @@ export default function BedMapView({
   }
 
   return (
-    <View style={style}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        snapToInterval={CARD_WIDTH + Spacing2026.md}
-        decelerationRate="fast"
-      >
-        {beds.map((bed, index) => {
-          const color = getBedColor(bed, index);
-          const emoji = getBedEmoji(index);
-          const plantCount = bed.plantCount || 0;
+    <View style={[styles.grid, style]}>
+      {beds.map((bed, index) => {
+        const color = getBedColor(bed, index);
+        const emoji = getBedEmoji(index);
+        const plantCount = bed.plantCount || 0;
 
-          return (
-            <Animated.View
-              key={bed.id}
-              entering={FadeInRight.delay(index * 80).duration(400)}
+        return (
+          <Animated.View
+            key={bed.id}
+            entering={FadeIn.delay(index * 60).duration(300)}
+            style={styles.gridItem}
+          >
+            <Pressable
+              style={styles.card}
+              onPress={() => onBedPress(bed.id)}
             >
-              <Pressable
-                style={styles.card}
-                onPress={() => onBedPress(bed.id)}
-              >
-                {/* Header: Cover Photo or Colored Background */}
-                <View style={[styles.cardHeader, { backgroundColor: color }]}>
-                  {bed.cover_photo_url ? (
-                    <Image
-                      source={{ uri: bed.cover_photo_url }}
-                      style={StyleSheet.absoluteFillObject}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Text style={styles.emoji}>{emoji}</Text>
-                  )}
-                  <View style={styles.cardHeaderOverlay}>
-                    <Text style={styles.bedName} numberOfLines={1}>{bed.name}</Text>
-                  </View>
+              {/* Header: Cover Photo or Colored Background */}
+              <View style={[styles.cardHeader, { backgroundColor: color }]}>
+                {bed.cover_photo_url ? (
+                  <Image
+                    source={{ uri: bed.cover_photo_url }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={styles.emoji}>{emoji}</Text>
+                )}
+                <View style={styles.cardHeaderOverlay}>
+                  <Text style={styles.bedName} numberOfLines={1}>{bed.name}</Text>
                 </View>
-
-                {/* Card Body */}
-                <View style={styles.cardBody}>
-                  {plantCount > 0 ? (
-                    <View style={styles.plantBadge}>
-                      <Sprout size={14} color={Colors2026.primary} />
-                      <Text style={styles.plantCount}>
-                        {plantCount} {plantCount === 1 ? 'Pflanze' : 'Pflanzen'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.emptyBedText}>Noch leer</Text>
-                  )}
-
-                  {bed.notes ? (
-                    <Text style={styles.notes} numberOfLines={2}>{bed.notes}</Text>
-                  ) : null}
-
-                  <View style={styles.cardFooter}>
-                    <ChevronRight size={16} color={Colors2026.textMuted} />
-                  </View>
-                </View>
-              </Pressable>
-            </Animated.View>
-          );
-        })}
-
-        {/* Add Card */}
-        {onAddBedPress && (
-          <Animated.View entering={FadeInRight.delay(beds.length * 80).duration(400)}>
-            <Pressable style={styles.addCard} onPress={onAddBedPress}>
-              <View style={styles.addIconContainer}>
-                <Plus size={28} color={Colors2026.primary} />
               </View>
-              <Text style={styles.addText}>Beet hinzufügen</Text>
+
+              {/* Card Body */}
+              <View style={styles.cardBody}>
+                {plantCount > 0 ? (
+                  <View style={styles.plantBadge}>
+                    <Sprout size={13} color={Colors2026.primary} />
+                    <Text style={styles.plantCount}>
+                      {plantCount}x
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.emptyBedText}>Leer</Text>
+                )}
+
+                <View style={styles.cardFooter}>
+                  <ChevronRight size={14} color={Colors2026.textMuted} />
+                </View>
+              </View>
             </Pressable>
           </Animated.View>
-        )}
-      </ScrollView>
+        );
+      })}
+
+      {/* Add Card */}
+      {onAddBedPress && (
+        <Animated.View
+          entering={FadeIn.delay(beds.length * 60).duration(300)}
+          style={styles.gridItem}
+        >
+          <Pressable style={styles.addCard} onPress={onAddBedPress}>
+            <View style={styles.addIconContainer}>
+              <Plus size={24} color={Colors2026.primary} />
+            </View>
+            <Text style={styles.addText}>Hinzufügen</Text>
+          </Pressable>
+        </Animated.View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: Spacing2026.xl,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing2026.md,
-    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.xl,
+  },
+  gridItem: {
+    width: '47%',
   },
   card: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
     borderRadius: Radius2026.lg,
     backgroundColor: Colors2026.surface,
     overflow: 'hidden',
-    ...Shadows2026.lg,
+    ...Shadows2026.md,
   },
   cardHeader: {
-    height: 80,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   emoji: {
-    fontSize: 32,
+    fontSize: 28,
   },
   cardHeaderOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: Spacing2026.md,
-    paddingVertical: Spacing2026.sm,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   bedName: {
-    fontSize: Typography2026.body.fontSize,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '700',
     color: '#fff',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   cardBody: {
-    flex: 1,
-    padding: Spacing2026.md,
+    padding: Spacing2026.sm,
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   plantBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     backgroundColor: Colors2026.glass.tint,
     paddingHorizontal: Spacing2026.sm,
-    paddingVertical: Spacing2026.xs,
+    paddingVertical: 2,
     borderRadius: Radius2026.round,
-    alignSelf: 'flex-start',
   },
   plantCount: {
     fontSize: Typography2026.small.fontSize,
@@ -208,22 +196,15 @@ const styles = StyleSheet.create({
     color: Colors2026.primary,
   },
   emptyBedText: {
-    fontSize: Typography2026.caption.fontSize,
+    fontSize: Typography2026.small.fontSize,
     color: Colors2026.textMuted,
     fontStyle: 'italic',
-  },
-  notes: {
-    fontSize: Typography2026.small.fontSize,
-    color: Colors2026.textSecondary,
-    lineHeight: 16,
-    marginTop: Spacing2026.xs,
   },
   cardFooter: {
     alignItems: 'flex-end',
   },
   addCard: {
-    width: CARD_WIDTH * 0.6,
-    height: CARD_HEIGHT,
+    height: 140,
     borderRadius: Radius2026.lg,
     backgroundColor: Colors2026.glass.light,
     borderWidth: 2,
@@ -234,9 +215,9 @@ const styles = StyleSheet.create({
     gap: Spacing2026.sm,
   },
   addIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors2026.glass.tint,
     justifyContent: 'center',
     alignItems: 'center',
@@ -250,7 +231,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing2026.xl,
   },
   emptyCard: {
-    height: 200,
+    height: 180,
     borderRadius: Radius2026.lg,
     backgroundColor: Colors2026.glass.light,
     justifyContent: 'center',
