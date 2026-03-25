@@ -13,6 +13,7 @@ export interface Bed {
   color?: string;
   shape?: string;
   notes?: string;
+  cover_photo_url?: string;
   created_at?: string;
   updated_at?: string;
 }

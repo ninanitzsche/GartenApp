@@ -13,16 +13,19 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList } from '../types/navigation';
 import Colors from '../theme/colors';
 import { Colors2026 } from '../theme/designSystemV2';
 import { Bed } from '../types/bed';
 import { Plant } from '../types/plant';
 import { fetchBed, fetchBedPlants, unlinkBedFromPlant } from '../services/bedService';
+import { uploadPhotoForBed, setBedCoverPhoto } from '../services/photoBedService';
 import EmptyState from '../components/ui/EmptyState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
@@ -65,6 +68,33 @@ export default function BedDetailScreen({ navigation, route }: Props) {
 
   const handleEdit = () => {
     navigation.navigate('EditBed', { bedId });
+  };
+
+  const handleCoverPhoto = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets?.[0]) return;
+
+      const photoPath = await uploadPhotoForBed(bedId, result.assets[0].uri);
+      const { data } = (await import('../services/supabase')).supabase.storage
+        .from('plant-photos')
+        .getPublicUrl(photoPath);
+
+      await setBedCoverPhoto(bedId, data.publicUrl);
+
+      // Reload bed data to show new cover
+      setBed(prev => prev ? { ...prev, cover_photo_url: data.publicUrl } : null);
+      Alert.alert('Erfolg', 'Titelbild gesetzt!');
+    } catch (error: any) {
+      console.error('Error setting cover photo:', error);
+      Alert.alert('Fehler', error.message || 'Foto konnte nicht hochgeladen werden.');
+    }
   };
 
   const handleRemovePlant = (plantId: string) => {
@@ -153,6 +183,19 @@ export default function BedDetailScreen({ navigation, route }: Props) {
       }
     >
       {/* Bed Header */}
+      {bed.cover_photo_url ? (
+        <View style={styles.coverPhotoContainer}>
+          <Image
+            source={{ uri: bed.cover_photo_url }}
+            style={styles.coverPhoto}
+            resizeMode="cover"
+          />
+          <TouchableOpacity style={styles.cameraButton} onPress={handleCoverPhoto}>
+            <MaterialIcons name="photo-camera" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       <View style={styles.header}>
         <View
           style={[
@@ -164,6 +207,11 @@ export default function BedDetailScreen({ navigation, route }: Props) {
           <Text style={styles.title}>{bed.name}</Text>
           {bed.notes && <Text style={styles.notes}>{bed.notes}</Text>}
         </View>
+        {!bed.cover_photo_url && (
+          <TouchableOpacity onPress={handleCoverPhoto} style={styles.headerCameraButton}>
+            <MaterialIcons name="add-a-photo" size={22} color={Colors.primary} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={handleEdit}>
           <MaterialIcons name="edit" size={24} color={Colors.primary} />
         </TouchableOpacity>
@@ -370,5 +418,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  coverPhotoContainer: {
+    width: '100%',
+    height: 200,
+    position: 'relative',
+  },
+  coverPhoto: {
+    width: '100%',
+    height: '100%',
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCameraButton: {
+    marginRight: 8,
   },
 });

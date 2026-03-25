@@ -315,7 +315,7 @@ export default function HomeScreen({ navigation }: Props) {
             ))}
 
             {prioritizedTasks.length > 3 && (
-              <Pressable style={styles.viewAllButton}>
+              <Pressable style={styles.viewAllButton} onPress={() => navigation.navigate('Plants')}>
                 <Text style={styles.viewAllText}>
                   Alle {prioritizedTasks.length} Aufgaben anzeigen
                 </Text>

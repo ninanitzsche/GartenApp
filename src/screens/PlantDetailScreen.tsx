@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  Image,
 } from 'react-native';
 import { Leaf, Edit, Camera, Sprout, ChevronLeft, Snowflake, MapPin, Calendar, Sparkles, Droplets, Thermometer } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
@@ -199,6 +200,33 @@ export default function PlantDetailScreen() {
           </GlassCard>
         </View>
 
+        {/* Photos Section */}
+        {photos.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Fotos"
+              subtitle={`${photos.length} Foto${photos.length > 1 ? 's' : ''}`}
+              icon={<Camera size={20} color={Colors2026.primary} />}
+              animated={true}
+              delay={100}
+            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+              {photos.map((photo, index) => (
+                <Pressable
+                  key={photo.id || index}
+                  onPress={() => navigation.navigate('PhotoGallery', { plantId: plant.id })}
+                >
+                  <Image
+                    source={{ uri: photo.photo_url }}
+                    style={styles.photoThumbnail}
+                    resizeMode="cover"
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Notes Section */}
         {plant.notes && (
           <View style={styles.section}>
@@ -378,5 +406,15 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 100,
+  },
+  photoScroll: {
+    marginTop: Spacing2026.sm,
+  },
+  photoThumbnail: {
+    width: 160,
+    height: 120,
+    borderRadius: Radius2026.md,
+    marginRight: Spacing2026.sm,
+    backgroundColor: Colors2026.glass.tint,
   },
 });

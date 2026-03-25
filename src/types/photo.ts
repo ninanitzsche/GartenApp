@@ -28,11 +28,11 @@ export interface Photo {
 export interface PhotoPlant {
   photo_id: string;
   plant_id: string;
-  photos?: Photo;
+  photos?: Photo; // For joined queries
 }
 
-export interface PhotoPlant {
+export interface PhotoBed {
   photo_id: string;
-  plant_id: string;
-  photos?: Photo; // For joined queries
+  bed_id: string;
+  photos?: Photo;
 }
