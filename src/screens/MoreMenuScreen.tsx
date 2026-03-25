@@ -1,18 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import GlassCard from '../components/ui/GlassCard';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MoreMenu'>;
+
+function MenuItem({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedPressable
+      style={[styles.menuItem, animatedStyle]}
+      onPress={onPress}
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+    >
+      <View style={styles.menuItemIcon}>{icon}</View>
+      <Text style={styles.menuItemText}>{label}</Text>
+      <ChevronRight size={20} color={Colors2026.textMuted} />
+    </AnimatedPressable>
+  );
+}
 
 export default function MoreMenuScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
 
   const handleLogout = () => {
-    console.log('🔵 LOGOUT BUTTON PRESSED - NEW CODE RUNNING!');
     Alert.alert(
       'Abmelden',
       'Möchten Sie sich wirklich abmelden?',
@@ -22,12 +59,10 @@ export default function MoreMenuScreen({ navigation }: Props) {
           text: 'Abmelden',
           style: 'destructive',
           onPress: async () => {
-            console.log('🔵 LOGOUT CONFIRMED, signing out...');
             try {
               await signOut();
-              console.log('🔵 LOGOUT SUCCESS');
             } catch (error) {
-              console.error('🔵 LOGOUT ERROR:', error);
+              console.error('Logout error:', error);
               Alert.alert('Fehler', 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
             }
           },
@@ -37,121 +72,185 @@ export default function MoreMenuScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.userInfo}>
-        <MaterialIcons name="account-circle" size={60} color={Colors.primary} />
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Glass Header */}
+      <BlurView intensity={60} style={styles.glassHeader}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Mehr</Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Settings size={24} color={Colors2026.primary} />
+          </View>
+        </View>
+      </BlurView>
+
+      {/* User Info */}
+      <View style={styles.userSection}>
+        <View style={styles.avatar}>
+          <User size={32} color={Colors2026.primary} />
+        </View>
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      <View style={styles.menuSection}>
+      {/* Konto Section */}
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Konto</Text>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Profile')}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="account-circle" size={24} color={Colors.primary} />
-          <Text style={styles.menuItemText}>Mein Profil</Text>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
-        </TouchableOpacity>
+        <GlassCard variant="light" animated={false}>
+          <MenuItem
+            icon={<User size={20} color={Colors2026.primary} />}
+            label="Mein Profil"
+            onPress={() => navigation.navigate('Profile')}
+          />
+        </GlassCard>
       </View>
 
-      <View style={styles.menuSection}>
+      {/* Funktionen Section */}
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Funktionen</Text>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('ShoppingDashboard')}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="shopping-cart" size={24} color={Colors.primary} />
-          <Text style={styles.menuItemText}>Einkaufsliste</Text>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('HarvestLog')}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="agriculture" size={24} color={Colors.primary} />
-          <Text style={styles.menuItemText}>Ernte-Tagebuch</Text>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('KnowledgeBase')}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="menu-book" size={24} color={Colors.primary} />
-          <Text style={styles.menuItemText}>Wissensdatenbank</Text>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} style={styles.chevron} />
-        </TouchableOpacity>
+        <GlassCard variant="light" animated={false}>
+          <MenuItem
+            icon={<ShoppingCart size={20} color={Colors2026.primary} />}
+            label="Einkaufsliste"
+            onPress={() => navigation.navigate('ShoppingDashboard')}
+          />
+          <MenuItem
+            icon={<Sprout size={20} color={Colors2026.primary} />}
+            label="Ernte-Tagebuch"
+            onPress={() => navigation.navigate('HarvestLog')}
+          />
+          <MenuItem
+            icon={<BookOpen size={20} color={Colors2026.primary} />}
+            label="Wissensdatenbank"
+            onPress={() => navigation.navigate('KnowledgeBase')}
+          />
+        </GlassCard>
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <MaterialIcons name="logout" size={20} color="#fff" />
+      {/* Logout Button */}
+      <AnimatedPressable
+        style={styles.logoutButton}
+        onPress={handleLogout}
+        onPressIn={() => {}}
+        onPressOut={() => {}}
+      >
+        <LogOut size={20} color="#fff" />
         <Text style={styles.logoutText}>Abmelden</Text>
-      </TouchableOpacity>
-    </View>
+      </AnimatedPressable>
+
+      <View style={styles.spacer} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-    padding: 20,
+    backgroundColor: Colors2026.bg,
   },
-  userInfo: {
+  content: {
+    paddingBottom: Spacing2026.xxxl * 2,
+  },
+  glassHeader: {
+    paddingTop: 60,
+    paddingBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: Typography2026.headline.fontSize,
+    fontWeight: '800',
+    color: Colors2026.text,
+    letterSpacing: -0.8,
+  },
+  headerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userSection: {
+    alignItems: 'center',
+    paddingVertical: Spacing2026.xxl,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows2026.md,
   },
   email: {
-    fontSize: 16,
-    color: Colors.text,
-    marginTop: 10,
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textSecondary,
+    marginTop: Spacing2026.md,
   },
-  menuSection: {
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
+  section: {
+    paddingHorizontal: Spacing2026.xl,
+    marginBottom: Spacing2026.lg,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 15,
+    fontSize: Typography2026.caption.fontSize,
+    fontWeight: '600',
+    color: Colors2026.textMuted,
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+    marginBottom: Spacing2026.sm,
+    marginLeft: Spacing2026.xs,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
+    paddingVertical: Spacing2026.md,
+  },
+  menuItemIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius2026.sm,
+    backgroundColor: Colors2026.glass.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing2026.md,
   },
   menuItemText: {
-    fontSize: 16,
-    color: Colors.textLight,
-    marginLeft: 15,
     flex: 1,
-  },
-  chevron: {
-    marginLeft: 'auto',
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '500',
+    color: Colors2026.text,
   },
   logoutButton: {
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 'auto',
+    paddingVertical: Spacing2026.lg,
+    paddingHorizontal: Spacing2026.xl,
+    borderRadius: Radius2026.md,
+    marginHorizontal: Spacing2026.xl,
+    marginTop: Spacing2026.xl,
+    ...Shadows2026.md,
   },
   logoutText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 10,
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '700',
+    marginLeft: Spacing2026.sm,
+  },
+  spacer: {
+    height: 20,
   },
 });
