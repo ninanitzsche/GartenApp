@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import { Colors2026 } from '../theme/designSystemV2';
