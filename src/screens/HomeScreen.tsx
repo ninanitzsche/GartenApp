@@ -19,7 +19,7 @@ import EmptyTasksIllustration from '../components/illustrations/EmptyTasksIllust
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { TabParamList } from '../types/navigation';
-import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026, getSeasonalColor } from '../theme/designSystemV2';
 import GlassCard from '../components/ui/GlassCard';
 import SectionHeader from '../components/ui/SectionHeader';
 import EmptyState from '../components/ui/EmptyState';
@@ -79,6 +79,10 @@ export default function HomeScreen({ navigation }: Props) {
   });
 
   const cacheRef = useRef<DashboardCache | null>(null);
+
+  const saison = getAktuelleSaison();
+  const jahreszeit = getJahreszeit(saison);
+  const seasonalColor = jahreszeit ? getSeasonalColor(jahreszeit) : getSeasonalColor('spring');
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ visible: true, message, type });
@@ -252,7 +256,7 @@ export default function HomeScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors2026.primary} />}
       >
         {/* Glass Header */}
-        <BlurView intensity={60} style={styles.glassHeader}>
+        <BlurView intensity={60} style={[styles.glassHeader, { backgroundColor: seasonalColor.bg }]}>
           <View style={styles.headerContent}>
             <View style={styles.headerLeft}>
               <Text style={styles.greeting}>Guten Tag!</Text>

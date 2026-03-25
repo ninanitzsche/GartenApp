@@ -20,7 +20,8 @@ import { Leaf, Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react-n
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../types/navigation';
-import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026, getSeasonalColor } from '../theme/designSystemV2';
+import { getAktuelleSaison, getJahreszeit } from '../utils/zeitraumUtils';
 import GlassInput from '../components/ui/GlassInput';
 import AnimatedButton from '../components/ui/AnimatedButton';
 
@@ -57,6 +58,10 @@ export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScr
     }
   };
 
+  const saison = getAktuelleSaison();
+  const jahreszeit = getJahreszeit(saison);
+  const seasonalColor = jahreszeit ? getSeasonalColor(jahreszeit) : getSeasonalColor('spring');
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -68,7 +73,7 @@ export default function LoginScreen({ onSwitchToRegister, navigation }: LoginScr
         bounces={false}
       >
         {/* Background Gradient */}
-        <View style={styles.backgroundGradient} />
+        <View style={[styles.backgroundGradient, { backgroundColor: seasonalColor.bg }]} />
 
         {/* Header */}
         <View style={styles.header}>
@@ -167,7 +172,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '40%',
-    backgroundColor: Colors2026.seasonal.spring.bg,
     opacity: 0.5,
   },
   header: {
