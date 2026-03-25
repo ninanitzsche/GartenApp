@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  FadeInUp,
 } from 'react-native-reanimated';
 import { Circle, CheckCircle2 } from 'lucide-react-native';
 import { Task } from '../types/task';
@@ -11,6 +12,7 @@ import { Zeitraum } from '../types/zeitraum';
 import { getZeitraumShortLabel, getZeitraumIconComponent } from '../utils/zeitraumUtils';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import PrioritaetBadge from './PrioritaetBadge';
+import { useReduceMotion } from '../utils/accessibility';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -49,6 +51,7 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
     return <SkeletonCard />;
   }
 
+  const reduceMotion = useReduceMotion();
   const isCompleted = !!task.completed_at;
   const zeitraum = getTaskZeitraum(task);
   const zeitraumLabel = zeitraum ? getZeitraumShortLabel(zeitraum) : '';
@@ -58,42 +61,47 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
     transform: [{ scale: scale.value }],
   }));
 
+  const CardWrapper = reduceMotion ? View : Animated.View;
+  const enteringProp = reduceMotion ? undefined : FadeInUp.duration(300);
+
   return (
-    <AnimatedPressable
-      style={[styles.container, animatedStyle]}
-      onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
-    >
-      <Pressable
-        style={styles.checkbox}
-        onPress={onToggle}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: isCompleted }}
-        accessibilityLabel={isCompleted ? `${task.title} erledigt` : `${task.title} nicht erledigt`}
+    <CardWrapper entering={enteringProp}>
+      <AnimatedPressable
+        style={[styles.container, animatedStyle]}
+        onPress={onPress}
+        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
       >
-        {isCompleted ? (
-          <CheckCircle2 size={24} color={Colors2026.status.success} />
-        ) : (
-          <Circle size={24} color={Colors2026.textLight} />
-        )}
-      </Pressable>
-      <View style={styles.content}>
-        <Text style={[styles.title, isCompleted && styles.completed]}>
-          {task.title}
-        </Text>
-        <View style={styles.meta}>
-          {task.location && <Text style={styles.location}>{task.location}</Text>}
-          {zeitraumLabel && zeitraum && (
-            <View style={styles.zeitraumRow}>
-              {getZeitraumIconComponent(zeitraum, 14, Colors2026.primary)}
-              <Text style={styles.zeitraumText}>{zeitraumLabel}</Text>
-            </View>
+        <Pressable
+          style={styles.checkbox}
+          onPress={onToggle}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isCompleted }}
+          accessibilityLabel={isCompleted ? `${task.title} erledigt` : `${task.title} nicht erledigt`}
+        >
+          {isCompleted ? (
+            <CheckCircle2 size={24} color={Colors2026.status.success} />
+          ) : (
+            <Circle size={24} color={Colors2026.textLight} />
           )}
+        </Pressable>
+        <View style={styles.content}>
+          <Text style={[styles.title, isCompleted && styles.completed]}>
+            {task.title}
+          </Text>
+          <View style={styles.meta}>
+            {task.location && <Text style={styles.location}>{task.location}</Text>}
+            {zeitraumLabel && zeitraum && (
+              <View style={styles.zeitraumRow}>
+                {getZeitraumIconComponent(zeitraum, 14, Colors2026.primary)}
+                <Text style={styles.zeitraumText}>{zeitraumLabel}</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-      <PrioritaetBadge prioritaet={task.priority} />
-    </AnimatedPressable>
+        <PrioritaetBadge prioritaet={task.priority} />
+      </AnimatedPressable>
+    </CardWrapper>
   );
 }
 
