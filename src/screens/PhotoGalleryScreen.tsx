@@ -21,6 +21,7 @@ import { Colors2026 } from '../theme/designSystemV2';
 import { fetchAllPhotos, fetchPhotos as fetchPhotosForPlant, deletePhoto, PhotoFilters } from '../services/photoService';
 import EmptyState from '../components/ui/EmptyState';
 import PhotoFilterModal from '../components/PhotoFilterModal';
+import EmptyPhotosIllustration from '../components/illustrations/EmptyPhotosIllustration';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoGallery'>;
 type PhotoGalleryRouteProp = RouteProp<RootStackParamList, 'PhotoGallery'>;
@@ -197,7 +198,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
   const renderEmptyState = useCallback(
     () => (
       <EmptyState
-        icon={<MaterialIcons name="image-not-supported" size={40} color={Colors2026.primary} />}
+        icon={<EmptyPhotosIllustration />}
         title="Keine Fotos vorhanden"
         subtitle={isPlantSpecific ? "Diese Pflanze hat noch keine Fotos" : "Sie haben noch keine Fotos in Ihrer Galerie"}
         containerStyle={styles.emptyStateContainer}

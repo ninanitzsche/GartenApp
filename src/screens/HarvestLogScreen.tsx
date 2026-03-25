@@ -16,6 +16,7 @@ import { RootStackParamList } from '../types/navigation';
 import { HarvestWithPlant } from '../types/harvest';
 import Colors from '../theme/colors';
 import { fetchHarvests, deleteHarvest, formatHarvestWithPlant } from '../services/harvestService';
+import EmptyHarvestIllustration from '../components/illustrations/EmptyHarvestIllustration';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HarvestLog'>;
 type RouteProps = RouteProp<RootStackParamList, 'HarvestLog'>;
@@ -146,7 +147,7 @@ export default function HarvestLogScreen({ navigation }: Props) {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <MaterialIcons name="sentiment-dissatisfied" size={48} color={Colors.textLight} />
+            <EmptyHarvestIllustration />
             <Text style={styles.emptyStateText}>Noch keine Ernten dokumentiert</Text>
             <Text style={styles.emptyStateSubtext}>
               Tippen Sie auf das + Symbol, um Ihre erste Ernte zu dokumentieren

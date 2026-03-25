@@ -29,6 +29,7 @@ import SectionHeader from '../components/ui/SectionHeader';
 import EmptyState from '../components/ui/EmptyState';
 import FloatingAction from '../components/ui/FloatingAction';
 import StatusBadge from '../components/ui/StatusBadge';
+import EmptyPlantsIllustration from '../components/illustrations/EmptyPlantsIllustration';
 import TaskListContent from '../components/TaskListContent';
 import ShoppingListContent from '../components/ShoppingListContent';
 
@@ -231,7 +232,7 @@ export default function PlantListScreen({ navigation }: Props) {
               }
               ListEmptyComponent={
                 <EmptyState
-                  icon={<Leaf size={40} color={Colors2026.primary} />}
+                  icon={<EmptyPlantsIllustration />}
                   title={filterStatusList.length > 0 ? 'Keine Pflanzen gefunden' : 'Noch keine Pflanzen'}
                   subtitle={filterStatusList.length > 0
                     ? 'Passen Sie Ihre Filter an'

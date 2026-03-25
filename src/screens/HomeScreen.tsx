@@ -14,7 +14,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Leaf, Sprout, Sun, Droplets, TreePine, Flower2, Calendar, CheckCircle2, Clock, Sparkles } from 'lucide-react-native';
+import { Leaf, Sprout, Sun, Droplets, Flower2, Calendar, CheckCircle2, Clock, Sparkles } from 'lucide-react-native';
+import EmptyTasksIllustration from '../components/illustrations/EmptyTasksIllustration';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { TabParamList } from '../types/navigation';
@@ -411,7 +412,7 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Empty State */}
         {isEmpty && (
           <EmptyState
-            icon={<TreePine size={40} color={Colors2026.primary} />}
+            icon={<EmptyTasksIllustration />}
             title="Willkommen!"
             subtitle="Füge Pflanzen, Aufgaben oder Ernten hinzu, um loszulegen"
             action={
