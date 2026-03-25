@@ -36,6 +36,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,6 +72,8 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCoverPhoto = async () => {
+    if (uploading) return;
+
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
@@ -81,6 +84,9 @@ export default function BedDetailScreen({ navigation, route }: Props) {
 
       if (result.canceled || !result.assets?.[0]) return;
 
+      setUploading(true);
+      console.log('Uploading cover photo:', result.assets[0].uri);
+
       const photoPath = await uploadPhotoForBed(bedId, result.assets[0].uri);
       const { data } = (await import('../services/supabase')).supabase.storage
         .from('plant-photos')
@@ -88,12 +94,13 @@ export default function BedDetailScreen({ navigation, route }: Props) {
 
       await setBedCoverPhoto(bedId, data.publicUrl);
 
-      // Reload bed data to show new cover
       setBed(prev => prev ? { ...prev, cover_photo_url: data.publicUrl } : null);
       Alert.alert('Erfolg', 'Titelbild gesetzt!');
     } catch (error: any) {
       console.error('Error setting cover photo:', error);
       Alert.alert('Fehler', error.message || 'Foto konnte nicht hochgeladen werden.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -208,8 +215,12 @@ export default function BedDetailScreen({ navigation, route }: Props) {
           {bed.notes && <Text style={styles.notes}>{bed.notes}</Text>}
         </View>
         {!bed.cover_photo_url && (
-          <TouchableOpacity onPress={handleCoverPhoto} style={styles.headerCameraButton}>
-            <MaterialIcons name="add-a-photo" size={22} color={Colors.primary} />
+          <TouchableOpacity onPress={handleCoverPhoto} style={styles.headerCameraButton} disabled={uploading}>
+            {uploading ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <MaterialIcons name="add-a-photo" size={22} color={Colors.primary} />
+            )}
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleEdit}>

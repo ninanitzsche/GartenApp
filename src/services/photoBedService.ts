@@ -94,16 +94,26 @@ export async function uploadPhotoForBed(
 
   // 1. Generate unique filename
   const fileExt = imageUri.split('.').pop() || 'jpg';
-  const fileName = `${user.id}/${Date.now()}-bed.${fileExt}`;
+  const fileName = `${user.id}/${bedId}/${Date.now()}-bed.${fileExt}`;
 
-  // 2. Fetch the image
+  // 2. Fetch the image and convert to ArrayBuffer
   const response = await fetch(imageUri);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.statusText}`);
+  }
+
   const blob = await response.blob();
+  if (!blob || blob.size === 0) {
+    throw new Error('Image blob is empty');
+  }
+
+  const arrayBuffer = await blob.arrayBuffer();
+  const uint8Array = new Uint8Array(arrayBuffer);
 
   // 3. Upload to storage
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('plant-photos')
-    .upload(fileName, blob, {
+    .upload(fileName, uint8Array, {
       contentType: `image/${fileExt}`,
       upsert: false,
     });
@@ -122,7 +132,7 @@ export async function uploadPhotoForBed(
     .select();
 
   if (insertError) {
-    await supabase.storage.from('plant-photos').remove([uploadData.path]).catch(() => {});
+    try { await supabase.storage.from('plant-photos').remove([uploadData.path]); } catch {}
     throw new Error(`Database insert failed: ${insertError.message}`);
   }
 
