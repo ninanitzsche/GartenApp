@@ -6,6 +6,7 @@ import GlassTabBar from '../components/ui/GlassTabBar';
 // Import Screens
 import HomeScreen from '../screens/HomeScreen';
 import PlantsStackNavigator from './PlantsStackNavigator';
+import TasksStackNavigator from './TasksStackNavigator';
 import GardenStackNavigator from './GardenStackNavigator';
 import MoreMenuStackNavigator from './MoreMenuStackNavigator';
 
@@ -34,6 +35,16 @@ export default function TabNavigator() {
         options={{
           title: 'Pflanzen',
           tabBarLabel: 'Pflanzen',
+          headerShown: false,
+        }}
+      />
+
+      <Tab.Screen
+        name="Tasks"
+        component={TasksStackNavigator}
+        options={{
+          title: 'Aufgaben',
+          tabBarLabel: 'Aufgaben',
           headerShown: false,
         }}
       />

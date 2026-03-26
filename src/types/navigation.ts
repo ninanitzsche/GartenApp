@@ -60,10 +60,18 @@ export type RootStackParamList = {
   MoreMenu: undefined;
 };
 
+// Tasks stack for Tasks tab
+export type TasksStackParamList = {
+  TaskList: undefined;
+  AddTask: { taskId?: string };
+  TaskDetail: { taskId: string };
+};
+
 // Tab navigator - bottom tabs (4 tabs - Approach B)
 export type TabParamList = {
   Home: undefined;
   Plants: undefined;
+  Tasks: undefined;
   GardenOverview: undefined;
   More: undefined;
 };
