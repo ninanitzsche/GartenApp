@@ -78,6 +78,12 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
           <View style={[styles.badge, { backgroundColor: categoryColor + '20', borderColor: categoryColor }]}>
             <Text style={[styles.badgeText, { color: categoryColor }]}>{task.category}</Text>
           </View>
+          
+          {/* Priority indicator */}
+          <View style={[styles.priorityDot, { backgroundColor: priorityColor }]} />
+          <Text style={[styles.priorityLabel, { color: priorityColor }]}>
+            {task.priority === 'hoch' ? '!' : task.priority === 'mittel' ? '·' : ''}
+          </Text>
 
           {task.plant_names && task.plant_names.length > 0 && (
             <Text style={styles.plants} numberOfLines={1}>
@@ -171,7 +177,7 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     marginBottom: 4,
   },
   badge: {
@@ -183,6 +189,15 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  priorityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  priorityLabel: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   plants: {
     fontSize: 12,

@@ -21,11 +21,11 @@ export default function SeasonFilterDropdown({ selectedSeason, onSeasonChange }:
         style={styles.dropdown}
         onPress={() => setIsOpen(true)}
       >
-        <MaterialIcons name="filter-list" size={18} color={Colors2026.primary} />
+        <MaterialIcons name="filter-list" size={18} color={Colors2026.textMuted} />
         <Text style={styles.dropdownText}>
           {selectedSeason === 'Alle' ? 'Jahreszeit' : selectedSeason}
         </Text>
-        <MaterialIcons name="arrow-drop-down" size={20} color={Colors2026.textSecondary} />
+        <MaterialIcons name="arrow-drop-down" size={20} color={Colors2026.textMuted} />
       </TouchableOpacity>
 
       <Modal

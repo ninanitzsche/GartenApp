@@ -449,16 +449,16 @@ export function getCategoryColor(category: string): string {
 }
 
 /**
- * Get priority color - 2026 Style
+ * Get priority color - 2026 Style, aber noch erkennbar
  */
 export function getPriorityColor(priority: string): string {
   switch (priority) {
     case 'hoch':
-      return '#B33A3A'; // Dunkelrot (nicht knallig)
+      return '#B33A3A'; // Dunkelrot - deutlich sichtbar
     case 'mittel':
-      return '#8D5B3E'; // Terracotta
+      return '#C67B4E'; // Warmes Orange-Terracotta
     case 'niedrig':
-      return '#8A8A8A'; // Neutrales Grau
+      return '#6B8E6B'; // Gedecktes Grün
     default:
       return '#8A8A8A';
   }
