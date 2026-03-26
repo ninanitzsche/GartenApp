@@ -45,6 +45,15 @@ export default function TasksStackNavigator() {
         component={TaskDetailScreen}
         options={{
           title: 'Aufgabe',
+          presentation: 'modal',
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: Colors2026.surface,
+          },
+          headerTintColor: Colors2026.text,
+          headerTitleStyle: {
+            fontWeight: '600',
+          },
         }}
       />
     </Stack.Navigator>
