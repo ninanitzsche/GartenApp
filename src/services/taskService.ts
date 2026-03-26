@@ -435,32 +435,32 @@ export async function markTaskIncomplete(taskId: string): Promise<Task> {
 }
 
 /**
- * Get category color
+ * Get category color - 2026 Style
  */
 export function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {
-    'Aussaat': '#4CAF50',
-    'Pflanzen': '#2196F3',
-    'Gartenarbeiten': '#FF9800',
-    'Beobachten': '#9C27B0',
-    'Ernten': '#F44336',
+    'Aussaat': '#2D4739',      // Waldgrün
+    'Pflanzen': '#4A6FA5',    // Blau
+    'Gartenarbeiten': '#8D5B3E', // Terracotta
+    'Beobachten': '#006064',   // Teal
+    'Ernten': '#8D5B3E',       // Terracotta (wärmer)
   };
-  return colors[category] || '#757575';
+  return colors[category] || '#8A8A8A';
 }
 
 /**
- * Get priority color
+ * Get priority color - 2026 Style
  */
 export function getPriorityColor(priority: string): string {
   switch (priority) {
     case 'hoch':
-      return '#F44336'; // Red
+      return '#B33A3A'; // Dunkelrot (nicht knallig)
     case 'mittel':
-      return '#FFC107'; // Yellow
+      return '#8D5B3E'; // Terracotta
     case 'niedrig':
-      return '#9E9E9E'; // Gray
+      return '#8A8A8A'; // Neutrales Grau
     default:
-      return '#757575';
+      return '#8A8A8A';
   }
 }
 

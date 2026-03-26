@@ -53,15 +53,12 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isCompleted }}
       >
-        <View style={[styles.checkbox, isCompleted && styles.checkboxChecked]}>
+        <View style={[styles.checkbox, isCompleted && styles.checkboxChecked, { borderColor: priorityColor }]}>
           {isCompleted && (
             <MaterialIcons name="check" size={16} color="#fff" />
           )}
         </View>
       </TouchableOpacity>
-
-      {/* Priority color bar */}
-      <View style={[styles.priorityBar, { backgroundColor: priorityColor }]} />
 
       {/* Content */}
       <View style={styles.content}>
@@ -78,8 +75,8 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
 
         {/* Category and plants row */}
         <View style={styles.metaRow}>
-          <View style={[styles.badge, { backgroundColor: categoryColor }]}>
-            <Text style={styles.badgeText}>{task.category}</Text>
+          <View style={[styles.badge, { backgroundColor: categoryColor + '20', borderColor: categoryColor }]}>
+            <Text style={[styles.badgeText, { color: categoryColor }]}>{task.category}</Text>
           </View>
 
           {task.plant_names && task.plant_names.length > 0 && (
@@ -110,16 +107,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors2026.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     marginVertical: 6,
     marginHorizontal: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors2026.border,
+    borderColor: Colors2026.divider,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   containerCompleted: {
-    opacity: 0.7,
-    backgroundColor: Colors2026.divider,
+    opacity: 0.6,
+    backgroundColor: Colors2026.bgSecondary,
   },
   completionButton: {
     width: 44,
@@ -130,19 +132,15 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 4,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: Colors2026.border,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
     backgroundColor: Colors2026.primary,
     borderColor: Colors2026.primary,
-  },
-  priorityBar: {
-    width: 4,
-    height: '100%',
   },
   content: {
     flex: 1,
@@ -162,12 +160,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   titleCompleted: {
-    color: Colors2026.textSecondary,
+    color: Colors2026.textMuted,
     textDecorationLine: 'line-through',
   },
   date: {
     fontSize: 12,
-    color: Colors2026.textSecondary,
+    color: Colors2026.textMuted,
     marginLeft: 8,
   },
   metaRow: {
@@ -177,18 +175,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   badge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   badgeText: {
-    color: '#fff',
     fontSize: 11,
     fontWeight: '600',
   },
   plants: {
     fontSize: 12,
-    color: Colors2026.textSecondary,
+    color: Colors2026.textMuted,
     flex: 1,
   },
   description: {

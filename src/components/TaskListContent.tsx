@@ -181,12 +181,8 @@ export default function TaskListContent({
 
   const handleTaskPress = (task: TaskListItem) => {
     if (navigation) {
-      const parentNav = navigation.getParent();
-      if (parentNav) {
-        parentNav.navigate('TaskDetail', { taskId: task.id });
-      } else {
-        navigation.navigate('TaskDetail', { taskId: task.id });
-      }
+      // Im TasksStack: navigiere direkt zur Route im gleichen Stack
+      navigation.navigate('TaskDetail', { taskId: task.id });
     }
   };
 

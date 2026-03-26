@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { Home, Leaf, Flower2, Menu } from 'lucide-react-native';
+import { Home, Leaf, Flower2, Menu, CheckSquare, ListTodo } from 'lucide-react-native';
 import { Colors2026, Spacing2026, TouchTargets2026 } from '../../theme/designSystemV2';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Home,
   Plants: Leaf,
+  Tasks: CheckSquare,  // Aufgaben-Icon
   GardenOverview: Flower2,
   More: Menu,
 };
@@ -16,6 +17,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 const tabLabels: Record<string, string> = {
   Home: 'Startseite',
   Plants: 'Pflanzen',
+  Tasks: 'Aufgaben',
   GardenOverview: 'Garten',
   More: 'Mehr',
 };
