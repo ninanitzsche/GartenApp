@@ -17,7 +17,11 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { Harvest, HarvestFormData, HARVEST_UNITS } from '../types/harvest';
 import { Plant } from '../types/plant';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
+import AnimatedButton from '../components/ui/AnimatedButton';
 import {
   createHarvest,
   updateHarvest,
@@ -151,7 +155,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -170,7 +174,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
               style={styles.pickButton}
               onPress={() => setShowPlantPicker(!showPlantPicker)}
             >
-              <MaterialIcons name="local-florist" size={20} color={Colors.primary} />
+              <MaterialIcons name="local-florist" size={20} color={Colors2026.primary} />
               <Text style={styles.pickButtonText}>
                 {selectedPlantName || 'Pflanze auswählen'}
               </Text>
@@ -210,7 +214,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
               value={quantity}
               onChangeText={setQuantity}
               keyboardType="decimal-pad"
-              placeholderTextColor={Colors.textLight}
+              placeholderTextColor={Colors2026.textLight}
             />
           </View>
 
@@ -245,7 +249,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
               placeholder="YYYY-MM-DD"
               value={harvestDate}
               onChangeText={setHarvestDate}
-              placeholderTextColor={Colors.textLight}
+              placeholderTextColor={Colors2026.textLight}
             />
             <Text style={styles.helper}>Format: YYYY-MM-DD (z.B. 2026-03-04)</Text>
           </View>
@@ -260,7 +264,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
               onChangeText={setNotes}
               multiline
               numberOfLines={4}
-              placeholderTextColor={Colors.textLight}
+              placeholderTextColor={Colors2026.textLight}
             />
           </View>
 
@@ -299,7 +303,7 @@ export default function AddHarvestScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   scrollView: {
     flex: 1,
@@ -313,17 +317,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: Colors.text,
-    backgroundColor: Colors.card,
+    color: Colors2026.text,
+    backgroundColor: Colors2026.surface,
   },
   textArea: {
     minHeight: 100,
@@ -331,45 +335,45 @@ const styles = StyleSheet.create({
   },
   helper: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginTop: 4,
   },
   pickButton: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
   },
   pickButtonText: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     marginLeft: 10,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     marginTop: 8,
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     maxHeight: 300,
   },
   pickerItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   pickerItemSelected: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors2026.primaryLight,
   },
   pickerItemText: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   pickerItemTextSelected: {
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontWeight: '600',
   },
   unitsContainer: {
@@ -382,16 +386,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
+    borderColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   unitChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   unitChipText: {
     fontSize: 13,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   unitChipTextSelected: {
     color: '#fff',
@@ -404,9 +408,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     padding: 16,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors2026.border,
   },
   button: {
     flex: 1,
@@ -417,10 +421,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: Colors.border,
+    backgroundColor: Colors2026.border,
   },
   submitButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   buttonDisabled: {
     opacity: 0.6,

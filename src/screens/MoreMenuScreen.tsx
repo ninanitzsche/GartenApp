@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
@@ -9,8 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import { generateTasksForAllPlants } from '../services/taskGenerationService';
 import GlassCard from '../components/ui/GlassCard';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -53,6 +53,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+  const [generatingTasks, setGeneratingTasks] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -98,27 +99,62 @@ export default function MoreMenuScreen({ navigation }: Props) {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      {/* Konto Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Konto</Text>
-        <GlassCard variant="light" animated={false}>
-          <MenuItem
-            icon={<User size={20} color={Colors2026.primary} />}
-            label="Mein Profil"
-            onPress={() => navigation.navigate('Profile')}
-          />
-        </GlassCard>
-      </View>
+       {/* Konto Section */}
+       <View style={styles.section}>
+         <Text style={styles.sectionTitle}>Konto</Text>
+         <GlassCard variant="light" animated={false}>
+           <MenuItem
+             icon={<User size={20} color={Colors2026.primary} />}
+             label="Mein Profil"
+             onPress={() => navigation.navigate({ name: 'Profile' })}
+           />
+         </GlassCard>
+       </View>
 
-      {/* Funktionen Section */}
+       {/* Aufgaben Section */}
+       <View style={styles.section}>
+         <Text style={styles.sectionTitle}>Aufgaben</Text>
+         <GlassCard variant="light" animated={false}>
+            <MenuItem
+              icon={<Sprout size={20} color={Colors2026.primary} />}
+              label="Aufgaben für Pflanzen generieren"
+              onPress={() => {
+                (async () => {
+                  try {
+                    setGeneratingTasks(true);
+                    const result = await generateTasksForAllPlants({
+                      maxTasksPerPlant: 3,
+                      forceRegenerate: false,
+                    });
+                    setGeneratingTasks(false);
+                    
+                    if (result.success) {
+                      Alert.alert(
+                        'Erfolg',
+                        `${result.generatedCount} Aufgaben generiert${result.skippedCount > 0 ? ` (${result.skippedCount} übersprungen)` : ''}`
+                      );
+                    } else {
+                      Alert.alert('Fehler', result.error || 'Unbekannter Fehler');
+                    }
+                  } catch (error: any) {
+                    setGeneratingTasks(false);
+                    Alert.alert('Fehler', error.message || 'Unbekannter Fehler');
+                  }
+                })();
+              }}
+            />
+         </GlassCard>
+       </View>
+
+       {/* Funktionen Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Funktionen</Text>
         <GlassCard variant="light" animated={false}>
-          <MenuItem
-            icon={<ShoppingCart size={20} color={Colors2026.primary} />}
-            label="Einkaufsliste"
-            onPress={() => navigation.navigate('ShoppingDashboard')}
-          />
+           <MenuItem
+             icon={<ShoppingCart size={20} color={Colors2026.primary} />}
+             label="Einkaufsliste"
+             onPress={() => navigation.navigate({ name: 'ShoppingDashboard' })}
+           />
           <MenuItem
             icon={<Sprout size={20} color={Colors2026.primary} />}
             label="Ernte-Tagebuch"
@@ -190,15 +226,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing2026.xxl,
   },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors2026.glass.tint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows2026.md,
-  },
+   avatar: {
+     width: 72,
+     height: 72,
+     borderRadius: 36,
+     backgroundColor: Colors2026.glass.tint,
+     alignItems: 'center',
+     justifyContent: 'center',
+     ...Shadows2026.soft,
+   },
   email: {
     fontSize: Typography2026.body.fontSize,
     color: Colors2026.textSecondary,
@@ -247,7 +283,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius2026.md,
     marginHorizontal: Spacing2026.xl,
     marginTop: Spacing2026.xl,
-    ...Shadows2026.md,
+     ...Shadows2026.soft,
   },
   logoutText: {
     color: '#fff',

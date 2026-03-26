@@ -14,9 +14,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { HarvestWithPlant } from '../types/harvest';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { fetchHarvests, deleteHarvest, formatHarvestWithPlant } from '../services/harvestService';
 import EmptyHarvestIllustration from '../components/illustrations/EmptyHarvestIllustration';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HarvestLog'>;
 type RouteProps = RouteProp<RootStackParamList, 'HarvestLog'>;
@@ -86,7 +88,7 @@ export default function HarvestLogScreen({ navigation }: Props) {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.cardTitle}>
-          <MaterialIcons name="local-florist" size={20} color={Colors.primary} />
+          <MaterialIcons name="local-florist" size={20} color={Colors2026.primary} />
           <Text style={styles.harvestPlant}>{item.plant_name}</Text>
         </View>
         <Text style={styles.harvestQuantity}>
@@ -113,7 +115,7 @@ export default function HarvestLogScreen({ navigation }: Props) {
             })
           }
         >
-          <MaterialIcons name="edit" size={18} color={Colors.primary} />
+          <MaterialIcons name="edit" size={18} color={Colors2026.primary} />
           <Text style={styles.actionText}>Bearbeiten</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -130,7 +132,7 @@ export default function HarvestLogScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -174,76 +176,76 @@ export default function HarvestLogScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   listContent: {
-    padding: 12,
+    padding: Spacing2026.sm,
     paddingBottom: 80,
   },
   card: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    padding: Spacing2026.sm,
+    marginBottom: Spacing2026.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing2026.xs,
   },
   cardTitle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing2026.xs,
     flex: 1,
   },
   harvestPlant: {
-    fontSize: 14,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   harvestQuantity: {
-    fontSize: 14,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors2026.primary,
   },
   harvestDate: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginBottom: 8,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textSecondary,
+    marginBottom: Spacing2026.xs,
   },
   harvestNotes: {
-    fontSize: 12,
-    color: Colors.text,
-    marginBottom: 8,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.text,
+    marginBottom: Spacing2026.xs,
     fontStyle: 'italic',
   },
   cardActions: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: Spacing2026.xs,
+    marginTop: Spacing2026.xs,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: Spacing2026.xs,
+    paddingHorizontal: Spacing2026.sm,
     borderRadius: 6,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   deleteButton: {
     borderColor: '#ffebee',
   },
   actionText: {
-    fontSize: 12,
-    color: Colors.primary,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.primary,
     marginLeft: 4,
     fontWeight: '500',
   },
@@ -256,12 +258,12 @@ const styles = StyleSheet.create({
     right: 20,
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primary,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: Colors.primary,
+    shadowColor: Colors2026.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -272,14 +274,14 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: Typography2026.body.fontSize,
     fontWeight: '600',
-    color: Colors.text,
-    marginTop: 12,
+    color: Colors2026.text,
+    marginTop: Spacing2026.sm,
   },
   emptyStateSubtext: {
-    fontSize: 12,
-    color: Colors.textLight,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textSecondary,
     marginTop: 6,
     textAlign: 'center',
     maxWidth: 200,

@@ -260,9 +260,18 @@ export default function PlantListScreen({ navigation }: Props) {
           </Wrapper>
         );
       case 1:
-        return <Wrapper entering={entering}><TaskListContent navigation={navigation} showHeader={false} /></Wrapper>;
+        return (
+          <ScrollView 
+            style={styles.tabContent} 
+            contentContainerStyle={styles.taskScrollContent}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+          >
+            <TaskListContent navigation={navigation} showHeader={false} />
+          </ScrollView>
+        );
       case 2:
-        return <Wrapper entering={entering}><ShoppingListContent /></Wrapper>;
+        return <Wrapper entering={entering} style={styles.tabContent}><ShoppingListContent /></Wrapper>;
       default:
         return null;
     }
@@ -300,7 +309,9 @@ export default function PlantListScreen({ navigation }: Props) {
       </View>
 
       {/* Tab Content */}
-      {renderTabContent()}
+      <View style={styles.tabContent}>
+        {renderTabContent()}
+      </View>
 
       {/* FAB */}
       {selectedTab === 0 && (
@@ -318,6 +329,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors2026.bg,
+  },
+  tabContent: {
+    flex: 1,
+    minHeight: 0,
+  },
+  tabContentContainer: {
+    flexGrow: 1,
+  },
+  taskScrollContent: {
+    flexGrow: 1,
+    minHeight: 500,
   },
   centerContainer: {
     flex: 1,
@@ -368,10 +390,6 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: '#fff',
-  },
-  tabContent: {
-    flex: 1,
-    paddingHorizontal: Spacing2026.xl,
   },
   filterChips: {
     marginBottom: Spacing2026.md,

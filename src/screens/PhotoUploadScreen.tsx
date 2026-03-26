@@ -17,7 +17,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { uploadPhoto } from '../services/photoService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhotoUpload'>;
@@ -237,7 +237,7 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <MaterialIcons name="image-not-supported" size={64} color={Colors.textLight} />
+            <MaterialIcons name="image-not-supported" size={64} color={Colors2026.textSecondary} />
             <Text style={styles.emptyStateText}>Noch kein Foto ausgewählt</Text>
           </View>
         )}
@@ -249,7 +249,7 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
             onPress={handleCamera}
             disabled={loading}
           >
-            <MaterialIcons name="camera-alt" size={32} color={Colors.primary} />
+            <MaterialIcons name="camera-alt" size={32} color={Colors2026.primary} />
             <Text style={styles.buttonLabel}>Kamera</Text>
           </TouchableOpacity>
 
@@ -258,7 +258,7 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
             onPress={handleGallery}
             disabled={loading}
           >
-            <MaterialIcons name="photo-library" size={32} color={Colors.primary} />
+            <MaterialIcons name="photo-library" size={32} color={Colors2026.primary} />
             <Text style={styles.buttonLabel}>Galerie</Text>
           </TouchableOpacity>
         </View>
@@ -273,7 +273,7 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
                 styleAttr="Horizontal"
                 indeterminate={false}
                 progress={uploadProgress / 100}
-                color={Colors.primary}
+                color={Colors2026.primary}
               />
             ) : (
               <View style={styles.progressBar}>
@@ -328,13 +328,13 @@ export default function PhotoUploadScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   scrollContent: {
     paddingBottom: 100,
   },
   header: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     padding: 24,
     alignItems: 'center',
   },
@@ -358,11 +358,11 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors2026.border,
   },
   changeButton: {
     flexDirection: 'row',
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -379,18 +379,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderStyle: 'dashed',
   },
   emptyStateText: {
     marginTop: 16,
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -400,19 +400,19 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     paddingVertical: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     gap: 8,
   },
   buttonLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginTop: 8,
   },
   footer: {
@@ -420,28 +420,28 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors2026.border,
   },
   progressContainer: {
     marginBottom: 12,
   },
   progressBar: {
     height: 6,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors2026.border,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   progressText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'right',
   },
   buttonRow: {
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   uploadButtonDisabled: {
-    backgroundColor: Colors.textDisabled,
+    backgroundColor: Colors2026.textDisabled,
     opacity: 0.6,
   },
   uploadButtonText: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cancelButton: {
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 8,

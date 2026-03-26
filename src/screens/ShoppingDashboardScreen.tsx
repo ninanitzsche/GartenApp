@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { ShoppingItem, SHOPPING_CATEGORIES } from '../types/shopping_item';
 import { fetchShoppingItems, markAsPurchased, markAsNotPurchased } from '../services/shoppingService';
 
@@ -178,7 +178,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
   ) => (
     <View style={styles.categoryHeader}>
       <View style={styles.categoryTitleSection}>
-        <MaterialIcons name={getCategoryIcon(category.category)} size={24} color={Colors.primary} />
+        <MaterialIcons name={getCategoryIcon(category.category)} size={24} color={Colors2026.primary} />
         <View style={styles.categoryInfo}>
           <Text style={styles.categoryTitle}>{category.categoryLabel}</Text>
           <Text style={styles.categoryMeta}>
@@ -204,7 +204,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
           )}
           {item.where_to_buy && (
             <View style={styles.itemLocation}>
-              <MaterialIcons name="place" size={14} color={Colors.textLight} />
+              <MaterialIcons name="place" size={14} color={Colors2026.textSecondary} />
               <Text style={styles.itemLocationText}>{item.where_to_buy}</Text>
             </View>
           )}
@@ -222,7 +222,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
         onPress={() => handleBuyItem(item)}
         activeOpacity={0.7}
       >
-        <MaterialIcons name="check-circle" size={24} color={Colors.success} />
+        <MaterialIcons name="check-circle" size={24} color={Colors2026.status.success} />
         <Text style={styles.buyButtonText}>Gekauft</Text>
       </TouchableOpacity>
     </View>
@@ -230,7 +230,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <MaterialIcons name="shopping-cart" size={80} color={Colors.border} />
+      <MaterialIcons name="shopping-cart" size={80} color={Colors2026.border} />
       <Text style={styles.emptyTitle}>Einkaufsliste ist leer</Text>
       <Text style={styles.emptyText}>
         Alle Artikel wurden bereits gekauft oder es wurden noch keine Artikel hinzugefügt.
@@ -241,7 +241,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
         <Text style={styles.loadingText}>Lade Einkaufsliste...</Text>
       </View>
     );
@@ -276,8 +276,8 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
+            tintColor={Colors2026.primary}
+            colors={[Colors2026.primary]}
           />
         }
       />
@@ -311,18 +311,18 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
   listContent: {
     padding: 16,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   shoppingItemContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -395,12 +395,12 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 4,
   },
   itemMeta: {
     fontSize: 13,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginBottom: 2,
   },
   itemLocation: {
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   itemLocationText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginLeft: 4,
   },
   itemPriceSection: {
@@ -420,12 +420,12 @@ const styles = StyleSheet.create({
   itemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: Colors2026.primary,
     textAlign: 'right',
   },
   itemPriceUnset: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'right',
   },
   buyButton: {
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   buyButtonText: {
     fontSize: 11,
-    color: Colors.success,
+    color: Colors2026.status.success,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -448,13 +448,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'center',
   },
   summaryFooter: {
@@ -462,8 +462,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.surface,
-    borderTopColor: Colors.border,
+    backgroundColor: Colors2026.surface,
+    borderTopColor: Colors2026.border,
     borderTopWidth: 1,
     padding: 16,
     paddingBottom: 20,
@@ -481,24 +481,24 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 13,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginBottom: 2,
   },
   summaryTotal: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: Colors2026.primary,
   },
   summaryStats: {
     alignItems: 'flex-end',
   },
   summaryCount: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '600',
   },
   clearButton: {
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

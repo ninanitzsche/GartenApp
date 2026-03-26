@@ -13,7 +13,7 @@ import Animated, {
   FadeIn,
   FadeInRight,
 } from 'react-native-reanimated';
-import { Colors2026, Spacing2026, Typography2026 } from '../../theme/designSystemV2';
+import { Colors2026, Spacing2026, Typography2026, TouchTargets2026 } from '../../theme/designSystemV2';
 
 interface SectionHeaderProps {
   title: string;
@@ -21,6 +21,7 @@ interface SectionHeaderProps {
   action?: {
     label: string;
     onPress: () => void;
+    accessibilityLabel?: string;
   };
   icon?: React.ReactNode;
   animated?: boolean;
@@ -69,7 +70,12 @@ export default function SectionHeader({
         </View>
       </View>
       {action && (
-        <Pressable onPress={action.onPress} style={styles.actionButton}>
+        <Pressable 
+          onPress={action.onPress} 
+          style={styles.actionButton}
+          accessibilityRole="button"
+          accessibilityLabel={action.accessibilityLabel || action.label}
+        >
           <Text style={styles.actionText}>{action.label}</Text>
         </Pressable>
       )}
@@ -110,6 +116,10 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingHorizontal: Spacing2026.md,
     paddingVertical: Spacing2026.sm,
+    minWidth: TouchTargets2026.minimum,
+    minHeight: TouchTargets2026.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionText: {
     fontSize: Typography2026.caption.fontSize,

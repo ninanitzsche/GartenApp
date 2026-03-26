@@ -13,7 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { KnowledgeArticle } from '../types/knowledge';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { fetchArticle, getCategoryLabel, getCategoryColor } from '../services/knowledgeService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ArticleDetail'>;
@@ -60,7 +60,7 @@ export default function ArticleDetailScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -98,7 +98,7 @@ export default function ArticleDetailScreen({ navigation }: Props) {
 
         <View style={styles.metaContainer}>
           <View style={styles.metaItem}>
-            <MaterialIcons name="calendar-today" size={16} color={Colors.textLight} />
+            <MaterialIcons name="calendar-today" size={16} color={Colors2026.textSecondary} />
             <Text style={styles.metaText}>{formatDate(article.created_at)}</Text>
           </View>
         </View>
@@ -132,7 +132,7 @@ export default function ArticleDetailScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   content: {
     padding: 16,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     flex: 1,
   },
   categoryBadge: {
@@ -173,20 +173,20 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
   contentSection: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     marginBottom: 20,
   },
   contentText: {
     fontSize: 14,
     lineHeight: 22,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   tagsSection: {
     marginBottom: 20,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 10,
   },
   tagsContainer: {
@@ -206,18 +206,18 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 16,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors2026.primaryLight,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors2026.primary,
   },
   tagText: {
     fontSize: 12,
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontWeight: '500',
   },
   errorText: {
     fontSize: 16,
-    color: Colors.text,
+    color: Colors2026.text,
     textAlign: 'center',
     marginTop: 20,
   },

@@ -3,7 +3,7 @@ import { View, Pressable, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Home, Leaf, Flower2, Menu } from 'lucide-react-native';
-import { Colors2026, Spacing2026 } from '../../theme/designSystemV2';
+import { Colors2026, Spacing2026, TouchTargets2026 } from '../../theme/designSystemV2';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
@@ -13,9 +13,20 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   More: Menu,
 };
 
+const tabLabels: Record<string, string> = {
+  Home: 'Startseite',
+  Plants: 'Pflanzen',
+  GardenOverview: 'Garten',
+  More: 'Mehr',
+};
+
 export default function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
-    <BlurView intensity={80} style={styles.container}>
+    <BlurView 
+      intensity={80} 
+      style={styles.container}
+      accessibilityRole="tablist"
+    >
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const Icon = iconMap[route.name] || Home;
@@ -27,8 +38,17 @@ export default function GlassTabBar({ state, descriptors, navigation }: BottomTa
           }
         };
 
+        const label = tabLabels[route.name] || route.name;
+        
         return (
-          <Pressable key={route.key} onPress={onPress} style={styles.tab}>
+          <Pressable 
+            key={route.key} 
+            onPress={onPress} 
+            style={styles.tab}
+            accessibilityRole="tab"
+            accessibilityLabel={label}
+            accessibilityState={{ selected: isFocused }}
+          >
             <Icon 
               size={24} 
               color={isFocused ? Colors2026.primary : Colors2026.tab.inactive} 
@@ -55,6 +75,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing2026.sm,
+    minHeight: TouchTargets2026.minimum,
   },
   activeDot: {
     width: 4,

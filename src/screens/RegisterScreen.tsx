@@ -13,7 +13,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -127,7 +127,7 @@ export default function RegisterScreen({ onSwitchToLogin, navigation }: Register
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   content: {
     flex: 1,
@@ -137,27 +137,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: Colors2026.primary,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 20,
-    color: Colors.text,
+    color: Colors2026.text,
     textAlign: 'center',
     marginBottom: 40,
   },
   input: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
     marginBottom: 15,
   },
   button: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontSize: 14,
   },
 });

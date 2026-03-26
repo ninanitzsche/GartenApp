@@ -14,6 +14,7 @@ interface StatusBadgeProps {
   size?: 'sm' | 'md' | 'lg';
   animated?: boolean;
   testID?: string;
+  accessibilityLabel?: string;
 }
 
 export default function StatusBadge({
@@ -22,6 +23,7 @@ export default function StatusBadge({
   size = 'md',
   animated = true,
   testID,
+  accessibilityLabel,
 }: StatusBadgeProps) {
   const color = Colors2026.plantStatus[status as keyof typeof Colors2026.plantStatus] || Colors2026.textMuted;
   const displayLabel = label || status;
@@ -69,6 +71,8 @@ export default function StatusBadge({
       ]}
       entering={animated ? FadeIn.duration(300) : undefined}
       testID={testID}
+      accessibilityLabel={accessibilityLabel || `Status: ${displayLabel}`}
+      accessibilityRole="text"
     >
       <View
         style={[

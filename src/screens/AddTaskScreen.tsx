@@ -3,21 +3,21 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { RootStackParamList } from '../types/navigation';
 import { Task, TaskFormData } from '../types/task';
 import { Plant } from '../types/plant';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../theme/designSystemV2';
 import {
   createTask,
   updateTask,
@@ -26,16 +26,27 @@ import {
   getTaskPlants,
   formatTimeSpent,
 } from '../services/taskService';
+import GlassInput from '../components/ui/GlassInput';
+import GlassCard from '../components/ui/GlassCard';
+import AnimatedButton from '../components/ui/AnimatedButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddTask'>;
 type RouteProps = RouteProp<RootStackParamList, 'AddTask'>;
 
-const CATEGORIES = ['Aussaat', 'Pflanzen', 'Gartenarbeiten', 'Beobachten', 'Ernten'];
-const PRIORITIES = ['niedrig', 'mittel', 'hoch'];
+const CATEGORIES = [
+  { value: 'Aussaat', icon: 'grass' },
+  { value: 'Pflanzen', icon: 'yard' },
+  { value: 'Gartenarbeiten', icon: 'build' },
+  { value: 'Beobachten', icon: 'visibility' },
+  { value: 'Ernten', icon: 'agriculture' },
+];
 
-/**
- * Format time in minutes for display preview
- */
+const PRIORITIES = [
+  { value: 'niedrig', color: Colors2026.priority.niedrig },
+  { value: 'mittel', color: Colors2026.priority.mittel },
+  { value: 'hoch', color: Colors2026.priority.hoch },
+];
+
 function formatTimeDisplayPreview(minutes: number): string {
   const formatted = formatTimeSpent(minutes);
   return formatted ? `= ${formatted}` : '';
@@ -46,14 +57,12 @@ export default function AddTaskScreen({ navigation }: Props) {
   const taskIdToEdit = route.params?.taskId;
   const isEditing = !!taskIdToEdit;
 
-  // State
   const [task, setTask] = useState<Task | null>(null);
   const [plants, setPlants] = useState<Plant[]>([]);
   const [selectedPlants, setSelectedPlants] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(isEditing);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Gartenarbeiten');
@@ -61,7 +70,6 @@ export default function AddTaskScreen({ navigation }: Props) {
   const [location, setLocation] = useState('');
   const [timeSpentMinutes, setTimeSpentMinutes] = useState('');
 
-  // Load task and plants on mount
   useEffect(() => {
     loadData();
   }, []);
@@ -70,11 +78,9 @@ export default function AddTaskScreen({ navigation }: Props) {
     try {
       setLoading(true);
 
-      // Load available plants
       const plantList = await fetchPlantsForSelection();
       setPlants(plantList);
 
-      // Load task if editing
       if (isEditing && taskIdToEdit) {
         const taskData = await fetchTask(taskIdToEdit);
         if (taskData) {
@@ -86,7 +92,6 @@ export default function AddTaskScreen({ navigation }: Props) {
           setLocation(taskData.location || '');
           setTimeSpentMinutes(taskData.time_spent_minutes ? String(taskData.time_spent_minutes) : '');
 
-          // Load linked plants
           const linkedPlants = await getTaskPlants(taskIdToEdit);
           setSelectedPlants(new Set(linkedPlants.map((p) => p.id)));
         }
@@ -154,8 +159,8 @@ export default function AddTaskScreen({ navigation }: Props) {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -166,134 +171,146 @@ export default function AddTaskScreen({ navigation }: Props) {
       style={styles.container}
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+        <Animated.View style={styles.header} entering={FadeInDown.duration(400).delay(100)}>
           <Text style={styles.headerTitle}>
             {isEditing ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'}
           </Text>
-        </View>
+          <Text style={styles.headerSubtitle}>
+            {isEditing ? 'Ändere die Aufgabendetails' : 'Plane deine nächste Gartenaufgabe'}
+          </Text>
+        </Animated.View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Title */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Aufgabentitel *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="z.B. Tomaten aussäen"
+        <GlassCard style={styles.formCard}>
+          <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+            <GlassInput
+              label="Aufgabentitel *"
               value={title}
               onChangeText={setTitle}
-              placeholderTextColor={Colors.textLight}
+              placeholder="z.B. Tomaten aussäen"
+              icon={<MaterialIcons name="task" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
 
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Beschreibung</Text>
-            <TextInput
-              style={[styles.input, styles.textarea]}
-              placeholder="Optionale Notizen"
+          <Animated.View entering={FadeInDown.duration(400).delay(250)}>
+            <GlassInput
+              label="Beschreibung"
               value={description}
               onChangeText={setDescription}
+              placeholder="Optionale Notizen..."
               multiline
               numberOfLines={3}
-              placeholderTextColor={Colors.textLight}
+              icon={<MaterialIcons name="notes" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
 
-          {/* Category */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Kategorie *</Text>
-            <View style={styles.buttonGroup}>
+          <Animated.View style={styles.divider} entering={FadeInDown.duration(400).delay(300)} />
+
+          <Animated.View entering={FadeInDown.duration(400).delay(350)}>
+            <Text style={styles.sectionLabel}>Kategorie</Text>
+            <View style={styles.categoryContainer}>
               {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
+                <Pressable
+                  key={cat.value}
                   style={[
-                    styles.categoryButton,
-                    category === cat && styles.categoryButtonActive,
+                    styles.categoryChip,
+                    category === cat.value && styles.categoryChipSelected,
                   ]}
-                  onPress={() => setCategory(cat)}
+                  onPress={() => setCategory(cat.value)}
                 >
+                  <MaterialIcons
+                    name={cat.icon as any}
+                    size={18}
+                    color={category === cat.value ? '#fff' : Colors2026.primary}
+                  />
                   <Text
                     style={[
-                      styles.categoryButtonText,
-                      category === cat && styles.categoryButtonTextActive,
+                      styles.categoryText,
+                      category === cat.value && styles.categoryTextSelected,
                     ]}
                   >
-                    {cat}
+                    {cat.value}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Priority */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Priorität *</Text>
-            <View style={styles.priorityGroup}>
+          <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+            <Text style={styles.sectionLabel}>Priorität</Text>
+            <View style={styles.priorityContainer}>
               {PRIORITIES.map((prio) => (
-                <TouchableOpacity
-                  key={prio}
-                  style={styles.priorityItem}
-                  onPress={() => setPriority(prio)}
+                <Pressable
+                  key={prio.value}
+                  style={[
+                    styles.priorityChip,
+                    priority === prio.value && { 
+                      backgroundColor: prio.color,
+                      borderColor: prio.color,
+                    },
+                  ]}
+                  onPress={() => setPriority(prio.value)}
                 >
                   <View
                     style={[
-                      styles.radioButton,
-                      priority === prio && styles.radioButtonChecked,
+                      styles.priorityDot,
+                      { backgroundColor: prio.color },
+                      priority === prio.value && { backgroundColor: '#fff' },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.priorityText,
+                      priority === prio.value && styles.priorityTextSelected,
                     ]}
                   >
-                    {priority === prio && <View style={styles.radioDot} />}
-                  </View>
-                  <Text style={styles.priorityLabel}>
-                    {prio === 'hoch' && 'Hoch'}
-                    {prio === 'mittel' && 'Mittel'}
-                    {prio === 'niedrig' && 'Niedrig'}
+                    {prio.value.charAt(0).toUpperCase() + prio.value.slice(1)}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Location */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Standort</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="z.B. Hauptbeet"
+          <Animated.View entering={FadeInDown.duration(400).delay(450)}>
+            <GlassInput
+              label="Standort"
               value={location}
               onChangeText={setLocation}
-              placeholderTextColor={Colors.textLight}
+              placeholder="z.B. Hauptbeet"
+              icon={<MaterialIcons name="place" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
 
-          {/* Time Spent */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Zeit aufgewendet (optional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Minuten"
+          <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+            <GlassInput
+              label="Zeit aufgewendet"
               value={timeSpentMinutes}
               onChangeText={setTimeSpentMinutes}
-              keyboardType="number-pad"
-              placeholderTextColor={Colors.textLight}
+              placeholder="Minuten"
+              keyboardType="numeric"
+              icon={<MaterialIcons name="timer" size={22} color={Colors2026.primary} />}
             />
             {timeSpentMinutes && parseInt(timeSpentMinutes, 10) > 0 && (
-              <Text style={styles.helper}>
-                = {formatTimeDisplayPreview(parseInt(timeSpentMinutes, 10))}
+              <Text style={styles.timePreview}>
+                {formatTimeDisplayPreview(parseInt(timeSpentMinutes, 10))}
               </Text>
             )}
-          </View>
+          </Animated.View>
+        </GlassCard>
 
-          {/* Linked Plants */}
-          {plants.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Verknüpfte Pflanzen</Text>
+        {plants.length > 0 && (
+          <Animated.View entering={FadeInDown.duration(400).delay(550)}>
+            <GlassCard style={styles.plantsCard}>
+              <Text style={styles.plantsTitle}>
+                <MaterialIcons name="eco" size={18} color={Colors2026.primary} /> Verknüpfte Pflanzen
+              </Text>
               <View style={styles.plantsList}>
                 {plants.map((plant) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={plant.id}
-                    style={styles.plantItem}
+                    style={[
+                      styles.plantItem,
+                      selectedPlants.has(plant.id) && styles.plantItemSelected,
+                    ]}
                     onPress={() => togglePlant(plant.id)}
                   >
                     <View
@@ -303,44 +320,40 @@ export default function AddTaskScreen({ navigation }: Props) {
                       ]}
                     >
                       {selectedPlants.has(plant.id) && (
-                        <MaterialIcons name="check" size={16} color="#fff" />
+                        <MaterialIcons name="check" size={14} color="#fff" />
                       )}
                     </View>
-                    <Text style={styles.plantName}>{plant.name}</Text>
-                  </TouchableOpacity>
+                    <Text style={[
+                      styles.plantName,
+                      selectedPlants.has(plant.id) && styles.plantNameSelected,
+                    ]}>
+                      {plant.name}
+                    </Text>
+                  </Pressable>
                 ))}
               </View>
-            </View>
-          )}
-        </View>
+            </GlassCard>
+          </Animated.View>
+        )}
 
-        {/* Spacer */}
-        <View style={styles.spacer} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Footer buttons */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+        <AnimatedButton
+          title="Abbrechen"
           onPress={() => navigation.goBack()}
+          variant="secondary"
+          size="md"
           disabled={submitting}
-        >
-          <Text style={styles.cancelButtonText}>Abbrechen</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.submitButton]}
+        />
+        <AnimatedButton
+          title={isEditing ? 'Aktualisieren' : 'Erstellen'}
           onPress={handleSubmit}
+          variant="primary"
+          size="md"
           disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.submitButtonText}>
-              {isEditing ? 'Aktualisieren' : 'Erstellen'}
-            </Text>
-          )}
-        </TouchableOpacity>
+        />
       </View>
     </KeyboardAvoidingView>
   );
@@ -349,184 +362,171 @@ export default function AddTaskScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
-  centerContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingHorizontal: Spacing2026.xl,
+    paddingTop: Spacing2026.xl,
+    paddingBottom: Spacing2026.lg,
   },
   headerTitle: {
-    fontSize: 20,
+    ...Typography2026.headline,
+    color: Colors2026.text,
+    marginBottom: Spacing2026.xs,
+  },
+  headerSubtitle: {
+    ...Typography2026.body,
+    color: Colors2026.textSecondary,
+  },
+  formCard: {
+    marginHorizontal: Spacing2026.lg,
+    padding: Spacing2026.lg,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors2026.divider,
+    marginVertical: Spacing2026.lg,
+  },
+  sectionLabel: {
+    ...Typography2026.caption,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.textSecondary,
+    marginBottom: Spacing2026.sm,
   },
-  form: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: Colors.text,
-    backgroundColor: Colors.surface,
-  },
-  textarea: {
-    textAlignVertical: 'top',
-    paddingTop: 12,
-  },
-  buttonGroup: {
+  categoryContainer: {
     flexDirection: 'row',
-    gap: 8,
     flexWrap: 'wrap',
+    gap: Spacing2026.sm,
+    marginBottom: Spacing2026.lg,
   },
-  categoryButton: {
-    flex: 1,
-    minWidth: '48%',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  categoryButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  categoryButtonText: {
-    fontSize: 13,
-    color: Colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  categoryButtonTextActive: {
-    color: '#fff',
-  },
-  priorityGroup: {
-    gap: 12,
-  },
-  priorityItem: {
+  categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.glass.medium,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    gap: Spacing2026.xs,
   },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    marginRight: 12,
-    justifyContent: 'center',
+  categoryChipSelected: {
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
+  },
+  categoryText: {
+    fontSize: Typography2026.caption.fontSize,
+    fontWeight: '500',
+    color: Colors2026.text,
+  },
+  categoryTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  priorityContainer: {
+    flexDirection: 'row',
+    gap: Spacing2026.sm,
+    marginBottom: Spacing2026.lg,
+  },
+  priorityChip: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    backgroundColor: Colors2026.glass.medium,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    gap: Spacing2026.xs,
   },
-  radioButtonChecked: {
-    borderColor: Colors.primary,
-  },
-  radioDot: {
+  priorityDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.primary,
   },
-  priorityLabel: {
-    fontSize: 14,
-    color: Colors.text,
+  priorityText: {
+    fontSize: Typography2026.caption.fontSize,
+    fontWeight: '500',
+    color: Colors2026.text,
+  },
+  priorityTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  timePreview: {
+    ...Typography2026.caption,
+    color: Colors2026.textSecondary,
+    marginTop: -Spacing2026.sm,
+    marginLeft: Spacing2026.xs,
+  },
+  plantsCard: {
+    marginHorizontal: Spacing2026.lg,
+    marginTop: Spacing2026.lg,
+    padding: Spacing2026.lg,
+  },
+  plantsTitle: {
+    ...Typography2026.body,
+    fontWeight: '600',
+    color: Colors2026.text,
+    marginBottom: Spacing2026.md,
   },
   plantsList: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    overflow: 'hidden',
+    gap: Spacing2026.xs,
   },
   plantItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
+    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    backgroundColor: Colors2026.glass.light,
+    gap: Spacing2026.sm,
+  },
+  plantItemSelected: {
+    backgroundColor: `${Colors2026.primary}15`,
   },
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 4,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: Colors.border,
-    marginRight: 12,
+    borderColor: Colors2026.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   plantName: {
-    fontSize: 14,
-    color: Colors.text,
+    ...Typography2026.body,
+    color: Colors2026.text,
   },
-  spacer: {
-    height: 100,
+  plantNameSelected: {
+    fontWeight: '600',
+    color: Colors2026.primary,
+  },
+  bottomSpacer: {
+    height: Spacing2026.xxxl,
   },
   footer: {
     flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 20,
+    gap: Spacing2026.md,
+    paddingHorizontal: Spacing2026.lg,
+    paddingVertical: Spacing2026.md,
+    paddingBottom: Spacing2026.xl,
+    backgroundColor: Colors2026.background,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: 'transparent',
-  },
-  cancelButtonText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    borderTopColor: Colors2026.divider,
   },
 });

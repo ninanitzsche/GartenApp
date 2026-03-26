@@ -19,7 +19,9 @@ import {
   KNOWLEDGE_CATEGORIES,
   KnowledgeCategory,
 } from '../types/knowledge';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
 import {
   fetchArticles,
   searchArticles,
@@ -144,7 +146,7 @@ export default function KnowledgeBaseScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -153,17 +155,17 @@ export default function KnowledgeBaseScreen({ navigation }: Props) {
     <View style={styles.container}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={20} color={Colors.textLight} />
+        <MaterialIcons name="search" size={20} color={Colors2026.textSecondary} />
         <TextInput
           style={styles.searchInput}
           placeholder="Artikel suchen..."
-          placeholderTextColor={Colors.textLight}
+          placeholderTextColor={Colors2026.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <MaterialIcons name="close" size={20} color={Colors.textLight} />
+            <MaterialIcons name="close" size={20} color={Colors2026.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -210,7 +212,7 @@ export default function KnowledgeBaseScreen({ navigation }: Props) {
             <MaterialIcons
               name="sentiment-dissatisfied"
               size={48}
-              color={Colors.textLight}
+              color={Colors2026.textSecondary}
             />
             <Text style={styles.emptyStateText}>
               {searchQuery.length > 0 || selectedCategory
@@ -232,29 +234,29 @@ export default function KnowledgeBaseScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     paddingHorizontal: 12,
     marginHorizontal: 12,
     marginVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   searchInput: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 8,
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   categoryScroll: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   categoryContent: {
     paddingHorizontal: 12,
@@ -266,17 +268,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
+    borderColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   categoryChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   categoryChipText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   categoryChipTextSelected: {
     color: '#fff',
@@ -285,12 +287,12 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   cardHeader: {
     marginBottom: 10,
@@ -304,7 +306,7 @@ const styles = StyleSheet.create({
   articleTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     flex: 1,
   },
   categoryBadge: {
@@ -318,7 +320,7 @@ const styles = StyleSheet.create({
   },
   articlePreview: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     lineHeight: 18,
     marginBottom: 8,
   },
@@ -331,18 +333,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 4,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   tagText: {
     fontSize: 10,
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontWeight: '500',
   },
   moreTagsText: {
     fontSize: 10,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     alignSelf: 'center',
   },
   emptyState: {
@@ -353,12 +355,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginTop: 12,
   },
   emptyStateSubtext: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 6,
   },
 });

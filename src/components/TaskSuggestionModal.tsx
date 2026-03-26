@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { TaskSuggestion } from '../types/taskSuggestion';
 import { acceptSuggestion } from '../services/taskSuggestionService';
 import { getCategoryColor } from '../services/taskService';
@@ -82,13 +82,13 @@ export default function TaskSuggestionModal({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'hoch':
-        return Colors.error;
+        return Colors2026.status.error;
       case 'mittel':
-        return Colors.warning;
+        return Colors2026.status.warning;
       case 'niedrig':
-        return Colors.textLight;
+        return Colors2026.textSecondary;
       default:
-        return Colors.textLight;
+        return Colors2026.textSecondary;
     }
   };
 
@@ -123,7 +123,7 @@ export default function TaskSuggestionModal({
             style={[styles.actionButton, styles.dismissButton]}
             onPress={() => {}}
           >
-            <MaterialIcons name="close" size={18} color={Colors.textLight} />
+            <MaterialIcons name="close" size={18} color={Colors2026.textSecondary} />
             <Text style={styles.dismissText}>Überspringen</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -132,10 +132,10 @@ export default function TaskSuggestionModal({
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color={Colors.surface} />
+              <ActivityIndicator size="small" color={Colors2026.surface} />
             ) : (
               <>
-                <MaterialIcons name="add" size={18} color={Colors.surface} />
+                <MaterialIcons name="add" size={18} color={Colors2026.surface} />
                 <Text style={styles.acceptText}>Hinzufügen</Text>
               </>
             )}
@@ -160,12 +160,12 @@ export default function TaskSuggestionModal({
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleDismiss}>
-              <MaterialIcons name="close" size={24} color={Colors.text} />
+              <MaterialIcons name="close" size={24} color={Colors2026.text} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.titleSection}>
-            <MaterialIcons name="lightbulb" size={32} color={Colors.primary} />
+            <MaterialIcons name="lightbulb" size={32} color={Colors2026.primary} />
             <Text style={styles.title}>Aufgaben-Vorschläge</Text>
             {plantName && (
               <Text style={styles.subtitle}>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 40,
@@ -226,29 +226,29 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     marginTop: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 4,
   },
   hint: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 4,
   },
   suggestionList: {
     paddingHorizontal: 24,
   },
   suggestionCard: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   categoryText: {
-    color: Colors.surface,
+    color: Colors2026.surface,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -278,12 +278,12 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 4,
   },
   reasonText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginBottom: 12,
   },
   cardActions: {
@@ -300,20 +300,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dismissButton: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   acceptButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   dismissText: {
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     fontSize: 14,
     fontWeight: '500',
   },
   acceptText: {
-    color: Colors.surface,
+    color: Colors2026.surface,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors2026.border,
     marginTop: 8,
   },
   dismissAllButton: {
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   dismissAllText: {
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     fontSize: 14,
     fontWeight: '500',
   },

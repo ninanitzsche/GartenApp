@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 interface PrioritaetBadgeProps {
   prioritaet: 'hoch' | 'mittel' | 'niedrig';
@@ -9,8 +9,8 @@ interface PrioritaetBadgeProps {
 
 export default function PrioritaetBadge({ prioritaet, size = 'small' }: PrioritaetBadgeProps) {
   const colors = {
-    hoch: Colors.priorityHigh,
-    mittel: Colors.priorityMedium,
+    hoch: Colors2026.priority.hoch,
+    mittel: Colors2026.priority.mittel,
     niedrig: '#757575',
   };
 

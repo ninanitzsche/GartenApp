@@ -12,7 +12,11 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
+import AnimatedButton from '../components/ui/AnimatedButton';
 import { ShoppingItemFormData, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import { fetchShoppingItem, updateShoppingItem, deleteShoppingItem } from '../services/shoppingService';
 
@@ -133,7 +137,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -152,7 +156,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
               value={formData.item_name}
               onChangeText={(text) => setFormData({ ...formData, item_name: text })}
               placeholder="z.B. Tomatensamen"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
             />
             {errors.item_name && <Text style={styles.errorText}>{errors.item_name}</Text>}
           </View>
@@ -191,7 +195,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
               value={formData.quantity}
               onChangeText={(text) => setFormData({ ...formData, quantity: text })}
               placeholder="z.B. 2kg oder 1 Pack"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
             />
           </View>
 
@@ -234,7 +238,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
                 })
               }
               placeholder="z.B. 12.99"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
               keyboardType="decimal-pad"
             />
             {errors.estimated_price && <Text style={styles.errorText}>{errors.estimated_price}</Text>}
@@ -248,7 +252,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
               value={formData.where_to_buy}
               onChangeText={(text) => setFormData({ ...formData, where_to_buy: text })}
               placeholder="z.B. Baumarkt XY"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
             />
           </View>
 
@@ -260,7 +264,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
               value={formData.link}
               onChangeText={(text) => setFormData({ ...formData, link: text })}
               placeholder="Produktlink (optional)"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
             />
           </View>
 
@@ -272,7 +276,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
               value={formData.notes}
               onChangeText={(text) => setFormData({ ...formData, notes: text })}
               placeholder="Zusätzliche Informationen"
-              placeholderTextColor={Colors.textDisabled}
+              placeholderTextColor={Colors2026.textDisabled}
               multiline
               numberOfLines={4}
             />
@@ -309,7 +313,7 @@ export default function EditShoppingItemScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   centerContainer: {
     flex: 1,
@@ -328,30 +332,30 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   required: {
-    color: Colors.error,
+    color: Colors2026.status.error,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: Colors.text,
-    backgroundColor: Colors.surface,
+    color: Colors2026.text,
+    backgroundColor: Colors2026.surface,
   },
   inputError: {
-    borderColor: Colors.error,
+    borderColor: Colors2026.status.error,
   },
   inputMultiline: {
     height: 100,
     textAlignVertical: 'top',
   },
   errorText: {
-    color: Colors.error,
+    color: Colors2026.status.error,
     fontSize: 12,
     marginTop: 4,
   },
@@ -365,16 +369,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   categoryButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   categoryButtonText: {
     fontSize: 12,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   categoryButtonTextActive: {
     color: '#fff',
@@ -390,16 +394,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   priorityButtonActive: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
+    backgroundColor: Colors2026.status.success,
+    borderColor: Colors2026.status.success,
   },
   priorityButtonText: {
     fontSize: 12,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   priorityButtonTextActive: {
     color: '#fff',
@@ -412,7 +416,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -430,7 +434,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flex: 1,
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

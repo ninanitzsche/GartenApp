@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TaskListItem as Task } from '../types/task';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { getCategoryColor, getPriorityColor } from '../services/taskService';
 
 interface Props {
@@ -99,7 +99,7 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
 
       {/* Arrow indicator */}
       <View style={styles.arrow}>
-        <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} />
+        <MaterialIcons name="chevron-right" size={24} color={Colors2026.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -109,17 +109,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     marginVertical: 6,
     marginHorizontal: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   containerCompleted: {
     opacity: 0.7,
-    backgroundColor: Colors.divider,
+    backgroundColor: Colors2026.divider,
   },
   completionButton: {
     width: 44,
@@ -132,13 +132,13 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   priorityBar: {
     width: 4,
@@ -158,16 +158,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     flex: 1,
   },
   titleCompleted: {
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textDecorationLine: 'line-through',
   },
   date: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginLeft: 8,
   },
   metaRow: {
@@ -188,12 +188,12 @@ const styles = StyleSheet.create({
   },
   plants: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     flex: 1,
   },
   description: {
     fontSize: 13,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     fontStyle: 'italic',
     marginTop: 4,
   },

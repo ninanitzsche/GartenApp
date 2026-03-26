@@ -3,21 +3,34 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   ScrollView,
-  TouchableOpacity,
   Switch,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../theme/designSystemV2';
 import { PlantFormData, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { fetchPlant, updatePlant, deletePlant } from '../services/plantService';
+import GlassInput from '../components/ui/GlassInput';
+import GlassCard from '../components/ui/GlassCard';
+import AnimatedButton from '../components/ui/AnimatedButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditPlant'>;
+
+const typeIcons: Record<string, React.ComponentProps<typeof MaterialIcons>['name']> = {
+  'gemüse': 'grass',
+  'obst': 'restaurant',
+  'kräuter': 'spa',
+  'blumen': 'local-florist',
+  'sonstiges': 'category',
+};
 
 export default function EditPlantScreen({ navigation, route }: Props) {
   const { plantId } = route.params;
@@ -94,7 +107,6 @@ export default function EditPlantScreen({ navigation, route }: Props) {
 
     setSaving(true);
     try {
-      // Clean up form data - remove empty strings
       const cleanData: any = { ...formData };
       Object.keys(cleanData).forEach((key) => {
         if (cleanData[key] === '') {
@@ -115,7 +127,6 @@ export default function EditPlantScreen({ navigation, route }: Props) {
   };
 
   const handleDelete = () => {
-    console.log('🔴 DELETE BUTTON PRESSED - NEW CODE RUNNING!');
     Alert.alert(
       'Pflanze löschen',
       'Möchten Sie diese Pflanze wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
@@ -125,15 +136,12 @@ export default function EditPlantScreen({ navigation, route }: Props) {
           text: 'Löschen',
           style: 'destructive',
           onPress: async () => {
-            console.log('🔴 DELETE CONFIRMED, deleting plant:', plantId);
             try {
               await deletePlant(plantId);
-              console.log('🔴 DELETE SUCCESS, navigating to PlantList');
-              // Navigate back to plant list (2 screens back: Edit -> Detail -> List)
               navigation.navigate('PlantList');
               Alert.alert('Erfolg', 'Pflanze wurde gelöscht.');
             } catch (error) {
-              console.error('🔴 DELETE ERROR:', error);
+              console.error('Delete error:', error);
               Alert.alert('Fehler', 'Pflanze konnte nicht gelöscht werden.');
             }
           },
@@ -145,61 +153,65 @@ export default function EditPlantScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
         <Text style={styles.loadingText}>Lade Pflanze...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
-        <View style={styles.form}>
-          {/* Name - Required */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>
-              Name <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[styles.input, errors.name && styles.inputError]}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.scrollView} 
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View 
+          style={styles.header}
+          entering={FadeInDown.duration(400).delay(100)}
+        >
+          <Text style={styles.headerTitle}>Pflanze bearbeiten</Text>
+          <Text style={styles.headerSubtitle}>Ändere die Details deiner Pflanze</Text>
+        </Animated.View>
+
+        <GlassCard style={styles.formCard}>
+          <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+            <GlassInput
+              label="Name *"
               value={formData.name}
               onChangeText={(text) => setFormData({ ...formData, name: text })}
               placeholder="z.B. Tomate"
-              placeholderTextColor={Colors.textDisabled}
+              error={errors.name}
+              icon={<MaterialIcons name="eco" size={22} color={Colors2026.primary} />}
             />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-          </View>
 
-          {/* Latin Name */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Lateinischer Name</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.latin_name}
+            <GlassInput
+              label="Lateinischer Name"
+              value={formData.latin_name || ''}
               onChangeText={(text) => setFormData({ ...formData, latin_name: text })}
               placeholder="z.B. Solanum lycopersicum"
-              placeholderTextColor={Colors.textDisabled}
+              icon={<MaterialIcons name="school" size={22} color={Colors2026.primary} />}
             />
-          </View>
 
-          {/* Location */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Standort</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.location}
+            <GlassInput
+              label="Standort"
+              value={formData.location || ''}
               onChangeText={(text) => setFormData({ ...formData, location: text })}
               placeholder="z.B. Hauptbeet, Gewächshaus"
-              placeholderTextColor={Colors.textDisabled}
+              icon={<MaterialIcons name="place" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
 
-          {/* Type */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Typ</Text>
-            <View style={styles.pickerContainer}>
+          <Animated.View style={styles.divider} entering={FadeInDown.duration(400).delay(250)} />
+
+          <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+            <Text style={styles.sectionLabel}>Typ</Text>
+            <View style={styles.chipContainer}>
               {PLANT_TYPES.map((type) => (
-                <TouchableOpacity
+                <Pressable
                   key={type.value}
                   style={[
                     styles.chip,
@@ -207,6 +219,11 @@ export default function EditPlantScreen({ navigation, route }: Props) {
                   ]}
                   onPress={() => setFormData({ ...formData, type: type.value })}
                 >
+                  <MaterialIcons 
+                    name={typeIcons[type.value] || 'eco'} 
+                    size={18} 
+                    color={formData.type === type.value ? '#fff' : Colors2026.primary} 
+                  />
                   <Text
                     style={[
                       styles.chipText,
@@ -215,238 +232,259 @@ export default function EditPlantScreen({ navigation, route }: Props) {
                   >
                     {type.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Status - Required */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>
-              Status <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              {PLANT_STATUSES.map((status) => (
-                <TouchableOpacity
-                  key={status.value}
-                  style={[
-                    styles.chip,
-                    formData.status === status.value && styles.chipSelected,
-                  ]}
-                  onPress={() => setFormData({ ...formData, status: status.value })}
-                >
-                  <Text
+          <Animated.View entering={FadeInDown.duration(400).delay(350)}>
+            <Text style={styles.sectionLabel}>Status *</Text>
+            <View style={styles.chipContainer}>
+              {PLANT_STATUSES.map((status) => {
+                const statusColor = Colors2026.plantStatus[status.value as keyof typeof Colors2026.plantStatus] || Colors2026.primary;
+                return (
+                  <Pressable
+                    key={status.value}
                     style={[
-                      styles.chipText,
-                      formData.status === status.value && styles.chipTextSelected,
+                      styles.chip,
+                      formData.status === status.value && { 
+                        backgroundColor: statusColor,
+                        borderColor: statusColor,
+                      },
                     ]}
+                    onPress={() => setFormData({ ...formData, status: status.value })}
                   >
-                    {status.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.chipText,
+                        formData.status === status.value && styles.chipTextSelected,
+                      ]}
+                    >
+                      {status.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
             {errors.status && <Text style={styles.errorText}>{errors.status}</Text>}
-          </View>
+          </Animated.View>
 
-          {/* Quantity */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Anzahl</Text>
-            <TextInput
-              style={styles.input}
+          <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+            <GlassInput
+              label="Anzahl"
               value={formData.quantity?.toString() || ''}
               onChangeText={(text) => {
                 const num = parseInt(text, 10);
                 setFormData({ ...formData, quantity: isNaN(num) ? undefined : num });
               }}
               placeholder="z.B. 5"
-              placeholderTextColor={Colors.textDisabled}
-              keyboardType="number-pad"
+              keyboardType="numeric"
+              icon={<MaterialIcons name="tag" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
 
-          {/* Boolean Switches */}
-          <View style={styles.formGroup}>
+          <Animated.View style={styles.switchSection} entering={FadeInDown.duration(400).delay(450)}>
             <View style={styles.switchRow}>
-              <Text style={styles.label}>Winterhart</Text>
+              <View style={styles.switchInfo}>
+                <MaterialIcons name="ac-unit" size={24} color={Colors2026.accent} />
+                <View style={styles.switchTextContainer}>
+                  <Text style={styles.switchLabel}>Winterhart</Text>
+                  <Text style={styles.switchDescription}>Verträgt Frost</Text>
+                </View>
+              </View>
               <Switch
                 value={formData.winterhart}
                 onValueChange={(value) => setFormData({ ...formData, winterhart: value })}
-                trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                thumbColor={formData.winterhart ? Colors.primary : Colors.textDisabled}
+                trackColor={{ false: Colors2026.border, true: Colors2026.primaryLight }}
+                thumbColor={formData.winterhart ? Colors2026.primary : Colors2026.textLight}
               />
             </View>
-          </View>
 
-          <View style={styles.formGroup}>
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>Essbar</Text>
+            <View style={[styles.switchRow, styles.switchRowBorder]}>
+              <View style={styles.switchInfo}>
+                <MaterialIcons name="restaurant" size={24} color={Colors2026.status.success} />
+                <View style={styles.switchTextContainer}>
+                  <Text style={styles.switchLabel}>Essbar</Text>
+                  <Text style={styles.switchDescription}>Kann verzehrt werden</Text>
+                </View>
+              </View>
               <Switch
                 value={formData.essbar}
                 onValueChange={(value) => setFormData({ ...formData, essbar: value })}
-                trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                thumbColor={formData.essbar ? Colors.primary : Colors.textDisabled}
+                trackColor={{ false: Colors2026.border, true: Colors2026.primaryLight }}
+                thumbColor={formData.essbar ? Colors2026.primary : Colors2026.textLight}
               />
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Notes */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Notizen</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.notes}
+          <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+            <GlassInput
+              label="Notizen"
+              value={formData.notes || ''}
               onChangeText={(text) => setFormData({ ...formData, notes: text })}
               placeholder="Zusätzliche Informationen..."
-              placeholderTextColor={Colors.textDisabled}
               multiline
               numberOfLines={4}
-              textAlignVertical="top"
+              icon={<MaterialIcons name="notes" size={22} color={Colors2026.primary} />}
             />
-          </View>
+          </Animated.View>
+        </GlassCard>
 
-          {/* Action Buttons */}
-          <TouchableOpacity
-            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+        <Animated.View style={styles.buttonContainer} entering={FadeInDown.duration(400).delay(550)}>
+          <AnimatedButton
+            title={saving ? '' : 'Speichern'}
             onPress={handleSave}
             disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <MaterialIcons name="save" size={20} color="#fff" />
-                <Text style={styles.saveButtonText}>Speichern</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            fullWidth
+            size="lg"
+            icon={!saving && <MaterialIcons name="save" size={22} color="#fff" />}
+          />
+          {saving && <ActivityIndicator color="#fff" />}
+        </Animated.View>
 
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <MaterialIcons name="delete" size={20} color="#fff" />
-            <Text style={styles.deleteButtonText}>Löschen</Text>
-          </TouchableOpacity>
-        </View>
+        <Animated.View style={styles.deleteContainer} entering={FadeInDown.duration(400).delay(600)}>
+          <AnimatedButton
+            title="Pflanze löschen"
+            onPress={handleDelete}
+            variant="danger"
+            fullWidth
+            size="md"
+            icon={<MaterialIcons name="delete" size={20} color="#fff" />}
+          />
+        </Animated.View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: Colors.textLight,
+    marginTop: Spacing2026.md,
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textMuted,
   },
   scrollView: {
     flex: 1,
   },
-  form: {
-    padding: 16,
+  header: {
+    paddingHorizontal: Spacing2026.xl,
+    paddingTop: Spacing2026.xl,
+    paddingBottom: Spacing2026.lg,
   },
-  formGroup: {
-    marginBottom: 20,
+  headerTitle: {
+    ...Typography2026.headline,
+    color: Colors2026.text,
+    marginBottom: Spacing2026.xs,
   },
-  label: {
-    fontSize: 16,
+  headerSubtitle: {
+    ...Typography2026.body,
+    color: Colors2026.textSecondary,
+  },
+  formCard: {
+    marginHorizontal: Spacing2026.lg,
+    padding: Spacing2026.lg,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors2026.divider,
+    marginVertical: Spacing2026.lg,
+  },
+  sectionLabel: {
+    ...Typography2026.caption,
     fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
+    color: Colors2026.textSecondary,
+    marginBottom: Spacing2026.sm,
   },
-  required: {
-    color: Colors.error,
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  textArea: {
-    minHeight: 100,
-    paddingTop: 12,
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  pickerContainer: {
+  chipContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: Spacing2026.sm,
+    marginBottom: Spacing2026.lg,
   },
   chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.glass.medium,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
+    gap: Spacing2026.xs,
   },
   chipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   chipText: {
-    fontSize: 14,
-    color: Colors.text,
+    fontSize: Typography2026.caption.fontSize,
+    fontWeight: '500',
+    color: Colors2026.text,
   },
   chipTextSelected: {
     color: '#fff',
     fontWeight: '600',
   },
+  switchSection: {
+    marginBottom: Spacing2026.lg,
+  },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: Spacing2026.sm,
   },
-  saveButton: {
-    backgroundColor: Colors.primary,
+  switchRowBorder: {
+    borderTopWidth: 1,
+    borderTopColor: Colors2026.divider,
+    marginTop: Spacing2026.sm,
+    paddingTop: Spacing2026.md,
+  },
+  switchInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing2026.md,
+  },
+  switchTextContainer: {
+    gap: 2,
+  },
+  switchLabel: {
+    ...Typography2026.body,
+    fontWeight: '500',
+    color: Colors2026.text,
+  },
+  switchDescription: {
+    ...Typography2026.small,
+    color: Colors2026.textMuted,
+  },
+  errorText: {
+    color: Colors2026.status.error,
+    fontSize: Typography2026.small.fontSize,
+    marginTop: Spacing2026.xs,
+  },
+  buttonContainer: {
+    marginHorizontal: Spacing2026.lg,
+    marginTop: Spacing2026.xl,
+    minHeight: 56,
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 20,
-    gap: 8,
   },
-  saveButtonDisabled: {
-    backgroundColor: Colors.textDisabled,
+  deleteContainer: {
+    marginHorizontal: Spacing2026.lg,
+    marginTop: Spacing2026.md,
   },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    backgroundColor: Colors.error,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 12,
-    gap: 8,
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  bottomSpacer: {
+    height: Spacing2026.xxxl,
   },
 });

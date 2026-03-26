@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 
 // Import Screens
 import TaskListScreen from '../screens/TaskListScreen';
@@ -17,7 +17,7 @@ export default function TaskStackNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.primary,
+          backgroundColor: Colors2026.primary,
         },
         headerTintColor: '#fff',
         headerTitleStyle: {

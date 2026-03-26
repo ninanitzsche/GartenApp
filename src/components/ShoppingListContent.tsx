@@ -12,8 +12,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
-import { Colors2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { ShoppingItem, SHOPPING_CATEGORIES, SHOPPING_PRIORITIES } from '../types/shopping_item';
 import {
   fetchShoppingItems,
@@ -22,6 +22,8 @@ import {
   ShoppingItemFilters,
 } from '../services/shoppingService';
 import EmptyState from './ui/EmptyState';
+import GlassCard from './ui/GlassCard';
+import AnimatedButton from './ui/AnimatedButton';
 
 interface ShoppingListContentProps {
   navigation?: any;
@@ -29,6 +31,21 @@ interface ShoppingListContentProps {
   showHeader?: boolean;
   embedded?: boolean;
 }
+
+const CATEGORY_COLORS: Record<string, string> = {
+  saatgut: Colors2026.primary,
+  werkzeug: Colors2026.status.warning,
+  dünger: Colors2026.accent,
+  erde: Colors2026.textSecondary,
+  töpfe: Colors2026.primaryLight,
+};
+
+const PRIORITY_ICONS: Record<string, any> = {
+  dringend: 'priority-high',
+  hoch: 'arrow-upward',
+  mittel: 'drag-handle',
+  niedrig: 'arrow-downward',
+};
 
 export default function ShoppingListContent({ 
   navigation, 
@@ -146,113 +163,102 @@ export default function ShoppingListContent({
   const hasActiveFilters = searchQuery || filterCategory || filterPriority;
 
   const getCategoryColor = (category?: string): string => {
-    switch (category) {
-      case 'saatgut':
-        return Colors.primary;
-      case 'werkzeug':
-        return Colors.statusGeerntet;
-      case 'dünger':
-        return Colors.secondaryDark;
-      case 'erde':
-        return Colors.secondary;
-      case 'töpfe':
-        return Colors.secondaryLight;
-      default:
-        return Colors.textLight;
-    }
+    return CATEGORY_COLORS[category || ''] || Colors2026.textMuted;
   };
 
-  const getPriorityIcon = (priority?: string): string => {
-    switch (priority) {
-      case 'dringend':
-        return 'priority-high';
-      case 'hoch':
-        return 'arrow-upward';
-      case 'mittel':
-        return 'drag-handle';
-      default:
-        return 'arrow-downward';
-    }
-  };
+  const renderItem = ({ item, index }: { item: ShoppingItem; index: number }) => {
+    const categoryColor = getCategoryColor(item.category);
+    return (
+      <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
+        <GlassCard style={styles.itemCard}>
+          <View style={styles.itemHeader}>
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemName}>{item.item_name}</Text>
+              {item.category && (
+                <View style={[styles.categoryBadge, { backgroundColor: `${categoryColor}20` }]}>
+                  <MaterialIcons name="folder" size={12} color={categoryColor} />
+                  <Text style={[styles.categoryBadgeText, { color: categoryColor }]}>
+                    {item.category}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.itemActions}>
+              <TouchableOpacity 
+                onPress={() => handleEditItem(item.id)}
+                style={styles.actionButton}
+                accessibilityLabel={`${item.item_name} bearbeiten`}
+              >
+                <MaterialIcons name="edit" size={20} color={Colors2026.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDeleteItem(item.id, item.item_name)}
+                style={styles.actionButton}
+                accessibilityLabel={`${item.item_name} löschen`}
+              >
+                <MaterialIcons name="delete" size={20} color={Colors2026.status.error} />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-  const renderItem = ({ item }: { item: ShoppingItem }) => (
-    <View style={styles.itemCard}>
-      <View style={styles.itemHeader}>
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.item_name}</Text>
-          {item.category && (
-            <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(item.category) }]}>
-              <Text style={styles.categoryBadgeText}>{item.category}</Text>
+          <View style={styles.itemDetails}>
+            {item.quantity && (
+              <View style={styles.detailRow}>
+                <MaterialIcons name="shopping-bag" size={16} color={Colors2026.textMuted} />
+                <Text style={styles.detailText}>{item.quantity}</Text>
+              </View>
+            )}
+
+            {item.estimated_price && (
+              <View style={styles.detailRow}>
+                <MaterialIcons name="euro-symbol" size={16} color={Colors2026.textMuted} />
+                <Text style={styles.detailText}>€ {item.estimated_price.toFixed(2)}</Text>
+              </View>
+            )}
+
+            {item.priority && (
+              <View style={styles.detailRow}>
+                <MaterialIcons 
+                  name={PRIORITY_ICONS[item.priority] || 'arrow-downward'} 
+                  size={16} 
+                  color={Colors2026.textMuted} 
+                />
+                <Text style={styles.detailText}>{item.priority}</Text>
+              </View>
+            )}
+
+            {item.where_to_buy && (
+              <View style={styles.detailRow}>
+                <MaterialIcons name="store" size={16} color={Colors2026.textMuted} />
+                <Text style={styles.detailText}>{item.where_to_buy}</Text>
+              </View>
+            )}
+          </View>
+
+          {item.notes && (
+            <View style={styles.notesContainer}>
+              <MaterialIcons name="notes" size={14} color={Colors2026.textMuted} />
+              <Text style={styles.notesText}>{item.notes}</Text>
             </View>
           )}
-        </View>
-        <View style={styles.itemActions}>
-          <TouchableOpacity 
-            onPress={() => handleEditItem(item.id)}
-            accessibilityLabel={`${item.item_name} bearbeiten`}
-            accessibilityRole="button"
-          >
-            <MaterialIcons name="edit" size={24} color={Colors.primary} />
-          </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => handleDeleteItem(item.id, item.item_name)}
-            style={{ marginLeft: 12 }}
-            accessibilityLabel={`${item.item_name} löschen`}
-            accessibilityRole="button"
+            style={styles.markPurchasedButton}
+            onPress={() => handleMarkPurchased(item.id)}
+            accessibilityLabel={`${item.item_name} als gekauft markieren`}
           >
-            <MaterialIcons name="delete" size={24} color={Colors.error} />
+            <MaterialIcons name="check-circle-outline" size={18} color="#fff" />
+            <Text style={styles.markPurchasedButtonText}>Gekauft</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.itemDetails}>
-        {item.quantity && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name="shopping-bag" size={16} color={Colors.textLight} />
-            <Text style={styles.detailText}>{item.quantity}</Text>
-          </View>
-        )}
-
-        {item.estimated_price && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name="euro-symbol" size={16} color={Colors.textLight} />
-            <Text style={styles.detailText}>€ {item.estimated_price.toFixed(2)}</Text>
-          </View>
-        )}
-
-        {item.priority && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name={getPriorityIcon(item.priority) as any} size={16} color={Colors.textLight} />
-            <Text style={styles.detailText}>{item.priority}</Text>
-          </View>
-        )}
-
-        {item.where_to_buy && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name="store" size={16} color={Colors.textLight} />
-            <Text style={styles.detailText}>{item.where_to_buy}</Text>
-          </View>
-        )}
-      </View>
-
-      {item.notes && <Text style={styles.notesText}>{item.notes}</Text>}
-
-      <TouchableOpacity
-        style={styles.markPurchasedButton}
-        onPress={() => handleMarkPurchased(item.id)}
-        accessibilityLabel={`${item.item_name} als gekauft markieren`}
-        accessibilityRole="button"
-      >
-        <MaterialIcons name="check-circle-outline" size={18} color="#fff" />
-        <Text style={styles.markPurchasedButtonText}>Gekauft</Text>
-      </TouchableOpacity>
-    </View>
-  );
+        </GlassCard>
+      </Animated.View>
+    );
+  };
 
   if (loading && items.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -260,7 +266,7 @@ export default function ShoppingListContent({
   return (
     <View style={[styles.container, embedded && styles.containerEmbedded]}>
       {showHeader && (
-        <View style={styles.header}>
+        <Animated.View style={styles.header} entering={FadeInDown.duration(400).delay(100)}>
           <View>
             <Text style={styles.headerTitle}>Einkaufsliste</Text>
             <Text style={styles.headerSubtitle}>
@@ -272,21 +278,19 @@ export default function ShoppingListContent({
               style={styles.addButton}
               onPress={handleAddItem}
               accessibilityLabel="Neuen Artikel hinzufügen"
-              accessibilityRole="button"
             >
-              <MaterialIcons name="add" size={28} color={Colors.primary} />
+              <MaterialIcons name="add" size={28} color="#fff" />
             </TouchableOpacity>
           )}
-        </View>
+        </Animated.View>
       )}
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={20} color={Colors.textLight} />
+      <Animated.View style={styles.searchContainer} entering={FadeInDown.duration(400).delay(200)}>
+        <MaterialIcons name="search" size={20} color={Colors2026.textMuted} />
         <TextInput
           style={styles.searchInput}
           placeholder="Artikel suchen..."
-          placeholderTextColor={Colors.textDisabled}
+          placeholderTextColor={Colors2026.textDisabled}
           value={searchQuery}
           onChangeText={setSearchQuery}
           accessibilityLabel="Artikelsuche"
@@ -295,14 +299,13 @@ export default function ShoppingListContent({
           <MaterialIcons 
             name="filter-list" 
             size={20} 
-            color={hasActiveFilters ? Colors.primary : Colors.textLight} 
+            color={hasActiveFilters ? Colors2026.primary : Colors2026.textMuted} 
           />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* Filter Panel */}
       {showFilters && (
-        <ScrollView style={styles.filterPanel} horizontal showsHorizontalScrollIndicator={false}>
+        <Animated.View style={styles.filterPanel} entering={FadeInDown.duration(300)}>
           <View style={styles.filterContent}>
             <View style={styles.filterGroup}>
               <Text style={styles.filterLabel}>Kategorie</Text>
@@ -317,8 +320,6 @@ export default function ShoppingListContent({
                     onPress={() =>
                       setFilterCategory(filterCategory === cat.value ? undefined : cat.value)
                     }
-                    accessibilityLabel={`Filter: ${cat.label}`}
-                    accessibilityRole="button"
                   >
                     <Text
                       style={[
@@ -346,8 +347,6 @@ export default function ShoppingListContent({
                     onPress={() =>
                       setFilterPriority(filterPriority === prio.value ? undefined : prio.value)
                     }
-                    accessibilityLabel={`Filter: ${prio.label}`}
-                    accessibilityRole="button"
                   >
                     <Text
                       style={[
@@ -369,13 +368,12 @@ export default function ShoppingListContent({
               </TouchableOpacity>
             )}
           </View>
-        </ScrollView>
+        </Animated.View>
       )}
 
-      {/* Items List */}
       {items.length === 0 ? (
         <EmptyState
-          icon={<MaterialIcons name="shopping-cart" size={40} color={Colors2026.primary} />}
+          icon={<MaterialIcons name="shopping-cart" size={48} color={Colors2026.primary} />}
           title={hasActiveFilters ? 'Keine Artikel gefunden' : 'Einkaufsliste leer'}
           subtitle={
             hasActiveFilters
@@ -383,14 +381,11 @@ export default function ShoppingListContent({
               : 'Fügen Sie einen Artikel hinzu, um zu beginnen'
           }
           action={
-            <TouchableOpacity
+            <AnimatedButton
+              title={hasActiveFilters ? 'Filter löschen' : 'Artikel hinzufügen'}
               onPress={hasActiveFilters ? clearAllFilters : handleAddItem}
-              style={styles.emptyAction}
-            >
-              <Text style={styles.emptyActionText}>
-                {hasActiveFilters ? 'Filter löschen' : 'Artikel hinzufügen'}
-              </Text>
-            </TouchableOpacity>
+              size="md"
+            />
           }
           containerStyle={styles.emptyContainer}
         />
@@ -404,7 +399,7 @@ export default function ShoppingListContent({
             <RefreshControl 
               refreshing={refreshing} 
               onRefresh={handleRefresh}
-              colors={[Colors.primary]}
+              tintColor={Colors2026.primary}
             />
           }
         />
@@ -416,7 +411,7 @@ export default function ShoppingListContent({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   containerEmbedded: {
     paddingTop: 0,
@@ -425,89 +420,89 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors2026.background,
   },
   header: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: Spacing2026.lg,
+    paddingTop: Spacing2026.xl,
+    paddingBottom: Spacing2026.md,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
+    ...Typography2026.headline,
+    color: Colors2026.text,
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 4,
+    ...Typography2026.caption,
+    color: Colors2026.textMuted,
+    marginTop: Spacing2026.xs,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primaryLight,
+    width: 48,
+    height: 48,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Shadows2026.md,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    marginHorizontal: 16,
-    marginVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors2026.glass.medium,
+    marginHorizontal: Spacing2026.lg,
+    marginBottom: Spacing2026.md,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    ...Shadows2026.sm,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    marginHorizontal: 8,
-    fontSize: 14,
-    color: Colors.text,
+    height: 44,
+    marginHorizontal: Spacing2026.sm,
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.text,
   },
   filterPanel: {
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    backgroundColor: Colors2026.glass.light,
+    marginHorizontal: Spacing2026.lg,
+    marginBottom: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    ...Shadows2026.soft,
   },
   filterContent: {
-    padding: 12,
+    padding: Spacing2026.md,
   },
   filterGroup: {
-    marginBottom: 12,
+    marginBottom: Spacing2026.sm,
   },
   filterLabel: {
-    fontSize: 12,
+    ...Typography2026.caption,
     fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
+    color: Colors2026.textSecondary,
+    marginBottom: Spacing2026.xs,
   },
   filterOptions: {
     flexDirection: 'row',
   },
   filterOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.round,
     borderWidth: 1,
-    borderColor: Colors.border,
-    marginRight: 8,
-    backgroundColor: Colors.background,
+    borderColor: Colors2026.border,
+    marginRight: Spacing2026.xs,
+    backgroundColor: Colors2026.surface,
   },
   filterOptionActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   filterOptionText: {
-    fontSize: 12,
-    color: Colors.text,
+    ...Typography2026.caption,
+    color: Colors2026.text,
   },
   filterOptionTextActive: {
     color: '#fff',
@@ -516,115 +511,112 @@ const styles = StyleSheet.create({
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.error,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    marginTop: 8,
+    backgroundColor: Colors2026.status.error,
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.md,
+    alignSelf: 'flex-start',
+    marginTop: Spacing2026.xs,
+    gap: Spacing2026.xs,
   },
   clearButtonText: {
     color: '#fff',
-    fontSize: 12,
+    ...Typography2026.caption,
     fontWeight: '600',
-    marginLeft: 4,
   },
   listContent: {
-    padding: 16,
-    paddingBottom: 80,
-    flexGrow: 1,
+    paddingHorizontal: Spacing2026.lg,
+    paddingBottom: Spacing2026.xxxl,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyAction: {
-    backgroundColor: Colors2026.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  emptyActionText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   itemCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    padding: Spacing2026.lg,
+    marginBottom: Spacing2026.md,
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: Spacing2026.md,
   },
   itemInfo: {
     flex: 1,
-    marginRight: 12,
+    marginRight: Spacing2026.md,
   },
   itemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
+    ...Typography2026.title,
+    color: Colors2026.text,
+    marginBottom: Spacing2026.xs,
   },
   categoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.round,
+    gap: Spacing2026.xs,
   },
   categoryBadgeText: {
-    fontSize: 11,
+    ...Typography2026.small,
     fontWeight: '600',
-    color: '#fff',
-    textTransform: 'capitalize',
   },
   itemActions: {
     flexDirection: 'row',
+    gap: Spacing2026.sm,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius2026.md,
+    backgroundColor: Colors2026.glass.light,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   itemDetails: {
-    marginBottom: 12,
+    marginBottom: Spacing2026.md,
+    gap: Spacing2026.xs,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    gap: Spacing2026.sm,
   },
   detailText: {
-    fontSize: 13,
-    color: Colors.textLight,
-    marginLeft: 8,
+    ...Typography2026.body,
+    color: Colors2026.textSecondary,
     textTransform: 'capitalize',
   },
+  notesContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: Colors2026.glass.tint,
+    padding: Spacing2026.sm,
+    borderRadius: Radius2026.md,
+    marginBottom: Spacing2026.md,
+    gap: Spacing2026.sm,
+  },
   notesText: {
-    fontSize: 12,
-    color: Colors.textLight,
+    ...Typography2026.caption,
+    color: Colors2026.textSecondary,
     fontStyle: 'italic',
-    marginBottom: 12,
-    padding: 8,
-    backgroundColor: Colors.background,
-    borderRadius: 6,
+    flex: 1,
   },
   markPurchasedButton: {
-    backgroundColor: Colors.success,
+    backgroundColor: Colors2026.status.success,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.md,
+    borderRadius: Radius2026.md,
+    gap: Spacing2026.xs,
   },
   markPurchasedButtonText: {
     color: '#fff',
-    fontSize: 12,
+    ...Typography2026.caption,
     fontWeight: '600',
-    marginLeft: 6,
   },
 });

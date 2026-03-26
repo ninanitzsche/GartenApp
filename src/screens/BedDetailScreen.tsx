@@ -20,8 +20,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
-import { Colors2026 } from '../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../theme/designSystemV2';
 import { Bed } from '../types/bed';
 import { Plant } from '../types/plant';
 import { fetchBed, fetchBedPlants, unlinkBedFromPlant } from '../services/bedService';
@@ -139,7 +138,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -155,7 +154,14 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   const renderPlantItem = ({ item }: { item: Plant }) => (
     <TouchableOpacity
       style={styles.plantCard}
-      onPress={() => navigation.navigate('PlantDetail', { plantId: item.id })}
+      onPress={() => {
+        const parentNavigation = navigation.getParent();
+        if (parentNavigation) {
+          parentNavigation.navigate('PlantDetail', { plantId: item.id });
+        } else {
+          navigation.navigate('PlantDetail', { plantId: item.id });
+        }
+      }}
       activeOpacity={0.7}
     >
       <View style={styles.plantHeader}>
@@ -177,7 +183,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         style={styles.removeButton}
         onPress={() => handleRemovePlant(item.id)}
       >
-        <MaterialIcons name="close" size={18} color={Colors.error} />
+        <MaterialIcons name="close" size={18} color={Colors2026.status.error} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -217,14 +223,14 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         {!bed.cover_photo_url && (
           <TouchableOpacity onPress={handleCoverPhoto} style={styles.headerCameraButton} disabled={uploading}>
             {uploading ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={Colors2026.primary} />
             ) : (
-              <MaterialIcons name="add-a-photo" size={22} color={Colors.primary} />
+              <MaterialIcons name="add-a-photo" size={22} color={Colors2026.primary} />
             )}
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleEdit}>
-          <MaterialIcons name="edit" size={24} color={Colors.primary} />
+          <MaterialIcons name="edit" size={24} color={Colors2026.primary} />
         </TouchableOpacity>
       </View>
 
@@ -232,14 +238,14 @@ export default function BedDetailScreen({ navigation, route }: Props) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Details</Text>
         <View style={styles.detailRow}>
-          <MaterialIcons name="aspect-ratio" size={16} color={Colors.textLight} />
+          <MaterialIcons name="aspect-ratio" size={16} color={Colors2026.textLight} />
           <Text style={styles.detailLabel}>Größe</Text>
           <Text style={styles.detailValue}>
             {bed.width.toFixed(0)}% × {bed.height.toFixed(0)}%
           </Text>
         </View>
         <View style={styles.detailRow}>
-          <MaterialIcons name="location-on" size={16} color={Colors.textLight} />
+          <MaterialIcons name="location-on" size={16} color={Colors2026.textLight} />
           <Text style={styles.detailLabel}>Position</Text>
           <Text style={styles.detailValue}>
             X: {bed.position_x.toFixed(0)}%, Y: {bed.position_y.toFixed(0)}%
@@ -247,7 +253,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         </View>
         {bed.shape && (
           <View style={styles.detailRow}>
-            <MaterialIcons name="crop-square" size={16} color={Colors.textLight} />
+            <MaterialIcons name="crop-square" size={16} color={Colors2026.textLight} />
             <Text style={styles.detailLabel}>Form</Text>
             <Text style={styles.detailValue}>
               {bed.shape === 'circle' ? 'Kreis' : 'Rechteck'}
@@ -263,7 +269,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
             Pflanzen ({plants.length})
           </Text>
           <TouchableOpacity onPress={handleAddPlant}>
-            <MaterialIcons name="add-circle-outline" size={24} color={Colors.primary} />
+            <MaterialIcons name="add-circle-outline" size={24} color={Colors2026.primary} />
           </TouchableOpacity>
         </View>
 
@@ -295,20 +301,20 @@ export default function BedDetailScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   colorIndicator: {
     width: 40,
@@ -316,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   headerInfo: {
     flex: 1,
@@ -324,22 +330,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 4,
   },
   notes: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
   },
   section: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 12,
   },
   sectionHeader: {
@@ -357,17 +363,17 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     flex: 1,
   },
   detailValue: {
     fontSize: 12,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '500',
   },
   separator: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors2026.border,
     marginVertical: 8,
   },
   plantCard: {
@@ -375,11 +381,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   plantHeader: {
     flex: 1,
@@ -390,15 +396,15 @@ const styles = StyleSheet.create({
   plantName: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   plantLatinName: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     fontStyle: 'italic',
   },
   statusBadge: {
-    backgroundColor: Colors.info + '20',
+    backgroundColor: Colors2026.status.info + '20',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -407,7 +413,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    color: Colors.info,
+    color: Colors2026.status.info,
     fontWeight: '500',
   },
   removeButton: {
@@ -416,7 +422,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: Colors.error,
+    color: Colors2026.status.error,
   },
   emptyAction: {
     backgroundColor: Colors2026.primary,

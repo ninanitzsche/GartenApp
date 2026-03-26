@@ -73,14 +73,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: Colors2026.primaryLight,
+    backgroundColor: 'rgba(45, 71, 57, 0.1)', // 10% opacity - 2026 Style
     borderWidth: 1,
     borderColor: Colors2026.primary,
   },
   dropdownText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors2026.primary,
+    color: Colors2026.textSecondary, // Nicht primär für inaktiv
   },
   overlay: {
     flex: 1,

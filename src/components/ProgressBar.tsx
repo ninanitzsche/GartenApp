@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 export interface ProgressBarProps {
   percentage: number;
@@ -13,7 +13,7 @@ export interface ProgressBarProps {
 
 export default function ProgressBar({
   percentage,
-  color = Colors.primary,
+  color = Colors2026.primary,
   label,
   height = 8,
   showLabel = true,
@@ -59,18 +59,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   percentage: {
     fontSize: 12,
     fontWeight: '600',
   },
   barBackground: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   barFill: {
     borderRadius: 4,

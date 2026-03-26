@@ -6,7 +6,7 @@ import React from 'react';
 import { describe, it, expect } from '@jest/globals';
 import { render } from '@testing-library/react-native';
 import PrioritaetBadge from '../components/PrioritaetBadge';
-import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 
 describe('PrioritaetBadge', () => {
   describe('Priority Levels', () => {
@@ -29,7 +29,7 @@ describe('PrioritaetBadge', () => {
       const { getByTestId } = render(<PrioritaetBadge prioritaet="hoch" />);
       const badge = getByTestId('badge');
       expect(badge.props.style).toContainEqual(
-        expect.objectContaining({ backgroundColor: Colors.priorityHigh })
+        expect.objectContaining({ backgroundColor: Colors2026.priority.hoch })
       );
     });
 
@@ -37,7 +37,7 @@ describe('PrioritaetBadge', () => {
       const { getByTestId } = render(<PrioritaetBadge prioritaet="mittel" />);
       const badge = getByTestId('badge');
       expect(badge.props.style).toContainEqual(
-        expect.objectContaining({ backgroundColor: Colors.priorityMedium })
+        expect.objectContaining({ backgroundColor: Colors2026.priority.mittel })
       );
     });
 

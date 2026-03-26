@@ -24,6 +24,8 @@ interface AnimatedButtonProps {
   fullWidth?: boolean;
   style?: ViewStyle;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export default function AnimatedButton({
@@ -36,6 +38,8 @@ export default function AnimatedButton({
   fullWidth = false,
   style,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }: AnimatedButtonProps) {
   const scale = useSharedValue(1);
 
@@ -161,6 +165,9 @@ export default function AnimatedButton({
       onPressOut={handlePressOut}
       disabled={disabled}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
       testID={testID}
     >
       {icon && <>{icon}</>}

@@ -10,7 +10,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { searchCompanions } from '../services/companionService';
 import { PlantCompanion } from '../types/companion';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 export default function CompanionSearchScreen() {
   const [query, setQuery] = useState('');
@@ -90,7 +90,7 @@ export default function CompanionSearchScreen() {
       {item.good_companions && item.good_companions.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="thumb-up" size={16} color={Colors.success} />
+            <MaterialIcons name="thumb-up" size={16} color={Colors2026.status.success} />
             <Text style={styles.sectionTitle}>Gute Nachbarn</Text>
           </View>
           <View style={styles.chips}>
@@ -106,8 +106,8 @@ export default function CompanionSearchScreen() {
       {item.bad_companions && item.bad_companions.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="thumb-down" size={16} color={Colors.error} />
-            <Text style={[styles.sectionTitle, { color: Colors.error }]}>Schlechte Nachbarn</Text>
+            <MaterialIcons name="thumb-down" size={16} color={Colors2026.status.error} />
+            <Text style={[styles.sectionTitle, { color: Colors2026.status.error }]}>Schlechte Nachbarn</Text>
           </View>
           <View style={styles.chips}>
             {item.bad_companions.slice(0, 5).map((comp, idx) => (
@@ -121,7 +121,7 @@ export default function CompanionSearchScreen() {
 
       {item.nitrogen_fixer && (
         <View style={styles.infoRow}>
-          <MaterialIcons name="eco" size={16} color={Colors.primary} />
+          <MaterialIcons name="eco" size={16} color={Colors2026.primary} />
           <Text style={styles.infoText}>Stickstoff-Fixierer</Text>
         </View>
       )}
@@ -131,18 +131,18 @@ export default function CompanionSearchScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={24} color={Colors.textLight} />
+        <MaterialIcons name="search" size={24} color={Colors2026.textSecondary} />
         <TextInput
           style={styles.searchInput}
           placeholder="Pflanze suchen..."
-          placeholderTextColor={Colors.textDisabled}
+          placeholderTextColor={Colors2026.textDisabled}
           value={query}
           onChangeText={setQuery}
           autoCapitalize="none"
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')}>
-            <MaterialIcons name="close" size={24} color={Colors.textLight} />
+            <MaterialIcons name="close" size={24} color={Colors2026.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -155,7 +155,7 @@ export default function CompanionSearchScreen() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <MaterialIcons name="search-off" size={48} color={Colors.textLight} />
+              <MaterialIcons name="search-off" size={48} color={Colors2026.textSecondary} />
               <Text style={styles.emptyText}>
                 {loading ? 'Suche...' : 'Keine Ergebnisse gefunden'}
               </Text>
@@ -166,7 +166,7 @@ export default function CompanionSearchScreen() {
 
       {query.length < 2 && (
         <View style={styles.hint}>
-          <MaterialIcons name="lightbulb" size={24} color={Colors.accent} />
+          <MaterialIcons name="lightbulb" size={24} color={Colors2026.accent} />
           <Text style={styles.hintText}>
             Gib mindestens 2 Zeichen ein, um nach Pflanzen zu suchen
           </Text>
@@ -179,23 +179,23 @@ export default function CompanionSearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     margin: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   searchInput: {
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text,
+    color: Colors2026.text,
     marginLeft: 12,
   },
   listContent: {
@@ -203,12 +203,12 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   header: {
     flexDirection: 'row',
@@ -219,17 +219,17 @@ const styles = StyleSheet.create({
   plantName: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   categoryBadge: {
-    backgroundColor: Colors.primaryLight + '30',
+    backgroundColor: Colors2026.primaryLight + '30',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   categoryText: {
     fontSize: 12,
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontWeight: '500',
   },
   section: {
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.success,
+    color: Colors2026.status.success,
     marginLeft: 8,
   },
   chips: {
@@ -257,14 +257,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   goodChip: {
-    backgroundColor: Colors.success + '20',
+    backgroundColor: Colors2026.status.success + '20',
   },
   badChip: {
-    backgroundColor: Colors.error + '20',
+    backgroundColor: Colors2026.status.error + '20',
   },
   chipText: {
     fontSize: 13,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '500',
   },
   infoRow: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13,
-    color: Colors.primary,
+    color: Colors2026.primary,
     marginLeft: 8,
   },
   empty: {
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 16,
   },
   hint: {
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'center',
     maxWidth: 250,
   },

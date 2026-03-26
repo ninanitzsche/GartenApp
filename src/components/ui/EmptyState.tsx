@@ -17,6 +17,7 @@ interface EmptyStateProps {
   containerStyle?: ViewStyle;
   animated?: boolean;
   testID?: string;
+  accessibilityLabel?: string;
 }
 
 export default function EmptyState({
@@ -28,6 +29,7 @@ export default function EmptyState({
   containerStyle,
   animated = true,
   testID,
+  accessibilityLabel,
 }: EmptyStateProps) {
   const displaySubtitle = subtitle || message;
 
@@ -36,6 +38,7 @@ export default function EmptyState({
       style={[styles.container, containerStyle]}
       entering={animated ? FadeInUp.springify().damping(15).duration(500) : undefined}
       testID={testID}
+      accessibilityLabel={accessibilityLabel || `${title}. ${displaySubtitle || ''}`}
     >
       <View style={styles.iconContainer}>{icon}</View>
       <Text style={styles.title}>{title}</Text>

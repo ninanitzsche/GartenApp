@@ -24,6 +24,7 @@ interface GlassCardProps {
   style?: any;
   animated?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   testID?: string;
 }
 
@@ -35,6 +36,7 @@ export default function GlassCard({
   style,
   animated = true,
   accessibilityLabel,
+  accessibilityHint,
   testID,
 }: GlassCardProps) {
   const scale = useSharedValue(1);
@@ -105,6 +107,7 @@ export default function GlassCard({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         accessibilityRole={onPress ? 'button' : undefined}
       >
         <BlurView intensity={intensity} style={styles.blur}>

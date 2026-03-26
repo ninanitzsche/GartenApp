@@ -294,7 +294,7 @@ export default function TaskListContent({
   if (loading && tasks.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
         <Text style={styles.loadingText}>Lade Aufgaben...</Text>
       </View>
     );
@@ -319,7 +319,7 @@ export default function TaskListContent({
               accessibilityLabel="Neue Aufgabe erstellen"
               accessibilityRole="button"
             >
-              <MaterialIcons name="add" size={28} color={Colors.primary} />
+              <MaterialIcons name="add" size={28} color={Colors2026.primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -328,17 +328,17 @@ export default function TaskListContent({
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color={Colors.textLight} />
+          <MaterialIcons name="search" size={20} color={Colors2026.textLight} />
           <TextInput
             style={styles.searchInput}
             placeholder="Aufgabe suchen..."
-            placeholderTextColor={Colors.textDisabled}
+            placeholderTextColor={Colors2026.textDisabled}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialIcons name="close" size={20} color={Colors.textLight} />
+              <MaterialIcons name="close" size={20} color={Colors2026.textLight} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -401,7 +401,7 @@ export default function TaskListContent({
           <MaterialIcons 
             name="filter-list" 
             size={16} 
-            color={showFilters ? '#fff' : Colors.primary} 
+            color={showFilters ? '#fff' : Colors2026.primary} 
           />
           <Text style={[
             styles.filterChipText,
@@ -416,7 +416,7 @@ export default function TaskListContent({
           style={styles.filterChip}
           onPress={() => setShowSortMenu(!showSortMenu)}
         >
-          <MaterialIcons name="sort" size={16} color={Colors.primary} />
+          <MaterialIcons name="sort" size={16} color={Colors2026.primary} />
           <Text style={styles.filterChipText}>{getSortLabel(sortBy)}</Text>
         </TouchableOpacity>
 
@@ -426,7 +426,7 @@ export default function TaskListContent({
             style={styles.clearFilterChip}
             onPress={clearFilters}
           >
-            <MaterialIcons name="close" size={14} color={Colors.error} />
+            <MaterialIcons name="close" size={14} color={Colors2026.status.error} />
             <Text style={styles.clearFilterText}>Zurücksetzen</Text>
           </TouchableOpacity>
         )}
@@ -505,7 +505,7 @@ export default function TaskListContent({
                 {option === 'month' ? 'Nach Monat' : getSortLabel(option)}
               </Text>
               {sortBy === option && (
-                <MaterialIcons name="check" size={18} color={Colors.primary} />
+                <MaterialIcons name="check" size={18} color={Colors2026.primary} />
               )}
             </TouchableOpacity>
           ))}
@@ -536,7 +536,7 @@ export default function TaskListContent({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   containerEmbedded: {
     paddingTop: 0,
@@ -550,19 +550,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textMuted,
   },
   header: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -570,32 +570,32 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textMuted,
     marginTop: 4,
   },
   addButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: 'rgba(45, 71, 57, 0.1)', // 2026 Style
     justifyContent: 'center',
     alignItems: 'center',
   },
   searchContainer: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -604,12 +604,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   filterChipsContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
   },
   filterChipsContent: {
     paddingHorizontal: 12,
@@ -623,18 +623,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: 'rgba(45, 71, 57, 0.1)', // 2026 Style
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors2026.primary,
   },
   filterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   filterChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors2026.textSecondary,
   },
   filterChipTextActive: {
     color: '#fff',
@@ -648,24 +648,24 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#ffebee',
     borderWidth: 1,
-    borderColor: Colors.error,
+    borderColor: Colors2026.status.error,
   },
   clearFilterText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.error,
+    color: Colors2026.status.error,
   },
   expandedFilters: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
   },
   filterLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginBottom: 8,
     marginTop: 8,
   },
@@ -678,17 +678,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.divider,
   },
   priorityChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   priorityChipText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
   },
   priorityChipTextActive: {
     color: '#fff',
@@ -698,26 +698,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.divider,
   },
   categoryChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   categoryChipText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
   },
   categoryChipTextActive: {
     color: '#fff',
     fontWeight: '600',
   },
   sortMenu: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
   },
   sortOption: {
     flexDirection: 'row',
@@ -726,18 +726,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.divider,
   },
   sortOptionActive: {
     backgroundColor: '#f0f0f0',
   },
   sortOptionText: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   sortOptionTextActive: {
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors2026.primary,
   },
   listContent: {
     paddingHorizontal: 12,

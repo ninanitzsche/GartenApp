@@ -17,7 +17,11 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
+import AnimatedButton from '../components/ui/AnimatedButton';
 import { BedFormData, BED_SHAPES, BED_COLORS } from '../types/bed';
 import { createBed } from '../services/bedService';
 import { fetchGarden } from '../services/gardenService';
@@ -256,7 +260,7 @@ export default function AddBedScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     padding: 16,
   },
   section: {
@@ -265,23 +269,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   inputError: {
-    borderColor: Colors.error,
+    borderColor: Colors2026.status.error,
   },
   errorText: {
-    color: Colors.error,
+    color: Colors2026.status.error,
     fontSize: 12,
     marginTop: 4,
   },
@@ -302,19 +306,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     alignItems: 'center',
     gap: 6,
   },
   chipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   chipText: {
     fontSize: 13,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   chipTextSelected: {
     color: '#fff',
@@ -325,14 +329,14 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   buttonContainer: {
     marginTop: 24,
     marginBottom: 32,
   },
   saveButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     borderRadius: 8,
     padding: 14,
     flexDirection: 'row',

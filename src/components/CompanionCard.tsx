@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { PlantCompanion } from '../types/companion';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 interface CompanionCardProps {
   companion: PlantCompanion;
@@ -21,7 +21,7 @@ export default function CompanionCard({ companion, type }: CompanionCardProps) {
         <MaterialIcons
           name={type === 'good' ? 'thumb-up' : 'thumb-down'}
           size={18}
-          color={type === 'good' ? Colors.success : Colors.error}
+          color={type === 'good' ? Colors2026.status.success : Colors2026.status.error}
         />
         <Text style={[styles.title, type === 'good' ? styles.goodTitle : styles.badTitle]}>
           {type === 'good' ? 'Gute Nachbarn' : 'Schlechte Nachbarn'}
@@ -31,7 +31,7 @@ export default function CompanionCard({ companion, type }: CompanionCardProps) {
       <View style={styles.list}>
         {companions.map((comp, index) => (
           <View key={index} style={styles.item}>
-            <View style={[styles.dot, { backgroundColor: type === 'good' ? Colors.success : Colors.error }]} />
+            <View style={[styles.dot, { backgroundColor: type === 'good' ? Colors2026.status.success : Colors2026.status.error }]} />
             <View style={styles.itemContent}>
               <Text style={styles.plantName}>{getDisplayName(comp)}</Text>
               {reasons && reasons[index] && (
@@ -90,12 +90,12 @@ function getDisplayName(name: string): string {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   header: {
     flexDirection: 'row',
@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   goodTitle: {
-    color: Colors.success,
+    color: Colors2026.status.success,
   },
   badTitle: {
-    color: Colors.error,
+    color: Colors2026.status.error,
   },
   list: {
     gap: 8,
@@ -132,12 +132,12 @@ const styles = StyleSheet.create({
   },
   plantName: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '500',
   },
   reason: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginTop: 2,
   },
 });

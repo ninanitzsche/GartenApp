@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 export interface MetricCardProps {
   title: string;
@@ -17,7 +17,7 @@ export default function MetricCard({
   value,
   subtitle,
   icon,
-  color = Colors.primary,
+  color = Colors2026.primary,
   style,
 }: MetricCardProps) {
   return (
@@ -39,11 +39,11 @@ export default function MetricCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   header: {
     flexDirection: 'row',
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     flex: 1,
   },
   content: {
@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 11,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
 });

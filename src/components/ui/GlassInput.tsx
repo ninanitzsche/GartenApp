@@ -25,6 +25,8 @@ interface GlassInputProps {
   numberOfLines?: number;
   disabled?: boolean;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export default function GlassInput({
@@ -40,6 +42,8 @@ export default function GlassInput({
   numberOfLines = 1,
   disabled = false,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }: GlassInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const borderColor = useSharedValue('rgba(255,255,255,0.3)');
@@ -89,9 +93,16 @@ export default function GlassInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           testID={testID}
+          accessibilityLabel={accessibilityLabel || label}
+          accessibilityHint={accessibilityHint}
+          accessibilityState={{ disabled }}
         />
       </Animated.View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && (
+        <Text style={styles.errorText} accessibilityRole="alert">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

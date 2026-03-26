@@ -16,8 +16,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { Photo } from '../types/photo';
-import Colors from '../theme/colors';
-import { Colors2026 } from '../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
 import { fetchAllPhotos, fetchPhotos as fetchPhotosForPlant, deletePhoto, PhotoFilters } from '../services/photoService';
 import EmptyState from '../components/ui/EmptyState';
 import PhotoFilterModal from '../components/PhotoFilterModal';
@@ -211,7 +212,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
     if (!hasMore || photos.length === 0) return null;
     return isLoadingMore ? (
       <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color={Colors.primary} />
+        <ActivityIndicator size="small" color={Colors2026.primary} />
       </View>
     ) : null;
   }, [isLoadingMore, hasMore, photos.length]);
@@ -241,7 +242,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
   if (loading && photos.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
         <Text style={styles.loadingText}>Lade Fotos...</Text>
       </View>
     );
@@ -261,7 +262,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
               style={styles.filterButton}
               onPress={() => setFilterModalVisible(true)}
             >
-              <MaterialIcons name="tune" size={24} color={Colors.primary} />
+              <MaterialIcons name="tune" size={24} color={Colors2026.primary} />
               {activeFilterCount > 0 && (
                 <View style={styles.filterBadge}>
                   <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
@@ -286,7 +287,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[Colors.primary]}
+              colors={[Colors2026.primary]}
             />
           }
           removeClippedSubviews={true}
@@ -308,7 +309,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[Colors.primary]}
+              colors={[Colors2026.primary]}
             />
           }
         />
@@ -383,49 +384,49 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: Colors.textLight,
+    marginTop: Spacing2026.md,
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textSecondary,
   },
   header: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors2026.surface,
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: Typography2026.headline.fontSize,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 4,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textSecondary,
+    marginTop: Spacing2026.xs,
   },
   headerButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing2026.sm,
   },
   filterButton: {
     position: 'relative',
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primaryLight,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -457,10 +458,10 @@ const styles = StyleSheet.create({
   photoItem: {
     flex: 1,
     aspectRatio: 1,
-    marginHorizontal: 8,
-    borderRadius: 8,
+    marginHorizontal: Spacing2026.sm,
+    borderRadius: Radius2026.sm,
     overflow: 'hidden',
-    backgroundColor: Colors.border,
+    backgroundColor: Colors2026.border,
   },
   photoImage: {
     width: '100%',
@@ -549,7 +550,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.error,
+    backgroundColor: Colors2026.status.error,
     justifyContent: 'center',
     alignItems: 'center',
   },

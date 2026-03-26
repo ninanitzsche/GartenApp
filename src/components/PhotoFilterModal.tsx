@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { fetchPhotoLocations, fetchPlantsWithPhotos, PhotoFilters } from '../services/photoService';
 import { Plant } from '../types/plant';
 
@@ -150,13 +150,13 @@ export default function PhotoFilterModal({
             )}
           </View>
           <TouchableOpacity onPress={onClose}>
-            <MaterialIcons name="close" size={28} color={Colors.text} />
+            <MaterialIcons name="close" size={28} color={Colors2026.text} />
           </TouchableOpacity>
         </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
+            <ActivityIndicator size="large" color={Colors2026.primary} />
           </View>
         ) : (
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -265,7 +265,7 @@ export default function PhotoFilterModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     paddingTop: 50,
   },
   header: {
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderBottomColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -286,10 +286,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   badge: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -325,44 +325,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   checkbox: {
     width: 20,
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   radioChecked: {
-    borderColor: Colors.primary,
+    borderColor: Colors2026.primary,
   },
   radioDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   filterLabel: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     flex: 1,
   },
   footer: {
@@ -372,8 +372,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingBottom: 20,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderTopColor: Colors2026.border,
+    backgroundColor: Colors2026.surface,
   },
   button: {
     flex: 1,
@@ -384,16 +384,16 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors2026.primary,
     backgroundColor: 'transparent',
   },
   clearButtonText: {
-    color: Colors.primary,
+    color: Colors2026.primary,
     fontSize: 14,
     fontWeight: '600',
   },
   applyButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   applyButtonText: {
     color: '#fff',

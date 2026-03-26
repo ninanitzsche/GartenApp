@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { identifyPlant, pickImage } from '../services/aiService';
 import { cacheIdentification, getCachedIdentification } from '../services/cacheService';
 import { PlantIdentificationResult } from '../types/ai';
@@ -125,16 +125,16 @@ export default function AIPhotoPicker({
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return Colors.success;
-    if (confidence >= 0.5) return Colors.warning;
-    return Colors.error;
+    if (confidence >= 0.8) return Colors2026.status.success;
+    if (confidence >= 0.5) return Colors2026.status.warning;
+    return Colors2026.status.error;
   };
 
   const renderContent = () => {
     if (result) {
       return (
         <View style={styles.resultContainer}>
-          <MaterialIcons name="check-circle" size={64} color={Colors.success} />
+          <MaterialIcons name="check-circle" size={64} color={Colors2026.status.success} />
           <Text style={styles.resultTitle}>Erkannt!</Text>
           
           <View style={styles.resultCard}>
@@ -169,7 +169,7 @@ export default function AIPhotoPicker({
               style={[styles.button, styles.secondaryButton]}
               onPress={handleRetry}
             >
-              <MaterialIcons name="refresh" size={20} color={Colors.text} />
+              <MaterialIcons name="refresh" size={20} color={Colors2026.text} />
               <Text style={styles.secondaryButtonText}>Nochmal</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -179,14 +179,14 @@ export default function AIPhotoPicker({
                 handleClose();
               }}
             >
-              <MaterialIcons name="add" size={20} color={Colors.text} />
+              <MaterialIcons name="add" size={20} color={Colors2026.text} />
               <Text style={styles.secondaryButtonText}>Pflanze</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.primaryButton]}
               onPress={handleAccept}
             >
-              <MaterialIcons name="lightbulb" size={20} color={Colors.surface} />
+              <MaterialIcons name="lightbulb" size={20} color={Colors2026.surface} />
               <Text style={styles.primaryButtonText}>+ Aufgaben</Text>
             </TouchableOpacity>
           </View>
@@ -197,7 +197,7 @@ export default function AIPhotoPicker({
     if (error) {
       return (
         <View style={styles.resultContainer}>
-          <MaterialIcons name="error-outline" size={64} color={Colors.error} />
+          <MaterialIcons name="error-outline" size={64} color={Colors2026.status.error} />
           <Text style={styles.errorTitle}>Erkennung fehlgeschlagen</Text>
           <Text style={styles.errorText}>{error}</Text>
 
@@ -206,7 +206,7 @@ export default function AIPhotoPicker({
               style={[styles.button, styles.secondaryButton]}
               onPress={handleRetry}
             >
-              <MaterialIcons name="refresh" size={20} color={Colors.text} />
+              <MaterialIcons name="refresh" size={20} color={Colors2026.text} />
               <Text style={styles.secondaryButtonText}>Nochmal versuchen</Text>
             </TouchableOpacity>
           </View>
@@ -225,10 +225,10 @@ export default function AIPhotoPicker({
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color={Colors.surface} />
+              <ActivityIndicator color={Colors2026.surface} />
             ) : (
               <>
-                <MaterialIcons name="search" size={20} color={Colors.surface} />
+                <MaterialIcons name="search" size={20} color={Colors2026.surface} />
                 <Text style={styles.primaryButtonText}>Pflanze erkennen</Text>
               </>
             )}
@@ -249,7 +249,7 @@ export default function AIPhotoPicker({
             style={styles.optionCard}
             onPress={handleTakePhoto}
           >
-            <MaterialIcons name="camera-alt" size={48} color={Colors.primary} />
+            <MaterialIcons name="camera-alt" size={48} color={Colors2026.primary} />
             <Text style={styles.optionText}>Kamera</Text>
           </TouchableOpacity>
 
@@ -257,7 +257,7 @@ export default function AIPhotoPicker({
             style={styles.optionCard}
             onPress={handlePickFromGallery}
           >
-            <MaterialIcons name="photo-library" size={48} color={Colors.primary} />
+            <MaterialIcons name="photo-library" size={48} color={Colors2026.primary} />
             <Text style={styles.optionText}>Galerie</Text>
           </TouchableOpacity>
         </View>
@@ -277,7 +277,7 @@ export default function AIPhotoPicker({
           <View style={styles.modalContent}>
             <View style={styles.header}>
               <TouchableOpacity onPress={handleClose}>
-                <MaterialIcons name="close" size={24} color={Colors.text} />
+                <MaterialIcons name="close" size={24} color={Colors2026.text} />
               </TouchableOpacity>
             </View>
             {renderContent()}
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 40,
@@ -321,12 +321,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginBottom: 32,
     textAlign: 'center',
   },
@@ -337,18 +337,18 @@ const styles = StyleSheet.create({
   optionCard: {
     width: 140,
     height: 140,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   optionText: {
     marginTop: 8,
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors2026.primary,
   },
   previewContainer: {
     paddingHorizontal: 24,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   identifyButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -379,13 +379,13 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.success,
+    color: Colors2026.status.success,
     marginTop: 16,
     marginBottom: 24,
   },
   resultCard: {
     width: '100%',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -393,12 +393,12 @@ const styles = StyleSheet.create({
   plantName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   scientificName: {
     fontSize: 16,
     fontStyle: 'italic',
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginBottom: 16,
   },
   confidenceContainer: {
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   },
   confidenceLabel: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginRight: 8,
   },
   confidenceValue: {
@@ -417,24 +417,24 @@ const styles = StyleSheet.create({
   },
   familyText: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     marginBottom: 4,
   },
   commonNamesText: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     fontStyle: 'italic',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.error,
+    color: Colors2026.status.error,
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textLight,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -453,20 +453,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
   },
   primaryButtonText: {
-    color: Colors.surface,
+    color: Colors2026.surface,
     fontSize: 16,
     fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   secondaryButtonText: {
-    color: Colors.text,
+    color: Colors2026.text,
     fontSize: 16,
     fontWeight: '600',
   },

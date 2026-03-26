@@ -1,298 +1,224 @@
 /**
- * Modern 2026 Design System V2
- * Glassmorphism + Bold Cards + Dark Mode Support
+ * Premium Design System V3
+ * Eleganter 2026er Style mit warmen Erdtönen
  */
 
-export const LightColors = {
-  // Primary
-  primary: '#2D9D4F',
-  primaryLight: '#4CAF50',
-  primaryDark: '#1B7A37',
+export const PremiumColors = {
+  // Primary - Waldgrün (elegant, ruhevoll)
+  primary: '#2D4739',
+  primaryLight: '#3D5A4A',
+  primaryDark: '#1E3329',
   
-  // Backgrounds
-  bg: '#FAFAFA',
-  bgSecondary: '#F5F5F5',
-  surface: '#FFFFFF',
+  // Accent - Teal (modern, transformativ)
+  accent: '#006064',
+  accentLight: '#00838F',
   
-  // Text
-  text: '#1A1A1A',
-  textSecondary: '#555555',
-  textMuted: '#999999',
-  textLight: '#BBBBBB',
+  // Background - Off-White/Beige (warm, hochwertig)
+  bg: '#F5F2ED',
+  bgSecondary: '#EDE9E3',
+  surface: '#FDFCFA',
+  
+  // Text - Warm-dark
+  text: '#2C2C2C',
+  textSecondary: '#5A5A5A',
+  textMuted: '#8A8A8A',
+  textLight: '#B0B0B0',
+  textDisabled: '#C0C0B0',
+  background: '#F5F2ED', // Alias for bg
   
   // Glass
   glass: {
-    light: 'rgba(255,255,255,0.72)',
-    medium: 'rgba(255,255,255,0.85)',
-    dark: 'rgba(0,0,0,0.15)',
-    tint: 'rgba(45,157,79,0.08)',
-    border: 'rgba(255,255,255,0.3)',
+    light: 'rgba(253,252,250,0.72)',
+    medium: 'rgba(253,252,250,0.85)',
+    dark: 'rgba(44,44,44,0.08)',
+    tint: 'rgba(45,87,57,0.08)',
+    border: 'rgba(253,252,250,0.5)',
   },
   
-  // Seasonal
+  // Seasonal - angepasst
   seasonal: {
-    spring: { bg: '#F0FAF0', accent: '#2D9D4F' },
-    summer: { bg: '#FFF8E7', accent: '#E8943A' },
-    autumn: { bg: '#FFF0E7', accent: '#D4633A' },
-    winter: { bg: '#F0F4FA', accent: '#5B8DEF' },
-  },
-  
-  // Gradients
-  gradients: {
-    spring: ['#E8F5E9', '#C8E6C9'],
-    summer: ['#FFF8E1', '#FFECB3'],
-    autumn: ['#FBE9E7', '#FFCCBC'],
-    winter: ['#E3F2FD', '#BBDEFB'],
+    spring: { bg: '#F0F5F0', accent: '#2D4739' },
+    summer: { bg: '#F5F0E8', accent: '#006064' },
+    autumn: { bg: '#F5EDE8', accent: '#8D5B3E' },
+    winter: { bg: '#EDF0F5', accent: '#4A6FA5' },
   },
   
   // Status
   status: {
-    success: '#2D9D4F',
-    warning: '#FFA726',
-    error: '#E53935',
-    info: '#5B8DEF',
+    success: '#2D4739',
+    warning: '#8D5B3E',  // Terracotta statt Orange
+    error: '#B33A3A',
+    info: '#4A6FA5',
   },
   
   // Plant Status
   plantStatus: {
-    geplant: '#5B8DEF',
-    bestellt: '#FFA726',
-    ausgesät: '#5B8DEF',
-    pikiert: '#1976D2',
-    ausgepflanzt: '#2D9D4F',
-    etabliert: '#2D9D4F',
-    geerntet: '#FF7043',
-    unklar: '#999999',
-    entfernt: '#BDBDBD',
+    geplant: '#4A6FA5',
+    bestellt: '#8D5B3E',
+    ausgesät: '#4A6FA5',
+    pikiert: '#006064',
+    ausgepflanzt: '#2D4739',
+    etabliert: '#2D4739',
+    geerntet: '#C67B4A',
+    unklar: '#8A8A8A',
+    entfernt: '#C0C0C0',
   },
   
   // Priority
   priority: {
-    hoch: '#E53935',
-    mittel: '#FFA726',
-    niedrig: '#2D9D4F',
+    hoch: '#B33A3A',
+    mittel: '#8D5B3E',
+    niedrig: '#2D4739',
   },
   
-  // Tabs
+  // Borders - weicher
+  border: '#E5E2DC',
+  divider: '#F0EDE8',
+  
+  // Tab
   tab: {
-    active: '#2D9D4F',
-    inactive: '#9E9E9E',
+    active: '#2D4739',
+    inactive: '#8A8A8A',
   },
-  
-  // Borders
-  border: '#E8E8E8',
-  divider: '#F0F0F0',
 };
 
-export const DarkColors = {
-  // Primary
-  primary: '#4CAF50',
-  primaryLight: '#66BB6A',
-  primaryDark: '#388E3C',
-  
-  // Backgrounds
-  bg: '#121212',
-  bgSecondary: '#1E1E1E',
-  surface: '#1E1E1E',
-  
-  // Text
-  text: '#FFFFFF',
-  textSecondary: '#AAAAAA',
-  textMuted: '#777777',
-  textLight: '#555555',
-  
-  // Glass
-  glass: {
-    light: 'rgba(30,30,30,0.72)',
-    medium: 'rgba(30,30,30,0.85)',
-    dark: 'rgba(0,0,0,0.4)',
-    tint: 'rgba(76,175,80,0.15)',
-    border: 'rgba(255,255,255,0.1)',
-  },
-  
-  // Seasonal
-  seasonal: {
-    spring: { bg: '#1A2E1A', accent: '#4CAF50' },
-    summer: { bg: '#2E2A1A', accent: '#FFA726' },
-    autumn: { bg: '#2E1A1A', accent: '#FF7043' },
-    winter: { bg: '#1A1E2E', accent: '#5B8DEF' },
-  },
-  
-  // Gradients
-  gradients: {
-    spring: ['#2E3B2E', '#1E2B1E'],
-    summer: ['#3B3A2E', '#2B2A1E'],
-    autumn: ['#3B2E2E', '#2B1E1E'],
-    winter: ['#2E2E3B', '#1E1E2B'],
-  },
-  
-  // Status
-  status: {
-    success: '#4CAF50',
-    warning: '#FFA726',
-    error: '#EF5350',
-    info: '#5B8DEF',
-  },
-  
-  // Plant Status
-  plantStatus: {
-    geplant: '#5B8DEF',
-    bestellt: '#FFA726',
-    ausgesät: '#5B8DEF',
-    pikiert: '#64B5F6',
-    ausgepflanzt: '#4CAF50',
-    etabliert: '#4CAF50',
-    geerntet: '#FF7043',
-    unklar: '#777777',
-    entfernt: '#555555',
-  },
-  
-  // Priority
-  priority: {
-    hoch: '#EF5350',
-    mittel: '#FFA726',
-    niedrig: '#4CAF50',
-  },
-  
-  // Tabs
-  tab: {
-    active: '#4CAF50',
-    inactive: '#777777',
-  },
-  
-  // Borders
-  border: '#333333',
-  divider: '#2A2A2A',
-};
-
-export type ThemeColors = typeof LightColors;
-
-export const Spacing2026 = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-};
-
-export const Radius2026 = {
+export const PremiumSpacing = {
+  xs: 6,
   sm: 12,
   md: 16,
   lg: 20,
   xl: 28,
+  xxl: 32,
+  xxxl: 48,
+};
+
+export const PremiumTouchTargets = {
+  minimum: 44,
+  medium: 48,
+  large: 56,
+  icon: 44,
+};
+
+export const PremiumRadius = {
+  sm: 16,   // Erhöht
+  md: 20,   // Erhöht
+  lg: 24,   // Erhöht
+  xl: 32,   // Erhöht
   round: 999,
 };
 
-export const Typography2026 = {
+export const PremiumTypography = {
   display: {
-    fontSize: 34,
-    fontWeight: '800' as const,
-    letterSpacing: -1.5,
-    lineHeight: 40,
+    fontSize: 36,      // Etwas größer
+    fontWeight: '700' as const,
+    letterSpacing: -1.2,
+    lineHeight: 44,
   },
   headline: {
-    fontSize: 24,
-    fontWeight: '700' as const,
+    fontSize: 26,
+    fontWeight: '600' as const,
     letterSpacing: -0.8,
-    lineHeight: 30,
+    lineHeight: 34,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    letterSpacing: -0.3,
-    lineHeight: 24,
+    fontSize: 20,
+    fontWeight: '600' as const,
+    letterSpacing: -0.4,
+    lineHeight: 28,
   },
   body: {
     fontSize: 16,
-    fontWeight: '500' as const,
+    fontWeight: '400' as const,
     letterSpacing: 0,
-    lineHeight: 22,
+    lineHeight: 26,
   },
   caption: {
-    fontSize: 13,
-    fontWeight: '500' as const,
+    fontSize: 14,
+    fontWeight: '400' as const,
+    letterSpacing: 0.2,
+    lineHeight: 20,
+  },
+  small: {
+    fontSize: 12,
+    fontWeight: '400' as const,
     letterSpacing: 0.2,
     lineHeight: 18,
   },
-  small: {
-    fontSize: 11,
-    fontWeight: '500' as const,
-    letterSpacing: 0.3,
-    lineHeight: 16,
-  },
 };
 
-export const Shadows2026 = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+export const PremiumShadows = {
+  soft: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  medium: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 32,
+    elevation: 8,
+  },
+  strong: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 40,
+    elevation: 12,
+  },
+  sm: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.07,
     shadowRadius: 20,
-    elevation: 8,
-  },
-  glass: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  glow: {
-    shadowColor: '#2D9D4F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
     elevation: 6,
   },
-  card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+  lg: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.10,
+    shadowRadius: 36,
+    elevation: 10,
+  },
+  glass: {
+    shadowColor: '#2D4739',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
   },
 };
 
-export const getSeasonalColor = (zeitraum: string, colors: ThemeColors = LightColors): { bg: string; accent: string } => {
+// Alias für Kompatibilität
+export const LightColors = PremiumColors;
+export const Spacing2026 = PremiumSpacing;
+export const Radius2026 = PremiumRadius;
+export const Typography2026 = PremiumTypography;
+export const Shadows2026 = PremiumShadows;
+export const Colors2026 = PremiumColors;
+export const TouchTargets2026 = PremiumTouchTargets;
+
+export function getSeasonalColor(zeitraum: string, colors: typeof PremiumColors = PremiumColors): { bg: string; accent: string } {
   if (zeitraum.includes('fruehjahr') || zeitraum.includes('spring')) return colors.seasonal.spring;
   if (zeitraum.includes('sommer') || zeitraum.includes('summer')) return colors.seasonal.summer;
   if (zeitraum.includes('herbst') || zeitraum.includes('autumn')) return colors.seasonal.autumn;
   if (zeitraum.includes('winter')) return colors.seasonal.winter;
   return colors.seasonal.spring;
-};
-
-export const getSeasonalGradient = (zeitraum: string, colors: ThemeColors = LightColors): string[] => {
-  if (zeitraum.includes('fruehjahr') || zeitraum.includes('spring')) return colors.gradients.spring;
-  if (zeitraum.includes('sommer') || zeitraum.includes('summer')) return colors.gradients.summer;
-  if (zeitraum.includes('herbst') || zeitraum.includes('autumn')) return colors.gradients.autumn;
-  if (zeitraum.includes('winter')) return colors.gradients.winter;
-  return colors.gradients.spring;
-};
-
-// Backwards compatibility
-export const Colors2026 = LightColors;
+}
 
 export default {
-  light: LightColors,
-  dark: DarkColors,
-  spacing: Spacing2026,
-  radius: Radius2026,
-  typography: Typography2026,
-  shadows: Shadows2026,
+  colors: PremiumColors,
+  spacing: PremiumSpacing,
+  radius: PremiumRadius,
+  typography: PremiumTypography,
+  shadows: PremiumShadows,
 };

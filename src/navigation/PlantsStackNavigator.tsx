@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Colors from '../theme/colors';
+import { Colors2026 } from '../theme/designSystemV2';
 import { RootStackParamList } from '../types/navigation';
 
 import PlantListScreen from '../screens/PlantListScreen';
@@ -12,6 +12,9 @@ import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import PhotoUploadScreen from '../screens/PhotoUploadScreen';
 import CompanionSearchScreen from '../screens/CompanionSearchScreen';
 import SaisonPlanerScreen from '../screens/SaisonPlanerScreen';
+import TaskListScreen from '../screens/TaskListScreen';
+import TaskDetailScreen from '../screens/TaskDetailScreen';
+import AddTaskScreen from '../screens/AddTaskScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,7 +23,7 @@ export default function PlantsStackNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.primary,
+          backgroundColor: Colors2026.primary,
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -85,6 +88,28 @@ export default function PlantsStackNavigator() {
         options={{
           title: 'Saison-Planer',
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="TaskList"
+        component={TaskListScreen}
+        options={{
+          title: 'Aufgaben',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="TaskDetail"
+        component={TaskDetailScreen}
+        options={{
+          title: 'Aufgabe',
+        }}
+      />
+      <Stack.Screen
+        name="AddTask"
+        component={AddTaskScreen}
+        options={{
+          title: 'Aufgabe erstellen',
         }}
       />
     </Stack.Navigator>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 interface ToastProps {
   visible: boolean;
@@ -75,13 +75,13 @@ export default function Toast({
   const getColor = () => {
     switch (type) {
       case 'success':
-        return Colors.success;
+        return Colors2026.status.success;
       case 'error':
-        return Colors.error;
+        return Colors2026.status.error;
       case 'info':
-        return Colors.info;
+        return Colors2026.status.info;
       default:
-        return Colors.success;
+        return Colors2026.status.success;
     }
   };
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     padding: 16,
     borderLeftWidth: 4,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '500',
   },
 });

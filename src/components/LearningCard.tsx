@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Learning } from '../types/learning';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 
 interface LearningCardProps {
   learning: Learning;
@@ -17,7 +17,7 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="lightbulb" size={20} color={Colors.accent} />
+          <MaterialIcons name="lightbulb" size={20} color={Colors2026.accent} />
         </View>
         <Text style={styles.title} numberOfLines={2}>
           {learning.title}
@@ -28,7 +28,7 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
           accessibilityLabel="Tipp verwerfen"
           accessibilityRole="button"
         >
-          <MaterialIcons name="close" size={18} color={Colors.textLight} />
+          <MaterialIcons name="close" size={18} color={Colors2026.textSecondary} />
         </TouchableOpacity>
       </View>
       
@@ -47,7 +47,7 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
               accessibilityLabel="Als hilfreich bewerten"
               accessibilityRole="button"
             >
-              <MaterialIcons name="thumb-up" size={18} color={Colors.textLight} />
+              <MaterialIcons name="thumb-up" size={18} color={Colors2026.textSecondary} />
               <Text style={styles.ratingText}>Hilfreich</Text>
             </TouchableOpacity>
             <TouchableOpacity 
@@ -56,7 +56,7 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
               accessibilityLabel="Als nicht hilfreich bewerten"
               accessibilityRole="button"
             >
-              <MaterialIcons name="thumb-down" size={18} color={Colors.textLight} />
+              <MaterialIcons name="thumb-down" size={18} color={Colors2026.textSecondary} />
               <Text style={styles.ratingText}>Nicht hilfreich</Text>
             </TouchableOpacity>
           </View>
@@ -65,7 +65,7 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
             <MaterialIcons 
               name={learning.user_rating === 'helpful' ? 'thumb-up' : 'thumb-down'} 
               size={16} 
-              color={learning.user_rating === 'helpful' ? Colors.success : Colors.textLight} 
+              color={learning.user_rating === 'helpful' ? Colors2026.status.success : Colors2026.textSecondary} 
             />
             <Text style={styles.ratedText}>
               {learning.user_rating === 'helpful' ? 'Als hilfreich markiert' : 'Als nicht hilfreich markiert'}
@@ -86,11 +86,11 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
 const styles = StyleSheet.create({
   container: {
     padding: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   header: {
     flexDirection: 'row',
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     fontWeight: '600',
     marginRight: 8,
   },
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 13,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 8,
     lineHeight: 18,
   },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: Colors.divider,
+    borderTopColor: Colors2026.divider,
   },
   ratingButtons: {
     flexDirection: 'row',
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
   ratedContainer: {
     flexDirection: 'row',
@@ -153,10 +153,10 @@ const styles = StyleSheet.create({
   },
   ratedText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
   source: {
     fontSize: 11,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
   },
 });

@@ -15,7 +15,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { changePassword } from '../services/authService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChangePassword'>;
@@ -129,7 +129,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
               <TextInput
                 style={styles.input}
                 placeholder="Aktuelles Passwort eingeben"
-                placeholderTextColor={Colors.textDisabled}
+                placeholderTextColor={Colors2026.textDisabled}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
                 secureTextEntry={!showCurrentPassword}
@@ -143,7 +143,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
                 <MaterialIcons
                   name={showCurrentPassword ? 'visibility' : 'visibility-off'}
                   size={20}
-                  color={Colors.textLight}
+                  color={Colors2026.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -164,7 +164,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
               <TextInput
                 style={styles.input}
                 placeholder="Neues Passwort eingeben"
-                placeholderTextColor={Colors.textDisabled}
+                placeholderTextColor={Colors2026.textDisabled}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showNewPassword}
@@ -178,7 +178,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
                 <MaterialIcons
                   name={showNewPassword ? 'visibility' : 'visibility-off'}
                   size={20}
-                  color={Colors.textLight}
+                  color={Colors2026.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -202,7 +202,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
               <TextInput
                 style={styles.input}
                 placeholder="Passwort bestätigen"
-                placeholderTextColor={Colors.textDisabled}
+                placeholderTextColor={Colors2026.textDisabled}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -216,7 +216,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
                 <MaterialIcons
                   name={showConfirmPassword ? 'visibility' : 'visibility-off'}
                   size={20}
-                  color={Colors.textLight}
+                  color={Colors2026.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -257,7 +257,7 @@ export default function ChangePasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   scrollContainer: {
     flex: 1,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingHorizontal: 20,
     paddingVertical: 15,
     paddingTop: 10,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginBottom: 25,
     lineHeight: 20,
   },
@@ -298,42 +298,42 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
   inputContainerError: {
-    borderColor: Colors.error,
+    borderColor: Colors2026.status.error,
   },
   input: {
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   eyeButton: {
     padding: 8,
   },
   errorText: {
     fontSize: 12,
-    color: Colors.error,
+    color: Colors2026.status.error,
     marginTop: 6,
   },
   helperText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 6,
   },
   submitButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -353,10 +353,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
   },
   cancelButtonText: {
-    color: Colors.text,
+    color: Colors2026.text,
     fontSize: 16,
     fontWeight: '600',
   },

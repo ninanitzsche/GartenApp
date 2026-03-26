@@ -14,7 +14,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { resetPassword } from '../services/authService';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
@@ -92,7 +92,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
             <MaterialIcons
               name="lock-reset"
               size={64}
-              color={Colors.primary}
+              color={Colors2026.primary}
             />
           </View>
 
@@ -114,13 +114,13 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
               <MaterialIcons
                 name="email"
                 size={20}
-                color={Colors.textLight}
+                color={Colors2026.textSecondary}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Geben Sie Ihre E-Mail ein"
-                placeholderTextColor={Colors.textDisabled}
+                placeholderTextColor={Colors2026.textDisabled}
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
@@ -140,7 +140,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
                   <MaterialIcons
                     name="close"
                     size={20}
-                    color={Colors.textLight}
+                    color={Colors2026.textSecondary}
                   />
                 </TouchableOpacity>
               )}
@@ -155,7 +155,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
             <MaterialIcons
               name="info"
               size={20}
-              color={Colors.info}
+              color={Colors2026.status.info}
               style={styles.infoIcon}
             />
             <Text style={styles.infoText}>
@@ -206,7 +206,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   scrollContainer: {
     flex: 1,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingHorizontal: 20,
     paddingVertical: 15,
     paddingTop: 10,
@@ -242,13 +242,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     textAlign: 'center',
     marginBottom: 12,
   },
   description: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 20,
@@ -259,20 +259,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
   inputContainerError: {
-    borderColor: Colors.error,
+    borderColor: Colors2026.status.error,
   },
   inputIcon: {
     marginRight: 8,
@@ -281,18 +281,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text,
+    color: Colors2026.text,
   },
   errorText: {
     fontSize: 12,
-    color: Colors.error,
+    color: Colors2026.status.error,
     marginTop: 6,
   },
   infoBox: {
     flexDirection: 'row',
     backgroundColor: '#E3F2FD',
     borderLeftWidth: 4,
-    borderLeftColor: Colors.info,
+    borderLeftColor: Colors2026.status.info,
     borderRadius: 8,
     padding: 12,
     marginBottom: 25,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   submitButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -332,17 +332,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors2026.border,
     marginBottom: 15,
   },
   cancelButtonText: {
-    color: Colors.text,
+    color: Colors2026.text,
     fontSize: 16,
     fontWeight: '600',
   },
   helpText: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     textAlign: 'center',
     marginTop: 10,
     lineHeight: 16,

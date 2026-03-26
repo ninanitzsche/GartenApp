@@ -21,8 +21,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Photo, PhotoFilters } from '../types/photo';
-import Colors from '../theme/colors';
-import { Colors2026 } from '../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
 import { fetchAllPhotos, deletePhoto } from '../services/photoService';
 import EmptyState from '../components/ui/EmptyState';
 import { getAnalysesForPhoto, fetchCloudAnalysisForPhoto } from '../services/aiMetadataService';
@@ -147,7 +148,7 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors2026.primary} />
       </View>
     );
   }
@@ -185,7 +186,7 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
         style={[styles.filterChip, currentFilter === PhotoFilters.AI_ANALYZED && styles.filterChipActive]}
         onPress={() => handleFilterChange(PhotoFilters.AI_ANALYZED)}
       >
-        <MaterialIcons name="auto-awesome" size={16} color={currentFilter === PhotoFilters.AI_ANALYZED ? '#fff' : Colors.primary} />
+        <MaterialIcons name="auto-awesome" size={16} color={currentFilter === PhotoFilters.AI_ANALYZED ? '#fff' : Colors2026.primary} />
         <Text style={[styles.filterChipText, currentFilter === PhotoFilters.AI_ANALYZED && styles.filterChipTextActive]}>
           KI-Analysiert
         </Text>
@@ -206,7 +207,7 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
       <View style={styles.header}>
         <Text style={styles.title}>Gartenfotos</Text>
         <TouchableOpacity onPress={handleUploadPhoto}>
-          <MaterialIcons name="add-a-photo" size={24} color={Colors.primary} />
+          <MaterialIcons name="add-a-photo" size={24} color={Colors2026.primary} />
         </TouchableOpacity>
       </View>
       
@@ -258,12 +259,12 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
               {(loadingAnalysis || photoAnalysis) && (
                 <View style={styles.aiAnalysisSection}>
                   <View style={styles.aiAnalysisHeader}>
-                    <MaterialIcons name="auto-awesome" size={20} color={Colors.primary} />
+                    <MaterialIcons name="auto-awesome" size={20} color={Colors2026.primary} />
                     <Text style={styles.aiAnalysisTitle}>KI-Analyse</Text>
                   </View>
                   
                   {loadingAnalysis ? (
-                    <ActivityIndicator size="small" color={Colors.primary} />
+                    <ActivityIndicator size="small" color={Colors2026.primary} />
                   ) : photoAnalysis ? (
                     <View style={styles.aiAnalysisContent}>
                       <Text style={styles.aiAnalysisType}>
@@ -279,7 +280,7 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
                           <Text style={styles.confidenceLabel}>Konfidenz:</Text>
                           <Text style={[
                             styles.confidenceValue,
-                            { color: photoAnalysis.confidence >= 0.8 ? Colors.success : Colors.warning }
+                            { color: photoAnalysis.confidence >= 0.8 ? Colors2026.status.success : Colors2026.status.warning }
                           ]}>
                             {Math.round(photoAnalysis.confidence * 100)}%
                           </Text>
@@ -322,63 +323,63 @@ export default function GardenPhotoGalleryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: Spacing2026.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors2026.border,
   },
   title: {
-    fontSize: 20,
+    fontSize: Typography2026.title.fontSize,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   filterContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.sm,
+    gap: Spacing2026.xs,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.lg,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
-    gap: 4,
+    borderColor: Colors2026.border,
+    gap: Spacing2026.xs,
   },
   filterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
+    borderColor: Colors2026.primary,
   },
   filterChipText: {
-    fontSize: 13,
-    color: Colors.text,
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.text,
   },
   filterChipTextActive: {
     color: '#fff',
   },
   listContent: {
-    padding: 8,
+    padding: Spacing2026.xs,
   },
   photoItem: {
-    margin: 8,
-    borderRadius: 8,
+    margin: Spacing2026.xs,
+    borderRadius: Radius2026.sm,
     overflow: 'hidden',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
   },
   photo: {
     width: '100%',
@@ -386,10 +387,10 @@ const styles = StyleSheet.create({
   },
   aiBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
+    top: Spacing2026.xs,
+    right: Spacing2026.xs,
+    backgroundColor: Colors2026.primary,
+    borderRadius: Radius2026.md,
     padding: 4,
   },
   modalOverlay: {
@@ -426,71 +427,71 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   aiAnalysisTitle: {
-    fontSize: 16,
+    fontSize: Typography2026.body.fontSize,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   aiAnalysisContent: {
-    gap: 4,
+    gap: Spacing2026.xs,
   },
   aiAnalysisType: {
-    fontSize: 14,
-    color: Colors.primary,
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.primary,
     fontWeight: '600',
   },
   aiAnalysisResult: {
-    fontSize: 14,
-    color: Colors.text,
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.text,
   },
   confidenceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing2026.xs,
   },
   confidenceLabel: {
-    fontSize: 12,
-    color: Colors.textLight,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textSecondary,
   },
   confidenceValue: {
-    fontSize: 14,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: 'bold',
   },
   modalFooter: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: Spacing2026.md,
+    left: Spacing2026.md,
+    right: Spacing2026.md,
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing2026.sm,
   },
   analyzeButton: {
     flex: 1,
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: Colors2026.primary,
+    borderRadius: Radius2026.sm,
+    padding: Spacing2026.sm,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing2026.xs,
   },
   analyzeButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
   },
   deletePhotoButton: {
     flex: 1,
-    backgroundColor: Colors.error,
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: Colors2026.status.error,
+    borderRadius: Radius2026.sm,
+    padding: Spacing2026.sm,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing2026.xs,
   },
   deletePhotoText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: Typography2026.caption.fontSize,
     fontWeight: '600',
   },
 });

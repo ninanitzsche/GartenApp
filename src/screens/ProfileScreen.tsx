@@ -10,7 +10,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../types/navigation';
-import Colors from '../theme/colors';
+import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import GlassCard from '../components/ui/GlassCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
@@ -54,7 +56,7 @@ export default function ProfileScreen({ navigation }: Props) {
       <View style={styles.section}>
         <View style={styles.userInfoCard}>
           <View style={styles.avatarContainer}>
-            <MaterialIcons name="account-circle" size={80} color={Colors.primary} />
+            <MaterialIcons name="account-circle" size={80} color={Colors2026.primary} />
           </View>
           <Text style={styles.email}>{user?.email}</Text>
         </View>
@@ -67,7 +69,7 @@ export default function ProfileScreen({ navigation }: Props) {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.infoLabel}>
-              <MaterialIcons name="event" size={20} color={Colors.primary} />
+              <MaterialIcons name="event" size={20} color={Colors2026.primary} />
               <Text style={styles.infoLabelText}>Konto erstellt am</Text>
             </View>
             <Text style={styles.infoValue}>
@@ -87,13 +89,13 @@ export default function ProfileScreen({ navigation }: Props) {
           activeOpacity={0.7}
         >
           <View style={styles.actionButtonContent}>
-            <MaterialIcons name="lock" size={20} color={Colors.primary} />
+            <MaterialIcons name="lock" size={20} color={Colors2026.primary} />
             <View style={styles.actionButtonText}>
               <Text style={styles.actionButtonTitle}>Passwort ändern</Text>
               <Text style={styles.actionButtonDesc}>Ihr Passwort aktualisieren</Text>
             </View>
           </View>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.textLight} />
+          <MaterialIcons name="chevron-right" size={24} color={Colors2026.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -106,12 +108,12 @@ export default function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors2026.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors2026.primary,
     paddingHorizontal: 20,
     paddingVertical: 15,
     paddingTop: 10,
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   userInfoCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
@@ -150,19 +152,19 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors2026.text,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   infoCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -184,17 +186,17 @@ const styles = StyleSheet.create({
   },
   infoLabelText: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors2026.text,
     marginLeft: 10,
     fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginLeft: 10,
   },
   actionButton: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors2026.surface,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -219,11 +221,11 @@ const styles = StyleSheet.create({
   actionButtonTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors2026.text,
   },
   actionButtonDesc: {
     fontSize: 12,
-    color: Colors.textLight,
+    color: Colors2026.textSecondary,
     marginTop: 2,
   },
   footerSpacer: {
