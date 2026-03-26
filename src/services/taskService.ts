@@ -497,8 +497,103 @@ export function getSortLabel(sortBy: string): string {
     'created_at': 'Nach Erstellungsdatum',
     'category': 'Nach Kategorie',
     'title': 'Nach Titel',
+    'month': 'Nach Monat',
   };
   return labels[sortBy] || 'Sortierung';
+}
+
+/**
+ * Get current season based on month
+ */
+export function getCurrentSeason(): string {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return 'Frühling';
+  if (month >= 6 && month <= 8) return 'Sommer';
+  if (month >= 9 && month <= 11) return 'Herbst';
+  return 'Winter';
+}
+
+/**
+ * Get season from scheduled_date
+ */
+export function getSeasonFromDate(dateStr: string | null): string {
+  if (!dateStr) return 'Unbekannt';
+  const month = new Date(dateStr).getMonth() + 1;
+  if (month >= 3 && month <= 5) return 'Frühling';
+  if (month >= 6 && month <= 8) return 'Sommer';
+  if (month >= 9 && month <= 11) return 'Herbst';
+  return 'Winter';
+}
+
+/**
+ * Check if task is overdue
+ */
+export function isTaskOverdue(scheduledDate: string | null): boolean {
+  if (!scheduledDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const scheduled = new Date(scheduledDate);
+  return scheduled < today;
+}
+
+/**
+ * Check if task is due this week
+ */
+export function isTaskDueThisWeek(scheduledDate: string | null): boolean {
+  if (!scheduledDate) return false;
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  monday.setHours(0, 0, 0, 0);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  
+  const scheduled = new Date(scheduledDate);
+  return scheduled >= monday && scheduled <= sunday;
+}
+
+/**
+ * Check if task is due next week
+ */
+export function isTaskDueNextWeek(scheduledDate: string | null): boolean {
+  if (!scheduledDate) return false;
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  
+  const nextMonday = new Date(monday);
+  nextMonday.setDate(monday.getDate() + 7);
+  
+  const followingSunday = new Date(nextMonday);
+  followingSunday.setDate(nextMonday.getDate() + 6);
+  
+  const scheduled = new Date(scheduledDate);
+  return scheduled >= nextMonday && scheduled <= followingSunday;
+}
+
+/**
+ * Filter tasks by season
+ */
+export function filterTasksBySeason(tasks: any[], season: string): any[] {
+  if (season === 'Alle' || !season) return tasks;
+  return tasks.filter(task => getSeasonFromDate(task.scheduled_date || task.due_date || null) === season);
+}
+
+/**
+ * Sort tasks by month
+ */
+export function sortTasksByMonth(tasks: any[]): any[] {
+  return [...tasks].sort((a, b) => {
+    const dateA = a.scheduled_date || a.due_date || '';
+    const dateB = b.scheduled_date || b.due_date || '';
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
 }
 
 /**

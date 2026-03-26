@@ -919,4 +919,132 @@ describe('taskService', () => {
       });
     });
   });
+
+  describe('getCurrentSeason', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should return Frühling for March-May', () => {
+      jest.spyOn(Date.prototype, 'getMonth').mockReturnValue(3); // April
+      expect(taskService.getCurrentSeason()).toBe('Frühling');
+    });
+
+    it('should return Sommer for June-August', () => {
+      jest.spyOn(Date.prototype, 'getMonth').mockReturnValue(7); // August
+      expect(taskService.getCurrentSeason()).toBe('Sommer');
+    });
+
+    it('should return Herbst for September-November', () => {
+      jest.spyOn(Date.prototype, 'getMonth').mockReturnValue(10); // November
+      expect(taskService.getCurrentSeason()).toBe('Herbst');
+    });
+
+    it('should return Winter for December-February', () => {
+      jest.spyOn(Date.prototype, 'getMonth').mockReturnValue(0); // January
+      expect(taskService.getCurrentSeason()).toBe('Winter');
+    });
+  });
+
+  describe('getSeasonFromDate', () => {
+    it('should return season based on date month', () => {
+      expect(taskService.getSeasonFromDate('2026-04-15T12:00:00')).toBe('Frühling');
+      expect(taskService.getSeasonFromDate('2026-07-15T12:00:00')).toBe('Sommer');
+      expect(taskService.getSeasonFromDate('2026-10-15T12:00:00')).toBe('Herbst');
+      expect(taskService.getSeasonFromDate('2026-01-15T12:00:00')).toBe('Winter');
+    });
+
+    it('should return Unbekannt for null', () => {
+      expect(taskService.getSeasonFromDate(null)).toBe('Unbekannt');
+    });
+  });
+
+  describe('isTaskOverdue', () => {
+    it('should return true for past dates', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      expect(taskService.isTaskOverdue(yesterday.toISOString())).toBe(true);
+    });
+
+    it('should return false for today', () => {
+      expect(taskService.isTaskOverdue(new Date().toISOString())).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(taskService.isTaskOverdue(null)).toBe(false);
+    });
+  });
+
+  describe('isTaskDueThisWeek', () => {
+    it('should return true for date within current week', () => {
+      const today = new Date();
+      expect(taskService.isTaskDueThisWeek(today.toISOString())).toBe(true);
+    });
+
+    it('should return false for date next week', () => {
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 8);
+      expect(taskService.isTaskDueThisWeek(nextWeek.toISOString())).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(taskService.isTaskDueThisWeek(null)).toBe(false);
+    });
+  });
+
+  describe('isTaskDueNextWeek', () => {
+    it('should return true for date next week', () => {
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 8);
+      expect(taskService.isTaskDueNextWeek(nextWeek.toISOString())).toBe(true);
+    });
+
+    it('should return false for date this week', () => {
+      const today = new Date();
+      expect(taskService.isTaskDueNextWeek(today.toISOString())).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(taskService.isTaskDueNextWeek(null)).toBe(false);
+    });
+  });
+
+  describe('filterTasksBySeason', () => {
+    it('should return all tasks for Alle season', () => {
+      const tasks = [
+        { scheduled_date: '2026-04-15T12:00:00' },
+        { scheduled_date: '2026-07-15T12:00:00' },
+      ] as any;
+      expect(taskService.filterTasksBySeason(tasks, 'Alle')).toHaveLength(2);
+    });
+
+    it('should filter tasks by season', () => {
+      const tasks = [
+        { scheduled_date: '2026-04-15T12:00:00' },
+        { scheduled_date: '2026-07-15T12:00:00' },
+      ] as any;
+      const filtered = taskService.filterTasksBySeason(tasks, 'Frühling');
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].scheduled_date).toBe('2026-04-15T12:00:00');
+    });
+  });
+
+  describe('sortTasksByMonth', () => {
+    it('should sort tasks by date ascending', () => {
+      const tasks = [
+        { scheduled_date: '2026-07-15T12:00:00' },
+        { scheduled_date: '2026-03-15T12:00:00' },
+        { scheduled_date: '2026-05-15T12:00:00' },
+      ] as any;
+      const sorted = taskService.sortTasksByMonth(tasks);
+      expect(sorted[0].scheduled_date).toBe('2026-03-15T12:00:00');
+      expect(sorted[2].scheduled_date).toBe('2026-07-15T12:00:00');
+    });
+  });
+
+  describe('getSortLabel', () => {
+    it('should return month label for month sort', () => {
+      expect(taskService.getSortLabel('month')).toBe('Nach Monat');
+    });
+  });
 });
