@@ -23,6 +23,11 @@ export interface KnowledgeArticle {
   user_id: null; // System articles only (not user-created)
   created_at: string;
   updated_at?: string;
+  
+  // NEUE FELDER
+  sourceType?: 'chat' | 'manual' | 'api';
+  sourceFile?: 'chat1' | 'chat2' | 'manual';
+  topic?: string;
 }
 
 export interface KnowledgeFilters {
