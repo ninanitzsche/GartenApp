@@ -200,6 +200,64 @@ export default function PlantDetailScreen() {
           </GlassCard>
         </View>
 
+        {/* PlantNet Info Section */}
+        {plant.plantnet_data && !plant.plantnet_data.notFound && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Pflanzen-Info"
+              icon={<Leaf size={20} color={Colors2026.primary} />}
+              animated={true}
+              delay={50}
+            />
+            <GlassCard variant="light">
+              {plant.plantnet_data.commonNames?.length > 0 && (
+                <View style={styles.plantNetInfoRow}>
+                  <Text style={styles.infoLabel}>Deutsche Namen:</Text>
+                  <Text style={styles.infoValue}>
+                    {plant.plantnet_data.commonNames.join(', ')}
+                  </Text>
+                </View>
+              )}
+              {plant.plantnet_data.family && (
+                <View style={styles.plantNetInfoRow}>
+                  <Text style={styles.infoLabel}>Familie:</Text>
+                  <Text style={styles.infoValue}>{plant.plantnet_data.family}</Text>
+                </View>
+              )}
+              {plant.plantnet_data.genus && (
+                <View style={styles.plantNetInfoRow}>
+                  <Text style={styles.infoLabel}>Gattung:</Text>
+                  <Text style={styles.infoValue}>{plant.plantnet_data.genus}</Text>
+                </View>
+              )}
+              {plant.plantnet_data.scientificName && (
+                <View style={styles.plantNetInfoRow}>
+                  <Text style={styles.infoLabel}>Wissenschaftlich:</Text>
+                  <Text style={[styles.infoValue, styles.italic]}>
+                    {plant.plantnet_data.scientificName}
+                  </Text>
+                </View>
+              )}
+              {plant.plantnet_data.confidence && (
+                <View style={styles.plantNetInfoRow}>
+                  <Text style={styles.infoLabel}>KI-Identifikation:</Text>
+                  <Text style={styles.infoValue}>
+                    {Math.round(plant.plantnet_data.confidence * 100)}% sicher
+                  </Text>
+                </View>
+              )}
+            </GlassCard>
+          </View>
+        )}
+
+        {plant.plantnet_data?.notFound && (
+          <View style={styles.section}>
+            <View style={styles.notFoundBadge}>
+              <Text style={styles.notFoundText}>⚠️ Keine PlantNet-Daten gefunden</Text>
+            </View>
+          </View>
+        )}
+
         {/* Photos Section */}
         {photos.length > 0 && (
           <View style={styles.section}>
@@ -416,5 +474,29 @@ const styles = StyleSheet.create({
     borderRadius: Radius2026.md,
     marginRight: Spacing2026.sm,
     backgroundColor: Colors2026.glass.tint,
+  },
+  plantNetInfoRow: {
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: Colors2026.textSecondary,
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: Colors2026.text,
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  notFoundBadge: {
+    backgroundColor: Colors2026.status.warning + '20',
+    borderRadius: 8,
+    padding: 12,
+  },
+  notFoundText: {
+    fontSize: 14,
+    color: Colors2026.status.warning,
   },
 });
