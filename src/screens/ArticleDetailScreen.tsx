@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,18 @@ export default function ArticleDetailScreen({ navigation }: Props) {
 
   const [article, setArticle] = useState<KnowledgeArticle | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('EditKnowledgeArticle', { articleId })}
+        >
+          <MaterialIcons name="edit" size={24} color={Colors2026.primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, articleId]);
 
   useEffect(() => {
     loadArticle();

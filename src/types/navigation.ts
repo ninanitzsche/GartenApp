@@ -48,6 +48,7 @@ export type RootStackParamList = {
   KnowledgeBase: undefined;
   ArticleDetail: { articleId: string };
   AddKnowledgeNote: undefined;
+  EditKnowledgeArticle: { articleId: string };
 
   // Garden Stack (Sprint 7)
   GardenOverview: undefined;
