@@ -55,6 +55,68 @@ export interface PlantIdentificationResult {
   commonNames: string[];
   gbifId?: string;
   powoId?: string;
+  genus?: string;
+  images?: string[];
+}
+
+export interface PlantNetData {
+  id: string;
+  name: string;
+  scientificName: string;
+  family: string;
+  genus: string;
+  commonNames: string[];
+  confidence: number;
+  gbifId?: string;
+  powoId?: string;
+  images: Array<{
+    url: string;
+    license: string;
+    author?: string;
+  }>;
+  notFound?: boolean;
+}
+
+export interface PerenualPlantData {
+  id: number;
+  common_name: string;
+  scientific_name: string[];
+  family: string;
+  cycle: 'Annual' | 'Perennial' | 'Biennial';
+  watering: 'frequent' | 'average' | 'minimum' | 'none';
+  watering_general_benchmark?: { value: string; unit: string };
+  sunlight: string[];
+  hardiness: { min: string; max: string };
+  care_level: 'Easy' | 'Medium' | 'Hard';
+  growth_rate: 'Low' | 'Medium' | 'High';
+  soil: string[];
+  maintenance: string;
+  description: string;
+  pruning_month?: string[];
+  flowering_season?: string;
+  default_image?: {
+    regular_url: string;
+    medium_url: string;
+    small_url: string;
+  };
+}
+
+export interface PermapeoplePlantData {
+  id: number;
+  name: string;
+  scientific_name: string;
+  data: Array<{
+    key: string;
+    value: string;
+  }>;
+}
+
+export interface CombinedPlantData {
+  plantnet: PlantNetData | null;
+  perenual: PerenualPlantData | null;
+  permapeople: PermapeoplePlantData | null;
+  notFound: boolean;
+  sources: string[];
 }
 
 export interface PlantNetSpecies {
@@ -147,10 +209,15 @@ export interface PlantNetData {
   name: string;
   scientificName: string;
   family: string;
+  genus: string;
   commonNames: string[];
+  confidence: number;
+  gbifId?: string;
+  powoId?: string;
   images: Array<{
     url: string;
     license: string;
+    author?: string;
   }>;
   notFound?: boolean;
 }
