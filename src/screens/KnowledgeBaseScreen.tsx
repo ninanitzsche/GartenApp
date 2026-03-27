@@ -10,6 +10,7 @@ import {
   Alert,
   RefreshControl,
   ScrollView,
+  SectionList,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -24,6 +25,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import GlassCard from '../components/ui/GlassCard';
 import {
   fetchArticles,
+  fetchArticlesGroupedByTopic,
   searchArticles,
   getArticlesByCategory,
   getCategoryLabel,
@@ -32,18 +34,32 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'KnowledgeBase'>;
 
+type SourceFilter = 'all' | 'chat' | 'manual';
+
 export default function KnowledgeBaseScreen({ navigation }: Props) {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<KnowledgeArticle[]>([]);
+  const [articlesGrouped, setArticlesGrouped] = useState<Record<string, KnowledgeArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<KnowledgeCategory | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
 
   // Load articles on mount
   useEffect(() => {
     loadArticles();
+    loadGroupedArticles();
   }, []);
+
+  const loadGroupedArticles = async () => {
+    try {
+      const grouped = await fetchArticlesGroupedByTopic();
+      setArticlesGrouped(grouped);
+    } catch (error) {
+      console.error('Error loading grouped articles:', error);
+    }
+  };
 
   // Filter articles when search or category changes
   useEffect(() => {
@@ -198,35 +214,92 @@ export default function KnowledgeBaseScreen({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      {/* Articles List */}
-      <FlatList
-        data={filteredArticles}
-        keyExtractor={(item) => item.id}
-        renderItem={renderArticleCard}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <MaterialIcons
-              name="sentiment-dissatisfied"
-              size={48}
-              color={Colors2026.textSecondary}
-            />
-            <Text style={styles.emptyStateText}>
-              {searchQuery.length > 0 || selectedCategory
-                ? 'Keine Artikel gefunden'
-                : 'Keine Artikel verfügbar'}
-            </Text>
-            <Text style={styles.emptyStateSubtext}>
-              {searchQuery.length > 0
-                ? 'Versuchen Sie eine andere Suchanfrage'
-                : 'Laden Sie die Seite neu'}
-            </Text>
-          </View>
-        }
-      />
+      {/* Source Filter Tabs */}
+      <View style={styles.sourceTabs}>
+        <TouchableOpacity 
+          style={[styles.sourceTab, sourceFilter === 'all' && styles.sourceTabActive]}
+          onPress={() => setSourceFilter('all')}
+        >
+          <Text style={[styles.sourceTabText, sourceFilter === 'all' && styles.sourceTabTextActive]}>Alle</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.sourceTab, sourceFilter === 'chat' && styles.sourceTabActive]}
+          onPress={() => setSourceFilter('chat')}
+        >
+          <Text style={[styles.sourceTabText, sourceFilter === 'chat' && styles.sourceTabTextActive]}>Chat</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.sourceTab, sourceFilter === 'manual' && styles.sourceTabActive]}
+          onPress={() => setSourceFilter('manual')}
+        >
+          <Text style={[styles.sourceTabText, sourceFilter === 'manual' && styles.sourceTabTextActive]}>Notizen</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Articles List - Grouped by Topic */}
+      {Object.keys(articlesGrouped).length > 0 ? (
+        <SectionList
+          sections={Object.keys(articlesGrouped).map(topic => ({
+            title: topic === 'General' || !topic ? '🍃 Sonstiges' : `🍅 ${topic}`,
+            data: articlesGrouped[topic].filter(a => 
+              (sourceFilter === 'all' || a.sourceType === sourceFilter) &&
+              (!searchQuery || a.title.toLowerCase().includes(searchQuery.toLowerCase()))
+            ),
+          })).filter(section => section.data.length > 0)}
+          keyExtractor={(item) => item.id}
+          renderItem={renderArticleCard}
+          renderSectionHeader={({ section: { title } }) => (
+            <View style={styles.topicSectionHeader}>
+              <Text style={styles.topicSectionTitle}>{title}</Text>
+            </View>
+          )}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <MaterialIcons
+                name="sentiment-dissatisfied"
+                size={48}
+                color={Colors2026.textSecondary}
+              />
+              <Text style={styles.emptyStateText}>
+                Keine Artikel gefunden
+              </Text>
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={filteredArticles}
+          keyExtractor={(item) => item.id}
+          renderItem={renderArticleCard}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <MaterialIcons
+                name="sentiment-dissatisfied"
+                size={48}
+                color={Colors2026.textSecondary}
+              />
+              <Text style={styles.emptyStateText}>
+                {searchQuery.length > 0 || selectedCategory
+                  ? 'Keine Artikel gefunden'
+                  : 'Keine Artikel verfügbar'}
+              </Text>
+              <Text style={styles.emptyStateSubtext}>
+                {searchQuery.length > 0
+                  ? 'Versuchen Sie eine andere Suchanfrage'
+                  : 'Laden Sie die Seite neu'}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -362,5 +435,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors2026.textSecondary,
     marginTop: 6,
+  },
+  sourceTabs: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors2026.border,
+  },
+  sourceTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: Colors2026.surface,
+  },
+  sourceTabActive: { backgroundColor: Colors2026.primary },
+  sourceTabText: { fontSize: 14, fontWeight: '600', color: Colors2026.textSecondary },
+  sourceTabTextActive: { color: '#fff' },
+  topicSectionHeader: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: Colors2026.background,
+  },
+  topicSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors2026.text,
   },
 });
