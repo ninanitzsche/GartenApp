@@ -149,13 +149,9 @@ export async function fetchArticle(articleId: string): Promise<KnowledgeArticle 
       .from('knowledge_articles')
       .select('*')
       .eq('id', articleId)
-      .is('user_id', null)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 is "no rows returned" which is expected when not found
-      throw error;
-    }
+    if (error) throw error;
 
     return (data || null) as KnowledgeArticle | null;
   } catch (error: any) {
