@@ -47,6 +47,7 @@ export type RootStackParamList = {
   // Knowledge Stack (Sprint 6A)
   KnowledgeBase: undefined;
   ArticleDetail: { articleId: string };
+  AddKnowledgeNote: undefined;
 
   // Garden Stack (Sprint 7)
   GardenOverview: undefined;
@@ -65,6 +66,7 @@ export type TasksStackParamList = {
   TaskList: undefined;
   AddTask: { taskId?: string };
   TaskDetail: { taskId: string };
+  ArticleDetail: { articleId: string };
 };
 
 // Tab navigator - bottom tabs (4 tabs - Approach B)

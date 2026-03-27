@@ -12,6 +12,7 @@ import HarvestLogScreen from '../screens/HarvestLogScreen';
 import AddHarvestScreen from '../screens/AddHarvestScreen';
 import KnowledgeBaseScreen from '../screens/KnowledgeBaseScreen';
 import ArticleDetailScreen from '../screens/ArticleDetailScreen';
+import AddKnowledgeNoteScreen from '../screens/AddKnowledgeNoteScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,6 +84,13 @@ export default function MoreMenuStackNavigator() {
         component={ArticleDetailScreen}
         options={{
           title: 'Artikel',
+        }}
+      />
+      <Stack.Screen
+        name="AddKnowledgeNote"
+        component={AddKnowledgeNoteScreen}
+        options={{
+          title: 'Neue Notiz',
         }}
       />
     </Stack.Navigator>
