@@ -96,6 +96,30 @@ export default function ArticleDetailScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {/* Source and Topic Badges */}
+        <View style={styles.badges}>
+          {article.sourceType && (
+            <View
+              style={[
+                styles.sourceBadge,
+                article.sourceType === 'chat' && styles.badgeChat,
+                article.sourceType === 'manual' && styles.badgeManual,
+                article.sourceType === 'api' && styles.badgeApi,
+              ]}
+            >
+              <Text style={styles.badgeText}>
+                {article.sourceType === 'chat' ? '🤖 Chat' :
+                 article.sourceType === 'manual' ? '✏️ Notiz' : '🌐 API'}
+              </Text>
+            </View>
+          )}
+          {article.topic && (
+            <View style={styles.topicBadge}>
+              <Text style={styles.topicBadgeText}>🍅 {article.topic}</Text>
+            </View>
+          )}
+        </View>
+
         <View style={styles.metaContainer}>
           <View style={styles.metaItem}>
             <MaterialIcons name="calendar-today" size={16} color={Colors2026.textSecondary} />
@@ -223,5 +247,36 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 20,
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  sourceBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeChat: { backgroundColor: '#E3F2FD' },
+  badgeManual: { backgroundColor: '#FFF3E0' },
+  badgeApi: { backgroundColor: '#E8F5E9' },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors2026.text,
+  },
+  topicBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: Colors2026.surface,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+  },
+  topicBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors2026.textSecondary,
   },
 });
