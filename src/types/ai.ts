@@ -142,4 +142,17 @@ export interface PhotoAIAnalysis {
   created_at: string;
 }
 
+export interface PlantNetData {
+  id: string;
+  name: string;
+  scientificName: string;
+  family: string;
+  commonNames: string[];
+  images: Array<{
+    url: string;
+    license: string;
+  }>;
+  notFound?: boolean;
+}
+
 export type AIAnalysisResult = AIIdentification;

@@ -17,6 +17,9 @@ export interface Plant {
   tags?: string[];
   identification_source?: 'ai' | 'manual';
   identified_at?: string;
+  plantnet_id?: string;
+  plantnet_data?: any;
+  plantnet_fetched_at?: string;
   user_id: string;
   created_at?: string;
   updated_at?: string;
