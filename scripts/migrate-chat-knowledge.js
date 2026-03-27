@@ -144,9 +144,26 @@ function prioritizeTask(title) {
 }
 
 /**
- * Extract plant-specific care information for knowledge articles
+ * Extract topic from title (plant name)
  */
-function parsePlantCareGuides(markdownContent) {
+function extractTopic(title) {
+  const topics = ['Tomaten', 'Gurken', 'Paprika', 'Aubergine', 'Zucchini', 'Kräuter', 'Salat', 'Bohnen', 'Erbsen', 'Kartoffeln', 'Zwiebeln', 'Möhren', 'Rote Bete', 'Kohl', 'Blumen', 'Basilikum', 'Petersilie', 'Schnittlauch', 'Minze', 'Rosmarin', 'Thymian'];
+  
+  const lowerTitle = title.toLowerCase();
+  for (const topic of topics) {
+    if (lowerTitle.includes(topic.toLowerCase())) {
+      return topic;
+    }
+  }
+  return 'General';
+}
+
+/**
+ * Extract plant-specific care information for knowledge articles
+ * @param {string} markdownContent - The markdown content to parse
+ * @param {string} chatFile - Which chat file ('chat1' or 'chat2')
+ */
+function parsePlantCareGuides(markdownContent, chatFile = 'chat1') {
   const articles = [];
 
   // Extract care tables and sections
@@ -158,7 +175,10 @@ function parsePlantCareGuides(markdownContent) {
       title: 'Pflegeanleitung - Pflanzentabelle',
       category: 'care',
       content: `## Pflegeanleitung Tabelle\n\n${match[0]}`,
-      is_favorited: false
+      is_favorited: false,
+      sourceType: 'chat',
+      sourceFile: chatFile,
+      topic: 'General'
     });
   }
 
@@ -172,8 +192,11 @@ function parsePlantCareGuides(markdownContent) {
       articles.push({
         title: `Strategie: ${match[1].trim()}`,
         category: 'strategy',
-        content: match[2].substring(0, 2000), // Limit content
-        is_favorited: false
+        content: match[2].substring(0, 2000),
+        is_favorited: false,
+        sourceType: 'chat',
+        sourceFile: chatFile,
+        topic: extractTopic(match[1])
       });
     }
   }
@@ -296,14 +319,14 @@ async function migrateData() {
   if (fs.existsSync(GEMINI_1_PATH)) {
     const content1 = fs.readFileSync(GEMINI_1_PATH, 'utf8');
     allTasks = allTasks.concat(parseCalendarEntries(content1));
-    allArticles = allArticles.concat(parsePlantCareGuides(content1));
+    allArticles = allArticles.concat(parsePlantCareGuides(content1, 'chat1'));
     logSuccess(`Parsed Gemini Chatverlauf 1: ${allTasks.length} tasks found`);
   }
 
   if (fs.existsSync(GEMINI_2_PATH)) {
     const content2 = fs.readFileSync(GEMINI_2_PATH, 'utf8');
     allTasks = allTasks.concat(parseCalendarEntries(content2));
-    allArticles = allArticles.concat(parsePlantCareGuides(content2));
+    allArticles = allArticles.concat(parsePlantCareGuides(content2, 'chat2'));
     logSuccess(`Parsed Gemini Chatverlauf 2: ${allTasks.length} total tasks found`);
   }
 
@@ -353,7 +376,10 @@ async function migrateData() {
             title: article.title,
             category: article.category,
             content: article.content,
-            is_favorited: article.is_favorited
+            is_favorited: article.is_favorited,
+            sourceType: article.sourceType || 'chat',
+            sourceFile: article.sourceFile || 'chat1',
+            topic: article.topic || 'General'
           });
 
         if (error) {
