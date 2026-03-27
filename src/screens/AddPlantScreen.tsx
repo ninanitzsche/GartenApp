@@ -18,6 +18,7 @@ import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { PlantFormData, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { createPlant } from '../services/plantService';
+import { getPlantInfo, updatePlantWithPlantInfo } from '../services/plantInfoService';
 import GlassInput from '../components/ui/GlassInput';
 import GlassCard from '../components/ui/GlassCard';
 import AnimatedButton from '../components/ui/AnimatedButton';
@@ -42,6 +43,7 @@ export default function AddPlantScreen({ navigation, route }: Props) {
     tags: [],
   });
   const [loading, setLoading] = useState(false);
+  const [fetchingPlantInfo, setFetchingPlantInfo] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = (): boolean => {
@@ -74,8 +76,23 @@ export default function AddPlantScreen({ navigation, route }: Props) {
         }
       });
 
-      await createPlant(cleanData);
-      Alert.alert('Erfolg', 'Pflanze wurde hinzugefügt.', [
+      const newPlant = await createPlant(cleanData);
+
+      if (formData.name && identificationSource === 'ai') {
+        setFetchingPlantInfo(true);
+        try {
+          const plantInfo = await getPlantInfo(formData.name);
+          if (plantInfo && !plantInfo.notFound && newPlant) {
+            await updatePlantWithPlantInfo(newPlant.id, plantInfo);
+          }
+        } catch (error) {
+          console.error('Failed to fetch PlantNet info:', error);
+        } finally {
+          setFetchingPlantInfo(false);
+        }
+      }
+
+      Alert.alert('Erfolg', 'Pflanze wurde hinzugefügt.' + (fetchingPlantInfo ? '\nPflanzeninfo wird geladen...' : ''), [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
