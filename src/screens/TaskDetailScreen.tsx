@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import GlassCard from '../components/ui/GlassCard';
+import { TasksStackParamList } from '../types/navigation';
 
 interface KnowledgeArticle {
   id: string;
@@ -33,12 +34,7 @@ interface Task {
   completed?: boolean;
 }
 
-type RootStackParamList = {
-  TaskDetail: { taskId: string };
-  KnowledgeDetail: { articleId: string };
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'TaskDetail'>;
+type Props = NativeStackScreenProps<TasksStackParamList, 'TaskDetail'>;
 
 const CATEGORY_CONFIG: Record<string, { icon: any; color: string }> = {
   planting: { icon: 'grass', color: Colors2026.primary },
@@ -212,7 +208,7 @@ export const TaskDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                     styles.articleItem,
                     index === relatedArticles.length - 1 && styles.articleItemLast,
                   ]}
-                  onPress={() => navigation.navigate('KnowledgeDetail', { articleId: article.id })}
+                  onPress={() => navigation.navigate('ArticleDetail', { articleId: article.id })}
                 >
                   <View style={styles.articleContent}>
                     <Text style={styles.articleTitle}>{article.title}</Text>

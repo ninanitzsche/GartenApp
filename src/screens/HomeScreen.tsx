@@ -261,6 +261,11 @@ export default function HomeScreen({ navigation }: Props) {
             <View style={styles.headerLeft}>
               <Text style={styles.greeting}>Guten Tag!</Text>
               <Text style={styles.title}>Dein Garten</Text>
+              {jahreszeit && (
+                <Text style={[styles.seasonLabel, { color: seasonalColor.accent }]}>
+                  {getJahreszeitLabel(jahreszeit)}
+                </Text>
+              )}
             </View>
             <View style={styles.headerIcon}>
               <Leaf size={32} color={Colors2026.primary} />
@@ -582,5 +587,10 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 20,
+  },
+  seasonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });
