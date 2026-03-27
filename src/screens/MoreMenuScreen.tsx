@@ -7,11 +7,13 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings } from 'lucide-react-native';
+import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings, RefreshCw } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { generateTasksForAllPlants } from '../services/taskGenerationService';
+import { fetchAllPlantsInfo } from '../services/plantInfoService';
 import GlassCard from '../components/ui/GlassCard';
+import BatchProgressModal from '../components/ui/BatchProgressModal';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -54,6 +56,8 @@ export default function MoreMenuScreen({ navigation }: Props) {
     transform: [{ scale: scale.value }],
   }));
   const [generatingTasks, setGeneratingTasks] = useState(false);
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, plantName: '' });
 
   const handleLogout = () => {
     Alert.alert(
@@ -77,44 +81,60 @@ export default function MoreMenuScreen({ navigation }: Props) {
     );
   };
 
+  const handleRefreshPlantData = async () => {
+    setBatchModalVisible(true);
+    setBatchProgress({ current: 0, total: 0, plantName: 'Starte...' });
+    try {
+      const result = await fetchAllPlantsInfo((current, total, plantName) => {
+        setBatchProgress({ current, total, plantName });
+      });
+      Alert.alert('Erfolg', `${result.updated} Pflanzen aktualisiert`);
+    } catch (error) {
+      Alert.alert('Fehler', 'Update fehlgeschlagen');
+    } finally {
+      setBatchModalVisible(false);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Glass Header */}
-      <BlurView intensity={60} style={styles.glassHeader}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Mehr</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Glass Header */}
+        <BlurView intensity={60} style={styles.glassHeader}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.headerTitle}>Mehr</Text>
+            </View>
+            <View style={styles.headerIcon}>
+              <Settings size={24} color={Colors2026.primary} />
+            </View>
           </View>
-          <View style={styles.headerIcon}>
-            <Settings size={24} color={Colors2026.primary} />
+        </BlurView>
+
+        {/* User Info */}
+        <View style={styles.userSection}>
+          <View style={styles.avatar}>
+            <User size={32} color={Colors2026.primary} />
           </View>
+          <Text style={styles.email}>{user?.email}</Text>
         </View>
-      </BlurView>
 
-      {/* User Info */}
-      <View style={styles.userSection}>
-        <View style={styles.avatar}>
-          <User size={32} color={Colors2026.primary} />
+        {/* Konto Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Konto</Text>
+          <GlassCard variant="light" animated={false}>
+            <MenuItem
+              icon={<User size={20} color={Colors2026.primary} />}
+              label="Mein Profil"
+              onPress={() => navigation.navigate({ name: 'Profile' })}
+            />
+          </GlassCard>
         </View>
-        <Text style={styles.email}>{user?.email}</Text>
-      </View>
 
-       {/* Konto Section */}
-       <View style={styles.section}>
-         <Text style={styles.sectionTitle}>Konto</Text>
-         <GlassCard variant="light" animated={false}>
-           <MenuItem
-             icon={<User size={20} color={Colors2026.primary} />}
-             label="Mein Profil"
-             onPress={() => navigation.navigate({ name: 'Profile' })}
-           />
-         </GlassCard>
-       </View>
-
-       {/* Aufgaben Section */}
-       <View style={styles.section}>
-         <Text style={styles.sectionTitle}>Aufgaben</Text>
-         <GlassCard variant="light" animated={false}>
+        {/* Aufgaben Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Aufgaben</Text>
+          <GlassCard variant="light" animated={false}>
             <MenuItem
               icon={<Sprout size={20} color={Colors2026.primary} />}
               label="Aufgaben für Pflanzen generieren"
@@ -143,44 +163,58 @@ export default function MoreMenuScreen({ navigation }: Props) {
                 })();
               }}
             />
-         </GlassCard>
-       </View>
+          </GlassCard>
+        </View>
 
-       {/* Funktionen Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Funktionen</Text>
-        <GlassCard variant="light" animated={false}>
-           <MenuItem
-             icon={<ShoppingCart size={20} color={Colors2026.primary} />}
-             label="Einkaufsliste"
-             onPress={() => navigation.navigate({ name: 'ShoppingDashboard' })}
-           />
-          <MenuItem
-            icon={<Sprout size={20} color={Colors2026.primary} />}
-            label="Ernte-Tagebuch"
-            onPress={() => navigation.navigate('HarvestLog')}
-          />
-          <MenuItem
-            icon={<BookOpen size={20} color={Colors2026.primary} />}
-            label="Wissensdatenbank"
-            onPress={() => navigation.navigate('KnowledgeBase')}
-          />
-        </GlassCard>
-      </View>
+        {/* Funktionen Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Funktionen</Text>
+          <GlassCard variant="light" animated={false}>
+            <MenuItem
+              icon={<ShoppingCart size={20} color={Colors2026.primary} />}
+              label="Einkaufsliste"
+              onPress={() => navigation.navigate({ name: 'ShoppingDashboard' })}
+            />
+            <MenuItem
+              icon={<Sprout size={20} color={Colors2026.primary} />}
+              label="Ernte-Tagebuch"
+              onPress={() => navigation.navigate('HarvestLog')}
+            />
+            <MenuItem
+              icon={<BookOpen size={20} color={Colors2026.primary} />}
+              label="Wissensdatenbank"
+              onPress={() => navigation.navigate('KnowledgeBase')}
+            />
+            <MenuItem
+              icon={<RefreshCw size={20} color={Colors2026.primary} />}
+              label="Pflanzendaten aktualisieren"
+              onPress={handleRefreshPlantData}
+            />
+          </GlassCard>
+        </View>
 
-      {/* Logout Button */}
-      <AnimatedPressable
-        style={[styles.logoutButton, animatedStyle]}
-        onPress={handleLogout}
-        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
-      >
-        <LogOut size={20} color="#fff" />
-        <Text style={styles.logoutText}>Abmelden</Text>
-      </AnimatedPressable>
+        {/* Logout Button */}
+        <AnimatedPressable
+          style={[styles.logoutButton, animatedStyle]}
+          onPress={handleLogout}
+          onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+          onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        >
+          <LogOut size={20} color="#fff" />
+          <Text style={styles.logoutText}>Abmelden</Text>
+        </AnimatedPressable>
 
-      <View style={styles.spacer} />
-    </ScrollView>
+        <View style={styles.spacer} />
+      </ScrollView>
+
+      <BatchProgressModal
+        visible={batchModalVisible}
+        current={batchProgress.current}
+        total={batchProgress.total}
+        currentPlantName={batchProgress.plantName}
+        onCancel={() => setBatchModalVisible(false)}
+      />
+    </View>
   );
 }
 
