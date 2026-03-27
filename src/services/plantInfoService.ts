@@ -93,3 +93,84 @@ export async function updatePlantWithPlantInfo(plantId: string, plantInfo: Plant
     })
     .eq('id', plantId);
 }
+
+export async function fetchAllPlantsInfo(
+  onProgress?: (current: number, total: number, plantName: string) => void
+): Promise<{ updated: number; failed: number }> {
+  const { data: plants, error } = await supabase
+    .from('plants')
+    .select('id, name, plantnet_fetched_at');
+
+  if (error || !plants) {
+    throw new Error('Failed to fetch plants');
+  }
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const plantsToUpdate = plants.filter(p => {
+    if (!p.plantnet_fetched_at) return true;
+    return new Date(p.plantnet_fetched_at) < thirtyDaysAgo;
+  });
+
+  let updated = 0;
+  let failed = 0;
+
+  for (let i = 0; i < plantsToUpdate.length; i++) {
+    const plant = plantsToUpdate[i];
+    
+    onProgress?.(i + 1, plantsToUpdate.length, plant.name);
+
+    try {
+      const plantInfo = await getPlantInfo(plant.name);
+      
+      if (plantInfo && !plantInfo.notFound) {
+        await updatePlantWithPlantInfo(plant.id, plantInfo);
+        
+        await createLearningsFromPlantInfo(plant.id, plantInfo);
+        
+        updated++;
+      } else {
+        failed++;
+      }
+    } catch (error) {
+      console.error(`Failed to fetch info for ${plant.name}:`, error);
+      failed++;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  return { updated, failed };
+}
+
+async function createLearningsFromPlantInfo(plantId: string, plantInfo: PlantNetData): Promise<void> {
+  if (plantInfo.notFound) return;
+
+  const learnings = [];
+
+  if (plantInfo.commonNames.length > 0) {
+    learnings.push({
+      title: `Wissenswertes über ${plantInfo.name}`,
+      content: `Deutsche Namen: ${plantInfo.commonNames.join(', ')}\n\nFamilie: ${plantInfo.family}\nGattung: ${plantInfo.genus}\nWissenschaftlicher Name: ${plantInfo.scientificName}`,
+      related_plants: [plantId],
+      source: 'ai',
+    });
+  }
+
+  if (learnings.length === 0) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  for (const learning of learnings) {
+    await supabase.from('learnings').insert({
+      user_id: user.id,
+      ...learning,
+      dismissed: false,
+      relevance_score: 0,
+      valid_for_zeitraeume: [],
+      flexible: false,
+    });
+  }
+}
