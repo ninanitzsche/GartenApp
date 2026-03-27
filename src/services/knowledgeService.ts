@@ -12,6 +12,105 @@ import {
   KnowledgeSearchResult,
 } from '../types/knowledge';
 
+export async function fetchArticlesByTopic(topic: string): Promise<KnowledgeArticle[]> {
+  try {
+    const { data, error } = await supabase
+      .from('knowledge_articles')
+      .select('*')
+      .eq('topic', topic)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as KnowledgeArticle[];
+  } catch (error: any) {
+    console.error('Error fetching articles by topic:', error.message);
+    throw new Error(`Error fetching articles: ${error.message}`);
+  }
+}
+
+export async function createManualEntry(entry: Partial<KnowledgeArticle>): Promise<KnowledgeArticle> {
+  try {
+    const { data, error } = await supabase
+      .from('knowledge_articles')
+      .insert({
+        title: entry.title,
+        content: entry.content,
+        category: entry.category || 'sonstiges',
+        tags: entry.tags || [],
+        sourceType: 'manual',
+        sourceFile: 'manual',
+        topic: entry.topic,
+        user_id: null,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as KnowledgeArticle;
+  } catch (error: any) {
+    console.error('Error creating manual entry:', error.message);
+    throw new Error(`Error creating entry: ${error.message}`);
+  }
+}
+
+export async function fetchArticlesGroupedByTopic(): Promise<Record<string, KnowledgeArticle[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('knowledge_articles')
+      .select('*')
+      .order('topic', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const grouped: Record<string, KnowledgeArticle[]> = {};
+    (data || []).forEach((article: KnowledgeArticle) => {
+      const topic = article.topic || 'General';
+      if (!grouped[topic]) {
+        grouped[topic] = [];
+      }
+      grouped[topic].push(article);
+    });
+
+    return grouped;
+  } catch (error: any) {
+    console.error('Error fetching grouped articles:', error.message);
+    throw new Error(`Error fetching articles: ${error.message}`);
+  }
+}
+
+export async function updateKnowledgeArticle(id: string, updates: Partial<KnowledgeArticle>): Promise<KnowledgeArticle> {
+  try {
+    const { data, error } = await supabase
+      .from('knowledge_articles')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as KnowledgeArticle;
+  } catch (error: any) {
+    console.error('Error updating article:', error.message);
+    throw new Error(`Error updating article: ${error.message}`);
+  }
+}
+
+export async function deleteKnowledgeArticle(id: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('knowledge_articles')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error: any) {
+    console.error('Error deleting article:', error.message);
+    throw new Error(`Error deleting article: ${error.message}`);
+  }
+}
+
 /**
  * Fetch all knowledge articles (system articles only, user_id IS NULL)
  * Sorted by category, then by title
