@@ -13,6 +13,7 @@ export interface Learning {
   created_at: string;
   updated_at?: string;
   user_rating?: 'helpful' | 'not_helpful';
+  source?: 'ai' | 'user';
   dismissed: boolean;
   flexible?: boolean;
 }

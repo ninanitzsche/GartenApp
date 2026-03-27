@@ -22,6 +22,11 @@ export default function LearningCard({ learning, onRate, onDismiss }: LearningCa
         <Text style={styles.title} numberOfLines={2}>
           {learning.title}
         </Text>
+        {learning.source === 'ai' && (
+          <View style={styles.aiBadge}>
+            <Text style={styles.aiBadgeText}>🤖 KI-generiert</Text>
+          </View>
+        )}
         <TouchableOpacity 
           onPress={onDismiss} 
           style={styles.dismissButton}
@@ -158,5 +163,19 @@ const styles = StyleSheet.create({
   source: {
     fontSize: 11,
     color: Colors2026.textSecondary,
+  },
+  aiBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: Colors2026.primary + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  aiBadgeText: {
+    fontSize: 10,
+    color: Colors2026.primary,
+    fontWeight: '600',
   },
 });
