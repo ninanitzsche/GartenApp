@@ -94,6 +94,25 @@ export interface PerenualPlantData {
   description: string;
   pruning_month?: string[];
   flowering_season?: string;
+  fruiting_season?: string;
+  harvest_season?: string;
+  harvest_method?: string;
+  seeds?: number;
+  attracts?: string[];
+  drought_tolerant?: boolean;
+  salt_tolerant?: boolean;
+  thorny?: boolean;
+  invasive?: boolean;
+  rare?: boolean;
+  tropical?: boolean;
+  cuisine?: boolean;
+  indoor?: boolean;
+  medicinal?: boolean;
+  poisonous_to_humans?: boolean;
+  poisonous_to_pets?: boolean;
+  edible_fruit?: boolean;
+  edible_leaf?: boolean;
+  leaves?: boolean;
   default_image?: {
     regular_url: string;
     medium_url: string;
@@ -109,6 +128,12 @@ export interface PermapeoplePlantData {
     key: string;
     value: string;
   }>;
+  layers?: string[];
+  edible_parts?: string[];
+  water_requirement?: string;
+  light_requirement?: string;
+  usda_hardiness_zone?: string;
+  soil_type?: string[];
 }
 
 export interface CombinedPlantData {
@@ -223,3 +248,20 @@ export interface PlantNetData {
 }
 
 export type AIAnalysisResult = AIIdentification;
+
+export interface PlantDiseaseData {
+  results: Array<{
+    name: string;
+    label: string;
+    score: number;
+    description: string;
+    images?: Array<{
+      organ: string;
+      url: { o: string; m: string; s: string };
+      author: string;
+      license: string;
+    }>;
+  }>;
+  remainingRequests: number;
+  identifiedAt: string;
+}
