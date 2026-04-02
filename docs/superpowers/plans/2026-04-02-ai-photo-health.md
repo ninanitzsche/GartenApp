@@ -139,7 +139,7 @@ git commit -m "feat: add image compression with expo-image-manipulator"
 
 ---
 
-## Task 11: aiIntegrationService erweitern - Orchestrator
+## Task 3: aiIntegrationService erweitern - Orchestrator
 
 **Files:**
 - Modify: `src/services/aiIntegrationService.ts`
@@ -341,7 +341,7 @@ git commit -m "feat: add analyzePhotoWithHealth orchestrator with matching and c
 
 ---
 
-## Task 11: AIPhotoPicker Step 2 - Loading Animation
+## Task 4: AIPhotoPicker Step 2 - Loading Animation
 
 **Files:**
 - Create: `src/components/AIPhotoStep2.tsx`
@@ -456,7 +456,7 @@ git commit -m "feat: add AIPhotoStep2 loading animation component"
 
 ---
 
-## Task 11: AIPhotoPicker Step 3 - Ergebnis + Gesundheit
+## Task 5: AIPhotoPicker Step 3 - Ergebnis + Gesundheit
 
 **Files:**
 - Create: `src/components/AIPhotoStep3.tsx`
@@ -681,7 +681,7 @@ git commit -m "feat: add AIPhotoStep3 results and health display component"
 
 ---
 
-## Task 11: AIPhotoPicker Step 4 - Zuordnung
+## Task 6: AIPhotoPicker Step 4 - Zuordnung
 
 **Files:**
 - Create: `src/components/AIPhotoStep4.tsx`
@@ -919,7 +919,7 @@ git commit -m "feat: add AIPhotoStep4 plant assignment component"
 
 ---
 
-## Task 11: AIPhotoPicker Integration - Gesamtflow
+## Task 7: AIPhotoPicker Integration - Gesamtflow
 
 **Files:**
 - Modify: `src/components/AIPhotoPicker.tsx`
@@ -1117,7 +1117,7 @@ git commit -m "feat: integrate full AI photo analysis flow with 4 steps"
 
 ---
 
-## Task 11: Tests für AIPhotoPicker
+## Task 8: Tests für AIPhotoPicker
 
 **Files:**
 - Create: `src/__tests__/AIPhotoPicker.test.tsx`
@@ -1186,7 +1186,7 @@ git commit -m "test: add AIPhotoPicker integration tests"
 
 ---
 
-## Task 11: Integration in Screens
+## Task 9: Integration in Screens
 
 **Files:**
 - Modify: `src/screens/HomeScreen.tsx`
@@ -1248,7 +1248,7 @@ git commit -m "feat: integrate AIPhotoPicker in Home, PlantList, and PlantDetail
 
 ---
 
-## Task 11: Error Handling & Polish
+## Task 10: Error Handling & Polish
 
 **Files:**
 - Modify: `src/components/AIPhotoPicker.tsx`
