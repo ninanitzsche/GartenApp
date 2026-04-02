@@ -2,6 +2,8 @@
  * AI Plant Identification Types
  */
 
+import { Plant } from './plant';
+
 export type AICacheType = 'plant' | 'pest' | 'suggestion';
 
 export const CACHE_TTL = {
@@ -252,8 +254,8 @@ export interface AIPhotoAnalysis {
   plantIdentification: PlantIdentificationResult | null;
   diseaseAnalysis: PlantDiseaseData | null;
   healthStatus: 'gesund' | 'krank' | 'unsicher';
-  matchingPlants: any[];  // Plant type from types/plant.ts
-  bestMatch: any | null;
+  matchingPlants: Plant[];
+  bestMatch: Plant | null;
   errors?: {
     identification?: string;
     disease?: string;
