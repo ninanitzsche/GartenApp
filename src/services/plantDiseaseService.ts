@@ -1,15 +1,13 @@
 import { PlantDiseaseData } from '../types/ai';
 
-const PLANTNET_BASE_URL = 'https://my-api.plantnet.org/v2';
-
 export async function identifyDisease(
   imageUri: string,
   organ: 'leaf' | 'flower' | 'fruit' | 'bark' | 'auto' = 'auto'
 ): Promise<PlantDiseaseData | null> {
-  const apiKey = process.env.EXPO_PUBLIC_PLANTNET_API_KEY;
+  const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   
-  if (!apiKey) {
-    console.warn('PlantNet API key not configured');
+  if (!SUPABASE_URL) {
+    console.warn('Supabase URL not configured');
     return null;
   }
 
@@ -17,21 +15,16 @@ export async function identifyDisease(
   const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
   try {
-    console.log('Reading image...');
-    
-    const responseImg = await fetch(imageUri);
-    const blob = await responseImg.blob();
-    
-    console.log('Sending disease identification request...');
-    
-    const formData = new FormData();
-    formData.append('images', blob as any);
+    console.log('Sending disease identification request via proxy...');
     
     const response = await fetch(
-      `${PLANTNET_BASE_URL}/diseases/identify?api-key=${apiKey}&lang=de&nb-results=3&include-related-images=true`,
+      `${SUPABASE_URL}/functions/v1/plantnet-disease-proxy`,
       {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({ imageUrl: imageUri, organ }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         signal: controller.signal,
       }
     );
@@ -39,8 +32,8 @@ export async function identifyDisease(
     clearTimeout(timeout);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('PlantNet disease API error:', response.status, errorText);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('PlantNet disease API error:', response.status, errorData);
       return null;
     }
 

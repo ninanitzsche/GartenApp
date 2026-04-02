@@ -143,30 +143,62 @@ export async function checkAchievements(
 
 // ── Motivations ──
 
-export function getMotivationMessage(plantProgress: PlantTaskProgress[]): string {
-  // Find plant closest to completion (but not done)
-  const candidates = plantProgress
-    .filter(p => !p.allDone && p.totalTasks > 0)
-    .sort((a, b) => b.completionRate - a.completionRate);
+export interface MotivationResult {
+  message: string;
+  plantId?: string;
+}
 
-  if (candidates.length === 0) {
+export function getMotivationMessage(
+  plantProgress: PlantTaskProgress[], 
+  todayCompletedCount: number = 0
+): MotivationResult {
+  // If no tasks completed today, motivate to start
+  if (todayCompletedCount === 0) {
+    return { message: 'Starte mit deiner ersten Aufgabe! 🌱' };
+  }
+
+  // Find plants with open tasks (not done, has tasks)
+  const openPlants = plantProgress
+    .filter(p => !p.allDone && p.totalTasks > 0);
+
+  if (openPlants.length === 0) {
     if (plantProgress.some(p => p.allDone)) {
-      return 'Alle Aufgaben geschafft! Dein Garten blüht! 🌻';
+      return { message: 'Alle Aufgaben geschafft! Dein Garten blüht! 🌻' };
     }
-    return 'Starte mit deiner ersten Aufgabe! 🌱';
+    return { message: 'Gut gemacht heute! 🌟' };
   }
 
-  const closest = candidates[0];
-  const remaining = closest.totalTasks - closest.completedTasks;
+  // Random plant with open tasks
+  const randomPlant = openPlants[Math.floor(Math.random() * openPlants.length)];
+  const remaining = randomPlant.totalTasks - randomPlant.completedTasks;
 
+  console.log('[MOTIVATION] Selected plant:', {
+    plantId: randomPlant.plantId,
+    plantName: randomPlant.plantName,
+    remaining,
+    totalTasks: randomPlant.totalTasks,
+  });
+
+  // Base motivation
+  let plantMsg = '';
   if (remaining === 1) {
-    return `Nur noch 1 Aufgabe bis ${closest.plantName} wächst! 💪`;
+    plantMsg = `Nur noch 1 Aufgabe für ${randomPlant.plantName}! 🌿`;
+  } else {
+    const options = [
+      `Deine ${randomPlant.plantName} braucht dich 💚`,
+      `${randomPlant.plantName} wartet auf dich 🌿`,
+      `${randomPlant.plantName} braucht noch ${remaining} Aufgaben 🍃`,
+    ];
+    plantMsg = options[Math.floor(Math.random() * options.length)];
   }
-  if (closest.completionRate >= 75) {
-    return `${closest.plantName} ist fast fertig — noch ${remaining} Aufgaben! 🌿`;
+
+  // Add encouragement if 5+ tasks done today
+  if (todayCompletedCount >= 5) {
+    return { 
+      message: `${plantMsg} — Stark, du hast heute schon ${todayCompletedCount} Tasks abgeschlossen! 🌟`,
+      plantId: randomPlant.plantId 
+    };
   }
-  if (closest.completionRate >= 50) {
-    return `${closest.plantName} ist auf dem besten Weg — ${closest.completedTasks}/${closest.totalTasks} ✓`;
-  }
-  return `${closest.plantName} braucht dich — ${remaining} Aufgaben offen 🌱`;
+
+  return { message: plantMsg, plantId: randomPlant.plantId };
 }

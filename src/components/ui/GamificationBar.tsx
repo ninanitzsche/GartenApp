@@ -3,7 +3,7 @@
  * Streak, motivation ticker, and achievement display for dashboard
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   FadeIn,
@@ -21,6 +21,7 @@ interface TaskPreview {
   id: string;
   title: string;
   plantName: string;
+  plantId?: string;
 }
 
 interface GamificationBarProps {
@@ -32,6 +33,8 @@ interface GamificationBarProps {
   pendingTasks?: TaskPreview[];
   onToggleTask?: (taskId: string) => void;
   todayCompletedCount?: number;
+  onPlantPress?: () => void;
+  onTaskPlantPress?: (plantId: string) => void;
 }
 
 export default function GamificationBar({
@@ -43,10 +46,26 @@ export default function GamificationBar({
   pendingTasks = [],
   onToggleTask,
   todayCompletedCount = 0,
+  onPlantPress,
+  onTaskPlantPress,
 }: GamificationBarProps) {
-  const [expanded, setExpanded] = React.useState(false);
-  const [showAchievements, setShowAchievements] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const unlocked = achievements.filter(a => a.unlockedAt);
+
+  const prevTasksRef = React.useRef<string>('');
+
+  useEffect(() => {
+    const taskIds = pendingTasks.map(t => t.id).join(',');
+    if (prevTasksRef.current && prevTasksRef.current !== taskIds) {
+      setExpanded(false);
+    }
+    prevTasksRef.current = taskIds;
+  }, [pendingTasks]);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [motivation]);
 
   return (
     <View style={styles.container}>
@@ -70,21 +89,43 @@ export default function GamificationBar({
       <View>
         <Pressable
           style={styles.motivationRow}
-          onPress={() => pendingTasks.length > 0 ? setExpanded(!expanded) : onMotivationPress?.()}
-          disabled={!onMotivationPress && pendingTasks.length === 0}
+          onPress={() => {
+            // Always toggle expand when there are pending tasks
+            if (pendingTasks.length > 0) {
+              setExpanded(!expanded);
+            }
+          }}
           accessibilityRole="button"
           accessibilityLabel={expanded ? 'Einklappen' : 'Aufgaben anzeigen'}
         >
-          <Text style={styles.motivationText} numberOfLines={1}>
-            {motivation}
-          </Text>
-          {pendingTasks.length > 0 && (
+          <View style={styles.motivationContent}>
+            {onPlantPress ? (
+              <Pressable 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onPlantPress();
+                }}
+              >
+                <Text style={styles.motivationTextLink} numberOfLines={1}>
+                  {motivation}
+                </Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.motivationText} numberOfLines={1}>
+                {motivation}
+              </Text>
+            )}
+          </View>
+          <View style={styles.motivationRight}>
+            {pendingTasks.length > 0 && (
+              <Text style={styles.taskCountBadge}>{pendingTasks.length}</Text>
+            )}
             <ChevronRight 
               size={16} 
               color={Colors2026.primary} 
               style={[styles.motivationArrow, expanded && { transform: [{ rotate: '90deg' }] }]} 
             />
-          )}
+          </View>
         </Pressable>
 
         {/* Expanded: Show pending tasks with toggle */}
@@ -100,7 +141,13 @@ export default function GamificationBar({
                   <Circle size={18} color={Colors2026.textLight} />
                 </View>
                 <View style={styles.taskPreviewContent}>
-                  <Text style={styles.taskPreviewPlant}>{task.plantName}</Text>
+                  {task.plantId && onTaskPlantPress ? (
+                    <Pressable onPress={() => onTaskPlantPress(task.plantId!)}>
+                      <Text style={styles.taskPreviewPlantLink}>{task.plantName}</Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={styles.taskPreviewPlant}>{task.plantName}</Text>
+                  )}
                   <Text style={styles.taskPreviewTitle} numberOfLines={1}>{task.title}</Text>
                 </View>
               </Pressable>
@@ -226,58 +273,36 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing2026.sm,
   },
   motivationContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
-    gap: Spacing2026.sm,
-  },
-  todayEmojis: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
   },
-  todayEmojiBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors2026.glass.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors2026.glass.border,
-  },
-  todayEmoji: {
-    fontSize: 14,
-  },
-  moreEmojis: {
-    fontSize: Typography2026.small.fontSize,
-    fontWeight: '700',
-    color: Colors2026.primary,
-    marginLeft: 4,
-  },
-  todayBadge: {
+  motivationRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(45,157,79,0.15)',
-    borderRadius: Radius2026.round,
-    paddingHorizontal: Spacing2026.sm,
-    paddingVertical: 2,
-    gap: 2,
+    gap: Spacing2026.xs,
   },
-  todayCount: {
-    fontSize: Typography2026.caption.fontSize,
-    fontWeight: '800',
-    color: Colors2026.primary,
-  },
-  todayLabel: {
+  taskCountBadge: {
+    backgroundColor: Colors2026.primary,
+    color: '#fff',
     fontSize: 10,
-    fontWeight: '600',
-    color: Colors2026.primary,
+    fontWeight: '700',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    textAlign: 'center',
   },
   motivationText: {
     fontSize: Typography2026.body.fontSize,
     fontWeight: '500',
     color: Colors2026.text,
+  },
+  motivationTextLink: {
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '500',
+    color: Colors2026.primary,
+    textDecorationLine: 'underline',
   },
   motivationArrow: {
     marginTop: 2,
@@ -398,6 +423,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors2026.primary,
     minWidth: 70,
+  },
+  taskPreviewPlantLink: {
+    fontSize: Typography2026.small.fontSize,
+    fontWeight: '700',
+    color: Colors2026.primary,
+    textDecorationLine: 'underline',
   },
   taskPreviewTitle: {
     flex: 1,

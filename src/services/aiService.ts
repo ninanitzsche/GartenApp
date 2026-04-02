@@ -433,32 +433,36 @@ function getDefaultValueForField(field: string): any {
 }
 
 /**
- * Identify a plant from an image using PlantNet API
+ * Identify a plant from an image using PlantNet API via Supabase proxy
  */
 export async function identifyPlant(imageUri: string): Promise<import('../types/ai').PlantIdentificationResult> {
-  const PLANTNET_BASE_URL = 'https://my-api.plantnet.org/v2';
-  const apiKey = process.env.EXPO_PUBLIC_PLANTNET_API_KEY;
-
-  if (!apiKey) throw new Error('PlantNet API key not configured');
+  const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  
+  if (!SUPABASE_URL) throw new Error('Supabase URL not configured');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
   try {
-    const responseImg = await fetch(imageUri);
-    const blob = await responseImg.blob();
-
-    const formData = new FormData();
-    formData.append('images', blob as any);
-
+    // Use the Supabase edge function proxy to avoid CORS
     const response = await fetch(
-      `${PLANTNET_BASE_URL}/identify?api-key=${apiKey}&lang=de&nb-results=3&include-related-images=false`,
-      { method: 'POST', body: formData, signal: controller.signal }
+      `${SUPABASE_URL}/functions/v1/plantnet-proxy`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ imageUrl: imageUri }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      }
     );
 
     clearTimeout(timeout);
 
-    if (!response.ok) throw new Error(`PlantNet API error: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `PlantNet API error: ${response.status}`);
+    }
 
     const data = await response.json();
     const best = data.results?.[0];

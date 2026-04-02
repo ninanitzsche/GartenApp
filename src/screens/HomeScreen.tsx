@@ -99,6 +99,7 @@ export default function HomeScreen({ navigation }: Props) {
   });
   const [streak, setStreak] = useState<StreakData>({ currentStreak: 0, bestStreak: 0, lastActiveDate: null });
   const [motivation, setMotivation] = useState('');
+  const [motivationPlantId, setMotivationPlantId] = useState<string | undefined>(undefined);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [aiPickerVisible, setAIPickerVisible] = useState(false);
@@ -151,8 +152,8 @@ export default function HomeScreen({ navigation }: Props) {
       loadDashboard();
       loadPrioritizedTasks();
       loadLearnings();
-      loadGamification();
-    }, [loadDashboard])
+      loadGamification(tasks.completedTasks);
+    }, [loadDashboard, tasks.completedTasks])
   );
 
   const onRefresh = async () => {
@@ -161,7 +162,7 @@ export default function HomeScreen({ navigation }: Props) {
       await loadDashboard(true);
       await loadPrioritizedTasks();
       await loadLearnings();
-      await loadGamification();
+      await loadGamification(tasks.completedTasks);
     } finally {
       setRefreshing(false);
     }
@@ -191,13 +192,14 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
-  const loadGamification = async () => {
+  const loadGamification = async (todayCompleted: number = 0) => {
     try {
       const streakData = await calculateStreak();
       setStreak(streakData);
 
-      const msg = getMotivationMessage(gardenGrowth.plants);
-      setMotivation(msg);
+      const result = getMotivationMessage(gardenGrowth.plants, todayCompleted);
+      setMotivation(result.message);
+      setMotivationPlantId(result.plantId);
 
       const allAchievements = await checkAchievements(streakData, gardenGrowth.plants);
       setAchievements(allAchievements);
@@ -215,10 +217,13 @@ export default function HomeScreen({ navigation }: Props) {
       const streakData = await calculateStreak();
       setStreak(streakData);
       // Get updated gardenGrowth from the refreshed state
+      const newCompletedCount = tasks.completedTasks + 1;
       setTimeout(async () => {
         const data = await getDashboardData();
         setGardenGrowth(data.gardenGrowth);
-        setMotivation(getMotivationMessage(data.gardenGrowth.plants));
+        const result = getMotivationMessage(data.gardenGrowth.plants, newCompletedCount);
+        setMotivation(result.message);
+        setMotivationPlantId(result.plantId);
         const allAchievements = await checkAchievements(streakData, data.gardenGrowth.plants);
         setAchievements(allAchievements);
       }, 100);
@@ -344,13 +349,39 @@ export default function HomeScreen({ navigation }: Props) {
           motivation={motivation}
           achievements={achievements}
           onMotivationPress={() => navigation.navigate('Tasks')}
-          pendingTasks={prioritizedTasks.slice(0, 5).map(t => ({
-            id: t.id,
-            title: t.title,
-            plantName: t.linked_plants?.[0]?.name || 'Alle Pflanzen',
-          }))}
+          pendingTasks={(() => {
+            // Filter to specific plant's tasks if we have a motivation plant
+            // If filter returns 0, fall back to all tasks
+            const filteredTasks = motivationPlantId
+              ? prioritizedTasks.filter(t => {
+                  const taskPlantId = t.linked_plants?.[0]?.id;
+                  return taskPlantId === motivationPlantId;
+                })
+              : prioritizedTasks;
+            
+            // If filter returned 0 but we have a plant ID, show all tasks
+            const displayTasks = (filteredTasks.length === 0 && motivationPlantId)
+              ? prioritizedTasks
+              : filteredTasks;
+            
+            console.log('[TASK_FILTER] Result:', {
+              motivationPlantId,
+              totalTasks: prioritizedTasks.length,
+              filteredCount: filteredTasks.length,
+              displayCount: displayTasks.length,
+            });
+            
+            return displayTasks.slice(0, 5).map(t => ({
+              id: t.id,
+              title: t.title,
+              plantName: t.linked_plants?.[0]?.name || 'Alle Pflanzen',
+              plantId: t.linked_plants?.[0]?.id,
+            }));
+          })()}
           onToggleTask={handleToggleTask}
           todayCompletedCount={tasks.completedTasks}
+          onPlantPress={motivationPlantId ? () => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId: motivationPlantId } }) : undefined}
+          onTaskPlantPress={(plantId) => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } })}
         />
 
         {/* Quick Stats */}

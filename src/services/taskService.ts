@@ -17,12 +17,13 @@ export async function fetchTasks(): Promise<TaskListItem[]> {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (!user || userError) throw new Error('User not authenticated');
 
-    // Fetch tasks with linked plant names in a single query using JOIN
+    // Fetch tasks with linked plant names in a single query using INNER JOIN
     const { data, error } = await supabase
       .from('tasks')
       .select(`
         *,
-        plant_tasks(
+        plant_tasks!inner(
+          plant_id,
           plants(
             id,
             name
@@ -46,6 +47,14 @@ export async function fetchTasks(): Promise<TaskListItem[]> {
       const linked_plants = linkedPlants
         .map((pt: any) => pt.plants)
         .filter(Boolean);
+
+      console.log('[TASKSERVICE] Full task data:', {
+        taskId: task.id,
+        taskTitle: task.title,
+        plant_tasks_raw: JSON.stringify(task.plant_tasks),
+        linkedPlantsCount: linkedPlants.length,
+        linked_plants: linked_plants,
+      });
 
       return {
         ...task,
