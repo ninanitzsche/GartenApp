@@ -1,5 +1,3 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': '*',
@@ -24,17 +22,52 @@ function base64ToBlob(base64DataUrl: string): Blob | null {
   }
 }
 
-serve(async (req) => {
+async function fetchImageAsBlob(imageUrl: string): Promise<Blob | null> {
+  try {
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      console.error('Failed to fetch image:', response.status)
+      return null
+    }
+    return await response.blob()
+  } catch (e) {
+    console.error('Error fetching image:', e)
+    return null
+  }
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const formData = await req.formData()
-    const images = formData.getAll('images')
-    const organs = formData.get('organs') as string || 'auto'
+    let imageUrls: string[] = []
+    let organs = 'auto'
+    
+    // Try to parse JSON body first
+    const contentType = req.headers.get('content-type') || ''
+    
+    if (contentType.includes('application/json')) {
+      const body = await req.json()
+      imageUrls = Array.isArray(body.imageUrl) ? body.imageUrl : [body.imageUrl].filter(Boolean)
+      organs = body.organ || body.organs || 'auto'
+    } else {
+      // Fall back to formData
+      const formData = await req.formData()
+      const images = formData.getAll('images')
+      const organsParam = formData.get('organs') as string
+      organs = organsParam || 'auto'
+      
+      // Handle images as URLs in formData
+      for (const image of images) {
+        if (typeof image === 'string') {
+          imageUrls.push(image)
+        }
+      }
+    }
 
-    if (!images || images.length === 0) {
+    if (imageUrls.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No images provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -44,37 +77,28 @@ serve(async (req) => {
     const plantnetApiKey = Deno.env.get('PLANTNET_API_KEY')
     if (!plantnetApiKey) {
       return new Response(
-        JSON.stringify({ error: 'Pl@ntNet API key not configured' }),
+        JSON.stringify({ error: 'PlantNet API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     const plantnetFormData = new FormData()
     
-    for (const image of images) {
+    for (const imageUrl of imageUrls) {
       let filename = 'plant_image.jpg'
       
-      if (image instanceof File) {
-        plantnetFormData.append('images', image, image.name || filename)
-      } else if (typeof image === 'string') {
-        // Handle base64 data URLs
-        if (image.startsWith('data:')) {
-          const blob = base64ToBlob(image)
-          if (blob) {
-            plantnetFormData.append('images', blob, filename)
-          }
+      // Handle base64 data URLs
+      if (imageUrl.startsWith('data:')) {
+        const blob = base64ToBlob(imageUrl)
+        if (blob) {
+          plantnetFormData.append('images', blob, filename)
         }
-        // Handle HTTP URLs
-        else if (image.startsWith('http')) {
-          try {
-            const imageResponse = await fetch(image)
-            if (imageResponse.ok) {
-              const imageBlob = await imageResponse.blob()
-              plantnetFormData.append('images', imageBlob, filename)
-            }
-          } catch (e) {
-            console.error('Error fetching image from URL:', image, e)
-          }
+      }
+      // Handle HTTP URLs
+      else if (imageUrl.startsWith('http')) {
+        const blob = await fetchImageAsBlob(imageUrl)
+        if (blob) {
+          plantnetFormData.append('images', blob, filename)
         }
       }
     }
@@ -92,7 +116,7 @@ serve(async (req) => {
     if (!plantnetResponse.ok) {
       const errorText = await plantnetResponse.text()
       return new Response(
-        JSON.stringify({ error: `Pl@ntNet API error: ${plantnetResponse.status}`, details: errorText }),
+        JSON.stringify({ error: `PlantNet API error: ${plantnetResponse.status}`, details: errorText }),
         { status: plantnetResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
