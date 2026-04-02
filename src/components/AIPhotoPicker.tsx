@@ -23,6 +23,7 @@ import { PlantIdentificationResult, AIPhotoAnalysis } from '../types/ai';
 import TaskSuggestionModal from './TaskSuggestionModal';
 import AIPhotoStep2 from './AIPhotoStep2';
 import AIPhotoStep3 from './AIPhotoStep3';
+import AIPhotoStep4 from './AIPhotoStep4';
 import { getAllSuggestions } from '../services/taskSuggestionService';
 import { TaskSuggestion } from '../types/taskSuggestion';
 
@@ -114,7 +115,7 @@ export default function AIPhotoPicker({
       });
       
       if (analysis.plantIdentification) {
-        setCurrentStep(3);
+        setCurrentStep(4);
       } else {
         setError(analysis.errors?.identification || 'Pflanze konnte nicht identifiziert werden');
       }
@@ -164,6 +165,29 @@ export default function AIPhotoPicker({
   };
 
   const renderContent = () => {
+    if (currentStep === 4 && analysisResult && result) {
+      return (
+        <AIPhotoStep4
+          bestMatch={analysisResult.bestMatch}
+          hasMultipleMatches={analysisResult.matchingPlants.length > 1}
+          onConfirm={() => {
+            onPlantIdentified(result);
+            handleClose();
+          }}
+          onCreateNew={() => {
+            onPlantIdentified(result);
+            handleClose();
+          }}
+          onSelectDifferent={() => {
+            setCurrentStep(3);
+          }}
+          onBack={() => {
+            setCurrentStep(3);
+          }}
+        />
+      );
+    }
+
     if (currentStep === 3 && analysisResult && result) {
       return (
         <AIPhotoStep3
