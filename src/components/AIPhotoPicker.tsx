@@ -17,9 +17,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { identifyPlant, pickImage } from '../services/aiService';
 import { cacheIdentification, getCachedIdentification } from '../services/cacheService';
-import { PlantIdentificationResult } from '../types/ai';
+import { analyzePhotoWithHealth } from '../services/aiIntegrationService';
+import { fetchPlants } from '../services/plantService';
+import { PlantIdentificationResult, AIPhotoAnalysis } from '../types/ai';
 import TaskSuggestionModal from './TaskSuggestionModal';
 import AIPhotoStep2 from './AIPhotoStep2';
+import AIPhotoStep3 from './AIPhotoStep3';
 import { getAllSuggestions } from '../services/taskSuggestionService';
 import { TaskSuggestion } from '../types/taskSuggestion';
 
@@ -39,6 +42,7 @@ export default function AIPhotoPicker({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PlantIdentificationResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AIPhotoAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<TaskSuggestion[]>([]);
@@ -53,6 +57,7 @@ export default function AIPhotoPicker({
     setSelectedImage(null);
     setIsLoading(false);
     setResult(null);
+    setAnalysisResult(null);
     setError(null);
     setShowSuggestions(false);
     setSuggestions([]);
@@ -91,29 +96,36 @@ export default function AIPhotoPicker({
     setCurrentStep(2);
     setAnalysisStatus({
       identification: 'loading',
-      disease: 'pending',
-      matching: 'pending',
+      disease: 'loading',
+      matching: 'loading',
     });
 
     try {
-      // Check cache first
-      const cached = await getCachedIdentification(selectedImage);
-      if (cached.found && cached.result) {
-        setResult(cached.result);
-        setIsLoading(false);
-        return;
+      const plants = await fetchPlants();
+      const analysis = await analyzePhotoWithHealth(selectedImage, plants);
+      
+      setAnalysisResult(analysis);
+      setResult(analysis.plantIdentification);
+      
+      setAnalysisStatus({
+        identification: analysis.plantIdentification ? 'done' : 'error',
+        disease: analysis.diseaseAnalysis !== null ? 'done' : 'done',
+        matching: 'done',
+      });
+      
+      if (analysis.plantIdentification) {
+        setCurrentStep(3);
+      } else {
+        setError(analysis.errors?.identification || 'Pflanze konnte nicht identifiziert werden');
       }
-
-      // Call API
-      const identification = await identifyPlant(selectedImage);
-
-      // Cache result
-      await cacheIdentification(selectedImage, identification);
-
-      setResult(identification);
     } catch (err: any) {
       console.error('Identification error:', err);
       setError(err.message || 'Fehler bei der Pflanzen-Erkennung');
+      setAnalysisStatus({
+        identification: 'error',
+        disease: 'error',
+        matching: 'error',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -139,8 +151,10 @@ export default function AIPhotoPicker({
 
   const handleRetry = () => {
     setResult(null);
+    setAnalysisResult(null);
     setError(null);
     setSelectedImage(null);
+    setCurrentStep(1);
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -150,6 +164,29 @@ export default function AIPhotoPicker({
   };
 
   const renderContent = () => {
+    if (currentStep === 3 && analysisResult && result) {
+      return (
+        <AIPhotoStep3
+          plantName={result.name}
+          scientificName={result.scientificName}
+          confidence={result.confidence}
+          family={result.family}
+          commonNames={result.commonNames}
+          healthStatus={analysisResult.healthStatus}
+          matchingPlants={analysisResult.matchingPlants}
+          onSelectPlant={(plant) => {
+            onPlantIdentified(result);
+            handleClose();
+          }}
+          onCreateNewPlant={() => {
+            onPlantIdentified(result);
+            handleClose();
+          }}
+          onRetry={handleRetry}
+        />
+      );
+    }
+
     if (result) {
       return (
         <View style={styles.resultContainer}>
