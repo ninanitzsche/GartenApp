@@ -207,6 +207,49 @@ export const Shadows2026 = PremiumShadows;
 export const Colors2026 = PremiumColors;
 export const TouchTargets2026 = PremiumTouchTargets;
 
+export type ThemeColors = typeof PremiumColors;
+
+export const DarkColors: ThemeColors = {
+  ...PremiumColors,
+  primary: '#5B8A6F',
+  primaryLight: '#7BA88D',
+  primaryDark: '#3D5A4A',
+  bg: '#1A1A1A',
+  bgSecondary: '#242424',
+  background: '#1A1A1A',
+  surface: '#2A2A2A',
+  text: '#F5F0EB',
+  textSecondary: '#B8B0A8',
+  textMuted: '#7A7268',
+  textLight: '#5A5248',
+  textDisabled: '#4A4238',
+  border: '#3A3A3A',
+  divider: '#2E2E2E',
+  glass: {
+    light: 'rgba(255,255,255,0.08)',
+    medium: 'rgba(255,255,255,0.12)',
+    dark: 'rgba(0,0,0,0.4)',
+    tint: 'rgba(255,255,255,0.06)',
+    border: 'rgba(255,255,255,0.15)',
+  },
+  seasonal: {
+    spring: { bg: '#1E2E1E', accent: '#5B8A6F' },
+    summer: { bg: '#2E2A1E', accent: '#4A8A8F' },
+    autumn: { bg: '#2E241E', accent: '#A07050' },
+    winter: { bg: '#1E2230', accent: '#6090C0' },
+  },
+  status: {
+    success: '#5B8A6F',
+    warning: '#C08050',
+    error: '#D05050',
+    info: '#6090C0',
+  },
+  tab: {
+    active: '#5B8A6F',
+    inactive: '#7A7268',
+  },
+};
+
 export function getSeasonalColor(zeitraum: string, colors: typeof PremiumColors = PremiumColors): { bg: string; accent: string } {
   if (zeitraum.includes('fruehjahr') || zeitraum.includes('spring')) return colors.seasonal.spring;
   if (zeitraum.includes('sommer') || zeitraum.includes('summer')) return colors.seasonal.summer;

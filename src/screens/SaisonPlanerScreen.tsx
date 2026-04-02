@@ -275,10 +275,10 @@ export default function SaisonPlanerScreen() {
                   ))}
                 </View>
               </View>
-              {knowledge?.companionPlantingTips?.length > 0 && (
+              {knowledge?.companionPlantingTips && knowledge.companionPlantingTips.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>🌿 Mischkultur</Text>
-                  {knowledge.companionPlantingTips.slice(0, 3).map((c, i) => (
+                  {knowledge.companionPlantingTips?.slice(0, 3).map((c: any, i: number) => (
                     <View key={i} style={[styles.companionCard, c.type === 'avoid' && styles.companionAvoid]}>
                       <Text style={styles.companionPlants}>{c.plant1} ↔ {c.plant2}</Text>
                       <Chip color={c.type === 'good' ? '#2D9D4F' : '#E53935'}>{c.type === 'good' ? '✓ Gut' : '✗ Meiden'}</Chip>

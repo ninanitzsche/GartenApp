@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NetInfo } from '@react-native-community/netinfo';
+import NetInfo from '@react-native-community/netinfo';
 
 const CACHE_PREFIX = '@gartenplaner_cache_';
 const SYNC_QUEUE_KEY = '@gartenplaner_sync_queue';
@@ -33,7 +33,7 @@ class OfflineCacheService {
   }
 
   private initNetworkListener() {
-    NetInfo.addEventListener(state => {
+    NetInfo.addEventListener((state: any) => {
       this.isOnline = state.isConnected ?? false;
       if (this.isOnline) {
         this.processSyncQueue();

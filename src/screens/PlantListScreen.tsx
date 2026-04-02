@@ -219,18 +219,18 @@ export default function PlantListScreen({ navigation }: Props) {
 
               {showFilters && PLANT_STATUSES.map(status => (
                 <Pressable
-                  key={status}
+                  key={status.value}
                   style={[
                     styles.statusChip,
-                    filterStatusList.includes(status) && styles.statusChipActive,
+                    filterStatusList.includes(status.value) && styles.statusChipActive,
                   ]}
-                  onPress={() => handleStatusFilterToggle(status)}
+                  onPress={() => handleStatusFilterToggle(status.value)}
                 >
                   <Text style={[
                     styles.statusChipText,
-                    filterStatusList.includes(status) && styles.statusChipTextActive,
+                    filterStatusList.includes(status.value) && styles.statusChipTextActive,
                   ]}>
-                    {status}
+                    {status.label}
                   </Text>
                 </Pressable>
               ))}
@@ -316,7 +316,7 @@ export default function PlantListScreen({ navigation }: Props) {
       {/* FAB */}
       {selectedTab === 0 && (
         <FloatingAction
-          onPress={() => navigation.navigate('AddPlant')}
+          onPress={() => (navigation as any).navigate('AddPlant')}
           icon={<Plus size={24} color="#fff" />}
           accessibilityLabel="Pflanze hinzufügen"
         />

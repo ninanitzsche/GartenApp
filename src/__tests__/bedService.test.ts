@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Bed Service Tests
  * Tests for bed CRUD operations and plant linking

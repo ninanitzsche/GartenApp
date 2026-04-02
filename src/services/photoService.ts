@@ -171,11 +171,10 @@ export async function uploadPhoto(
 
     if (relationError) {
       // Clean up if junction insert fails
-      await supabase.from('photos').delete().eq('id', photoId).catch(() => {});
+      await supabase.from('photos').delete().eq('id', photoId);
       await supabase.storage
         .from('plant-photos')
-        .remove([uploadData.path])
-        .catch(() => {});
+        .remove([uploadData.path]);
 
       throw new Error(`Failed to link photo to plant: ${relationError.message}`);
     }

@@ -1,6 +1,6 @@
 /**
- * Bed Detail Screen
- * Shows detailed information about a single bed
+ * BedDetailScreen - Redesigned for better readability
+ * Clear visual hierarchy with hero header, plant cards with tasks
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   Image,
 } from 'react-native';
@@ -23,9 +22,12 @@ import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../theme/designSystemV2';
 import { Bed } from '../types/bed';
 import { Plant } from '../types/plant';
+import { TaskListItem } from '../types/task';
 import { fetchBed, fetchBedPlants, unlinkBedFromPlant } from '../services/bedService';
 import { uploadPhotoForBed, setBedCoverPhoto } from '../services/photoBedService';
+import { fetchTasksByBed, toggleTaskCompletion } from '../services/taskService';
 import EmptyState from '../components/ui/EmptyState';
+import GlassCard from '../components/ui/GlassCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
 
@@ -33,6 +35,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   const { bedId } = route.params;
   const [bed, setBed] = useState<Bed | null>(null);
   const [plants, setPlants] = useState<Plant[]>([]);
+  const [tasks, setTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -49,8 +52,12 @@ export default function BedDetailScreen({ navigation, route }: Props) {
       setBed(bedData);
 
       if (bedData) {
-        const plantsData = await fetchBedPlants(bedId);
+        const [plantsData, tasksData] = await Promise.all([
+          fetchBedPlants(bedId),
+          fetchTasksByBed(bedId).catch(() => []),
+        ]);
         setPlants(plantsData);
+        setTasks(tasksData);
       }
     } catch (error) {
       console.error('Error loading bed data:', error);
@@ -84,15 +91,12 @@ export default function BedDetailScreen({ navigation, route }: Props) {
       if (result.canceled || !result.assets?.[0]) return;
 
       setUploading(true);
-      console.log('Uploading cover photo:', result.assets[0].uri);
-
       const photoPath = await uploadPhotoForBed(bedId, result.assets[0].uri);
       const { data } = (await import('../services/supabase')).supabase.storage
         .from('plant-photos')
         .getPublicUrl(photoPath);
 
       await setBedCoverPhoto(bedId, data.publicUrl);
-
       setBed(prev => prev ? { ...prev, cover_photo_url: data.publicUrl } : null);
       Alert.alert('Erfolg', 'Titelbild gesetzt!');
     } catch (error: any) {
@@ -128,10 +132,13 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   };
 
   const handleAddPlant = () => {
-    // TODO: Implement plant selection/linking
-    Alert.alert(
-      'Info',
-      'Funktionalität zum Hinzufügen von Pflanzen wird noch implementiert.'
+    Alert.alert('Info', 'Funktionalität zum Hinzufügen von Pflanzen wird noch implementiert.');
+  };
+
+  // Group tasks by plant ID
+  const getTasksForPlant = (plantId: string) => {
+    return tasks.filter(task => 
+      task.linked_plants?.some(p => p.id === plantId)
     );
   };
 
@@ -151,42 +158,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const renderPlantItem = ({ item }: { item: Plant }) => (
-    <TouchableOpacity
-      style={styles.plantCard}
-      onPress={() => {
-        const parentNavigation = navigation.getParent();
-        if (parentNavigation) {
-          parentNavigation.navigate('PlantDetail', { plantId: item.id });
-        } else {
-          navigation.navigate('PlantDetail', { plantId: item.id });
-        }
-      }}
-      activeOpacity={0.7}
-    >
-      <View style={styles.plantHeader}>
-        <View style={styles.plantInfo}>
-          <Text style={styles.plantName}>{item.name}</Text>
-          {item.latin_name && (
-            <Text style={styles.plantLatinName}>{item.latin_name}</Text>
-          )}
-        </View>
-      </View>
-
-      {item.status && (
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{item.status}</Text>
-        </View>
-      )}
-
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => handleRemovePlant(item.id)}
-      >
-        <MaterialIcons name="close" size={18} color={Colors2026.status.error} />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
+  const bedColor = bed.color || '#4CAF50';
 
   return (
     <ScrollView
@@ -194,106 +166,175 @@ export default function BedDetailScreen({ navigation, route }: Props) {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
+      showsVerticalScrollIndicator={false}
     >
-      {/* Bed Header */}
-      {bed.cover_photo_url ? (
-        <View style={styles.coverPhotoContainer}>
-          <Image
-            source={{ uri: bed.cover_photo_url }}
-            style={styles.coverPhoto}
-            resizeMode="cover"
-          />
-          <TouchableOpacity style={styles.cameraButton} onPress={handleCoverPhoto}>
-            <MaterialIcons name="photo-camera" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      <View style={styles.header}>
-        <View
-          style={[
-            styles.colorIndicator,
-            { backgroundColor: bed.color || '#4CAF50' },
-          ]}
-        />
-        <View style={styles.headerInfo}>
-          <Text style={styles.title}>{bed.name}</Text>
-          {bed.notes && <Text style={styles.notes}>{bed.notes}</Text>}
-        </View>
-        {!bed.cover_photo_url && (
-          <TouchableOpacity onPress={handleCoverPhoto} style={styles.headerCameraButton} disabled={uploading}>
+      {/* Hero Header */}
+      <View style={[styles.hero, { backgroundColor: bedColor + '15' }]}>
+        {bed.cover_photo_url ? (
+          <View style={styles.heroImageContainer}>
+            <Image source={{ uri: bed.cover_photo_url }} style={styles.heroImage} resizeMode="cover" />
+            <View style={styles.heroOverlay} />
+            <TouchableOpacity style={styles.heroCameraButton} onPress={handleCoverPhoto}>
+              <MaterialIcons name="photo-camera" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.heroPlaceholder} onPress={handleCoverPhoto} disabled={uploading}>
             {uploading ? (
-              <ActivityIndicator size="small" color={Colors2026.primary} />
+              <ActivityIndicator size="small" color={bedColor} />
             ) : (
-              <MaterialIcons name="add-a-photo" size={22} color={Colors2026.primary} />
+              <>
+                <MaterialIcons name="add-a-photo" size={32} color={bedColor} />
+                <Text style={[styles.heroPlaceholderText, { color: bedColor }]}>Foto hinzufügen</Text>
+              </>
             )}
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={handleEdit}>
-          <MaterialIcons name="edit" size={24} color={Colors2026.primary} />
-        </TouchableOpacity>
-      </View>
 
-      {/* Bed Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Details</Text>
-        <View style={styles.detailRow}>
-          <MaterialIcons name="aspect-ratio" size={16} color={Colors2026.textLight} />
-          <Text style={styles.detailLabel}>Größe</Text>
-          <Text style={styles.detailValue}>
-            {bed.width.toFixed(0)}% × {bed.height.toFixed(0)}%
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MaterialIcons name="location-on" size={16} color={Colors2026.textLight} />
-          <Text style={styles.detailLabel}>Position</Text>
-          <Text style={styles.detailValue}>
-            X: {bed.position_x.toFixed(0)}%, Y: {bed.position_y.toFixed(0)}%
-          </Text>
-        </View>
-        {bed.shape && (
-          <View style={styles.detailRow}>
-            <MaterialIcons name="crop-square" size={16} color={Colors2026.textLight} />
-            <Text style={styles.detailLabel}>Form</Text>
-            <Text style={styles.detailValue}>
-              {bed.shape === 'circle' ? 'Kreis' : 'Rechteck'}
-            </Text>
+        <View style={styles.heroContent}>
+          <View style={[styles.colorDot, { backgroundColor: bedColor }]} />
+          <View style={styles.heroTextContainer}>
+            <Text style={styles.heroTitle}>{bed.name}</Text>
+            {bed.notes && <Text style={styles.heroNotes}>{bed.notes}</Text>}
           </View>
-        )}
+          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+            <MaterialIcons name="edit" size={22} color={Colors2026.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Plants Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            Pflanzen ({plants.length})
-          </Text>
-          <TouchableOpacity onPress={handleAddPlant}>
-            <MaterialIcons name="add-circle-outline" size={24} color={Colors2026.primary} />
+          <Text style={styles.sectionTitle}>Pflanzen</Text>
+          <View style={styles.sectionBadge}>
+            <Text style={styles.sectionBadgeText}>{plants.length}</Text>
+          </View>
+          <View style={styles.spacer} />
+          <TouchableOpacity style={styles.addButton} onPress={handleAddPlant}>
+            <MaterialIcons name="add" size={20} color={Colors2026.primary} />
+            <Text style={styles.addButtonText}>Hinzufügen</Text>
           </TouchableOpacity>
         </View>
 
         {plants.length > 0 ? (
-          <FlatList
-            data={plants}
-            renderItem={renderPlantItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
+          plants.map((plant) => {
+            const plantTasks = getTasksForPlant(plant.id);
+            const openTasks = plantTasks.filter(t => !t.completed_at);
+            const completedTasks = plantTasks.filter(t => t.completed_at);
+
+            return (
+              <GlassCard key={plant.id} variant="light" style={styles.plantCard}>
+                {/* Plant Header */}
+                <TouchableOpacity
+                  style={styles.plantHeader}
+                  onPress={() => {
+                    const parentNavigation = navigation.getParent();
+                    if (parentNavigation) {
+                      parentNavigation.navigate('PlantDetail', { plantId: plant.id });
+                    } else {
+                      navigation.navigate('PlantDetail', { plantId: plant.id });
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.plantIconContainer}>
+                    <Text style={styles.plantIcon}>🌱</Text>
+                  </View>
+                  <View style={styles.plantInfo}>
+                    <Text style={styles.plantName}>{plant.name}</Text>
+                    {plant.latin_name && (
+                      <Text style={styles.plantLatinName}>{plant.latin_name}</Text>
+                    )}
+                  </View>
+                  {plant.status && (
+                    <View style={[styles.statusBadge, { backgroundColor: bedColor + '20' }]}>
+                      <Text style={[styles.statusText, { color: bedColor }]}>{plant.status}</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => handleRemovePlant(plant.id)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <MaterialIcons name="close" size={18} color={Colors2026.textMuted} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+
+                {/* Tasks for this plant */}
+                {plantTasks.length > 0 && (
+                  <View style={styles.tasksContainer}>
+                    <View style={styles.tasksDivider} />
+                    {openTasks.length > 0 && (
+                      <View style={styles.taskGroup}>
+                        {openTasks.map((task) => (
+                          <TouchableOpacity
+                            key={task.id}
+                            style={styles.taskRow}
+                            onPress={async () => {
+                              await toggleTaskCompletion(task.id);
+                              loadData();
+                            }}
+                            activeOpacity={0.6}
+                          >
+                            <View style={styles.checkbox}>
+                              <MaterialIcons name="radio-button-unchecked" size={20} color={Colors2026.primary} />
+                            </View>
+                            <Text style={styles.taskTitle}>{task.title}</Text>
+                            {task.due_date && (
+                              <View style={styles.taskDateBadge}>
+                                <MaterialIcons name="event" size={12} color={Colors2026.textMuted} />
+                                <Text style={styles.taskDate}>
+                                  {new Date(task.due_date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                                </Text>
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                    {completedTasks.length > 0 && (
+                      <View style={styles.taskGroup}>
+                        <Text style={styles.completedLabel}>Erledigt ({completedTasks.length})</Text>
+                        {completedTasks.map((task) => (
+                          <TouchableOpacity
+                            key={task.id}
+                            style={[styles.taskRow, styles.taskRowCompleted]}
+                            onPress={async () => {
+                              await toggleTaskCompletion(task.id);
+                              loadData();
+                            }}
+                            activeOpacity={0.6}
+                          >
+                            <View style={styles.checkbox}>
+                              <MaterialIcons name="check-circle" size={20} color={Colors2026.status.success} />
+                            </View>
+                            <Text style={[styles.taskTitle, styles.taskTitleCompleted]}>{task.title}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+              </GlassCard>
+            );
+          })
         ) : (
           <EmptyState
-            icon={<MaterialIcons name="eco" size={40} color={Colors2026.primary} />}
+            icon={<MaterialIcons name="eco" size={48} color={Colors2026.textMuted} />}
             title="Keine Pflanzen"
             subtitle="Dieses Beet hat noch keine Pflanzen."
             action={
               <TouchableOpacity onPress={handleAddPlant} style={styles.emptyAction}>
+                <MaterialIcons name="add" size={18} color="#fff" />
                 <Text style={styles.emptyActionText}>Pflanze hinzufügen</Text>
               </TouchableOpacity>
             }
           />
         )}
       </View>
+
+      <View style={styles.bottomSpacer} />
     </ScrollView>
   );
 }
@@ -301,162 +342,275 @@ export default function BedDetailScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors2026.background,
+    backgroundColor: Colors2026.bg,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors2026.background,
+    backgroundColor: Colors2026.bg,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors2026.border,
+  errorText: {
+    fontSize: Typography2026.body.fontSize,
+    color: Colors2026.textMuted,
   },
-  colorIndicator: {
+
+  // Hero Header
+  hero: {
+    paddingTop: Spacing2026.lg,
+    paddingBottom: Spacing2026.xl,
+    paddingHorizontal: Spacing2026.xl,
+  },
+  heroImageContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: Radius2026.lg,
+    overflow: 'hidden',
+    marginBottom: Spacing2026.md,
+    position: 'relative',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  heroCameraButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
     width: 40,
     height: 40,
-    borderRadius: 8,
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: Colors2026.border,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerInfo: {
+  heroPlaceholder: {
+    width: '100%',
+    height: 120,
+    borderRadius: Radius2026.lg,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Colors2026.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing2026.md,
+    backgroundColor: Colors2026.glass.light,
+  },
+  heroPlaceholderText: {
+    fontSize: Typography2026.small.fontSize,
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  heroContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  colorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: Spacing2026.md,
+  },
+  heroTextContainer: {
     flex: 1,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  heroTitle: {
+    fontSize: Typography2026.headline.fontSize,
+    fontWeight: '800',
     color: Colors2026.text,
-    marginBottom: 4,
+    letterSpacing: -0.5,
   },
-  notes: {
-    fontSize: 12,
-    color: Colors2026.textLight,
+  heroNotes: {
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textMuted,
+    marginTop: 2,
   },
+  editButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors2026.glass.light,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Section
   section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors2026.border,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors2026.text,
-    marginBottom: 12,
+    paddingHorizontal: Spacing2026.xl,
+    paddingTop: Spacing2026.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing2026.md,
   },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
+  sectionTitle: {
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '700',
+    color: Colors2026.text,
   },
-  detailLabel: {
+  sectionBadge: {
+    backgroundColor: Colors2026.primary + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius2026.round,
+    marginLeft: 8,
+  },
+  sectionBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: Colors2026.textLight,
+    fontWeight: '700',
+    color: Colors2026.primary,
+  },
+  spacer: {
     flex: 1,
   },
-  detailValue: {
-    fontSize: 12,
-    color: Colors2026.text,
-    fontWeight: '500',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: Colors2026.border,
-    marginVertical: 8,
-  },
-  plantCard: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    backgroundColor: Colors2026.surface,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors2026.border,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.primary + '15',
+  },
+  addButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors2026.primary,
+  },
+
+  // Plant Card
+  plantCard: {
+    marginBottom: Spacing2026.md,
   },
   plantHeader: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing2026.md,
+  },
+  plantIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors2026.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing2026.md,
+  },
+  plantIcon: {
+    fontSize: 22,
   },
   plantInfo: {
-    marginBottom: 4,
+    flex: 1,
   },
   plantName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '700',
     color: Colors2026.text,
   },
   plantLatinName: {
-    fontSize: 12,
-    color: Colors2026.textLight,
+    fontSize: Typography2026.small.fontSize,
+    color: Colors2026.textMuted,
     fontStyle: 'italic',
+    marginTop: 1,
   },
   statusBadge: {
-    backgroundColor: Colors2026.status.info + '20',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginTop: 4,
+    borderRadius: Radius2026.round,
+    marginRight: 8,
   },
   statusText: {
     fontSize: 11,
-    color: Colors2026.status.info,
-    fontWeight: '500',
+    fontWeight: '600',
+    textTransform: 'capitalize',
   },
   removeButton: {
-    padding: 8,
-    marginLeft: 8,
+    padding: 4,
   },
-  errorText: {
-    fontSize: 16,
-    color: Colors2026.status.error,
+
+  // Tasks Container
+  tasksContainer: {
+    paddingHorizontal: Spacing2026.md,
+    paddingBottom: Spacing2026.md,
   },
+  tasksDivider: {
+    height: 1,
+    backgroundColor: Colors2026.border,
+    marginBottom: Spacing2026.sm,
+  },
+  taskGroup: {
+    gap: 2,
+  },
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: Spacing2026.sm,
+    borderRadius: Radius2026.sm,
+  },
+  taskRowCompleted: {
+    opacity: 0.6,
+  },
+  checkbox: {
+    marginRight: 10,
+  },
+  taskTitle: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors2026.text,
+  },
+  taskTitleCompleted: {
+    textDecorationLine: 'line-through',
+    color: Colors2026.textMuted,
+  },
+  taskDateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: Colors2026.bg,
+    borderRadius: Radius2026.round,
+  },
+  taskDate: {
+    fontSize: 11,
+    color: Colors2026.textMuted,
+    fontWeight: '500',
+  },
+  completedLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors2026.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: Spacing2026.sm,
+    marginBottom: 4,
+    marginLeft: Spacing2026.sm,
+  },
+
+  // Empty State
   emptyAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: Colors2026.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 16,
+    borderRadius: Radius2026.round,
+    marginTop: Spacing2026.md,
   },
   emptyActionText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-  coverPhotoContainer: {
-    width: '100%',
-    height: 200,
-    position: 'relative',
-  },
-  coverPhoto: {
-    width: '100%',
-    height: '100%',
-  },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerCameraButton: {
-    marginRight: 8,
+
+  bottomSpacer: {
+    height: 100,
   },
 });

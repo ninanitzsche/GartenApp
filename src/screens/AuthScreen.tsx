@@ -8,9 +8,9 @@ import { AuthStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+type Props = Partial<NativeStackScreenProps<AuthStackParamList, 'Login'>>;
 
-export default function AuthScreen({ navigation }: Props) {
+export default function AuthScreen({ navigation }: Props = {}) {
   const handleSwitchToRegister = () => {
     navigation?.navigate('Register');
   };

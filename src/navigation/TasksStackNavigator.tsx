@@ -6,6 +6,7 @@ import { Colors2026 } from '../theme/designSystemV2';
 import TaskListScreen from '../screens/TaskListScreen';
 import AddTaskScreen from '../screens/AddTaskScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
+import ArticleDetailScreen from '../screens/ArticleDetailScreen';
 
 // Import Types
 import { TasksStackParamList } from '../types/navigation';
@@ -47,6 +48,20 @@ export default function TasksStackNavigator() {
           title: 'Aufgabe',
           presentation: 'modal',
           headerShown: true,
+          headerStyle: {
+            backgroundColor: Colors2026.surface,
+          },
+          headerTintColor: Colors2026.text,
+          headerTitleStyle: {
+            fontWeight: '600',
+          },
+        }}
+      />
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetailScreen}
+        options={{
+          title: 'Wissen',
           headerStyle: {
             backgroundColor: Colors2026.surface,
           },

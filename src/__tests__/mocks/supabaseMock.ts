@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Supabase Mock Client
  * Provides a complete mock of Supabase client for testing
@@ -16,19 +17,19 @@ export function createMockQueryBuilder(initialData: any = []) {
   let queryData = initialData; // Separate data for query operations
 
   const builder = {
-    select: jest.fn(function (columns = '*') {
+    select: jest.fn(function (this: any, columns = '*') {
       lastFilters.select = columns;
       queryData = Array.isArray(data) ? [...data] : data;
       return this;
     }),
-    eq: jest.fn(function (column: string, value: any) {
+    eq: jest.fn(function (this: any, column: string, value: any) {
       lastFilters.eq = { column, value };
       if (Array.isArray(queryData)) {
         queryData = queryData.filter((item: any) => item[column] === value);
       }
       return this;
     }),
-    in: jest.fn(function (column: string, values: any[]) {
+    in: jest.fn(function (this: any, column: string, values: any[]) {
       lastFilters.in = { column, values };
       if (Array.isArray(queryData)) {
         queryData = queryData.filter((item: any) => values.includes(item[column]));

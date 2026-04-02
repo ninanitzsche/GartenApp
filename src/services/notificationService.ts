@@ -34,7 +34,7 @@ Notifications.setNotificationHandler({
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
-});
+} as any);
 
 export async function requestNotificationPermissions(): Promise<boolean> {
   try {
@@ -119,8 +119,9 @@ export async function scheduleTaskNotification(
           data: { taskId, type: 'task' },
         },
         trigger: {
+          type: 'date',
           date: scheduleDate,
-        },
+        } as any,
       });
 
       return notificationId;
@@ -134,7 +135,7 @@ export async function scheduleTaskNotification(
       },
       trigger: {
         date: dueDate,
-      },
+      } as any,
     });
 
     return notificationId;
@@ -163,7 +164,7 @@ export async function scheduleHarvestNotification(
       },
       trigger: {
         date: harvestDate,
-      },
+      } as any,
     });
 
     return notificationId;
@@ -191,7 +192,7 @@ export async function scheduleSeasonChangeNotification(
       },
       trigger: {
         seconds: 60, // 1 minute delay for demo
-      },
+      } as any,
     });
 
     return notificationId;

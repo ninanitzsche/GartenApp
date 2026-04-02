@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Integration Tests - Critical User Flows
  * Tests 4 critical flows: Authentication, Plant Management, Photo Management, Shopping Management

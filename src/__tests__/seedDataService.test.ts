@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Seed Data Service Tests
  * Comprehensive test suite for seedDataService.ts

@@ -1,0 +1,10 @@
+env: load .env
+env: export EXPO_PUBLIC_AI_API_KEY EXPO_PUBLIC_AI_API_URL EXPO_PUBLIC_AI_MODEL EXPO_PUBLIC_PERENUAL_API_KEY EXPO_PUBLIC_PERMAPEOPLE_KEY_ID EXPO_PUBLIC_PERMAPEOPLE_KEY_SECRET EXPO_PUBLIC_PLANTNET_API_KEY EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_SUPABASE_URL MIGRATION_USER_EMAIL MIGRATION_USER_PASSWORD SUPABASE_SERVICE_ROLE_KEY
+Could not find a shared URI scheme for the dev client between the local /ios and /android directories. App launches (QR code, interstitial, terminal keys) may not work as expected. You can configure a custom scheme using the --scheme option, or by running npx expo prebuild to regenerate the native directories with URI schemes.
+Starting project at /Users/ninanitzsche/aipm/gartenplaner-app
+› Port 8081 is running this app in another window
+  /Users/ninanitzsche/aipm/gartenplaner-app (pid 8827)
+Input is required, but 'npx expo' is in non-interactive mode.
+Required input:
+> Use port 8082 instead?
+› Skipping dev server

@@ -143,12 +143,15 @@ export async function fetchCloudAnalysisForPhoto(
       .eq('photo_id', photoId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .single<{ ai_identifications: AIIdentification | null }>();
 
     if (error) return null;
     if (!data) return null;
 
-    return data.ai_identifications;
+    const ident = data.ai_identifications;
+    if (!ident) return null;
+
+    return ident;
   } catch (error: any) {
     console.error('Error fetching cloud analysis:', error);
     return null;

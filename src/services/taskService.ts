@@ -132,6 +132,8 @@ export async function createTask(formData: TaskFormData): Promise<Task> {
         priority: formData.priority,
         location: formData.location || null,
         time_spent_minutes: formData.time_spent_minutes || null,
+        zeitraum: formData.zeitraum || null,
+        source: 'ai',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -295,6 +297,123 @@ export async function fetchPlantsForSelection(): Promise<Plant[]> {
 }
 
 /**
+ * Fetch tasks for a specific bed (via linked plants)
+ */
+export async function fetchTasksByBed(bedId: string): Promise<TaskListItem[]> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    // First get plant IDs for this bed
+    const { data: bedPlants, error: bedError } = await supabase
+      .from('bed_plants')
+      .select('plant_id')
+      .eq('bed_id', bedId);
+
+    if (bedError) throw bedError;
+    if (!bedPlants || bedPlants.length === 0) return [];
+
+    const plantIds = bedPlants.map(bp => bp.plant_id);
+
+    // Then get tasks linked to those plants
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        plant_tasks!inner(
+          plant_id,
+          plants(
+            id,
+            name
+          )
+        )
+      `)
+      .eq('user_id', user.id)
+      .in('plant_tasks.plant_id', plantIds)
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Deduplicate tasks (same task might be linked to multiple plants in the bed)
+    const uniqueTasks = new Map<string, TaskListItem>();
+    
+    for (const task of data || []) {
+      if (!uniqueTasks.has(task.id)) {
+        const linkedPlants = task.plant_tasks || [];
+        const plant_names = linkedPlants
+          .map((pt: any) => pt.plants?.name)
+          .filter(Boolean)
+          .sort();
+        
+        const linked_plants = linkedPlants
+          .map((pt: any) => pt.plants)
+          .filter(Boolean);
+
+        uniqueTasks.set(task.id, {
+          ...task,
+          plant_names,
+          linked_plants,
+        });
+      }
+    }
+
+    return Array.from(uniqueTasks.values());
+  } catch (error: any) {
+    throw new Error(`Error fetching tasks by bed: ${error.message}`);
+  }
+}
+
+/**
+ * Fetch tasks for a specific plant
+ */
+export async function fetchTasksByPlant(plantId: string): Promise<TaskListItem[]> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        plant_tasks!inner(
+          plant_id,
+          plants(
+            id,
+            name
+          )
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('plant_tasks.plant_id', plantId)
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((task: any): TaskListItem => {
+      const linkedPlants = task.plant_tasks || [];
+      const plant_names = linkedPlants
+        .map((pt: any) => pt.plants?.name)
+        .filter(Boolean)
+        .sort();
+      
+      const linked_plants = linkedPlants
+        .map((pt: any) => pt.plants)
+        .filter(Boolean);
+
+      return {
+        ...task,
+        plant_names,
+        linked_plants,
+      };
+    });
+  } catch (error: any) {
+    throw new Error(`Error fetching tasks by plant: ${error.message}`);
+  }
+}
+
+/**
  * Get linked plants for a task
  */
 export async function getTaskPlants(taskId: string): Promise<Plant[]> {
@@ -449,16 +568,16 @@ export function getCategoryColor(category: string): string {
 }
 
 /**
- * Get priority color - 2026 Style, aber noch erkennbar
+ * Get priority color - 2026 Style, klar unterscheidbar
  */
 export function getPriorityColor(priority: string): string {
   switch (priority) {
     case 'hoch':
-      return '#B33A3A'; // Dunkelrot - deutlich sichtbar
+      return '#D32F2F'; // Kräftiges Rot - sofort sichtbar
     case 'mittel':
-      return '#C67B4E'; // Warmes Orange-Terracotta
+      return '#F57C00'; // Kräftiges Orange - mittlere Dringlichkeit
     case 'niedrig':
-      return '#6B8E6B'; // Gedecktes Grün
+      return '#5A7A7A'; // Blau-Grau - klar niedrig
     default:
       return '#8A8A8A';
   }
@@ -572,6 +691,21 @@ export function isTaskDueNextWeek(scheduledDate: string | null): boolean {
   
   const scheduled = new Date(scheduledDate);
   return scheduled >= nextMonday && scheduled <= followingSunday;
+}
+
+/**
+ * Check if task is due within the next 30 days
+ */
+export function isTaskDueThisMonth(scheduledDate: string | null): boolean {
+  if (!scheduledDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const in30Days = new Date(today);
+  in30Days.setDate(today.getDate() + 30);
+  
+  const scheduled = new Date(scheduledDate);
+  return scheduled >= today && scheduled <= in30Days;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   CACHE_TTL,
   PestDetectionResult,
   TaskSuggestion,
+  PlantDiseaseData,
 } from '../types/ai';
 
 const CACHE_KEY_PREFIX = '@ai_identification:';
@@ -213,6 +214,27 @@ export async function cachePestDetection(
     );
   } catch (error) {
     console.error('Error caching pest detection:', error);
+  }
+}
+
+export async function cacheDisease(
+  imageUri: string,
+  result: PlantDiseaseData
+): Promise<void> {
+  try {
+    const imageHash = generateImageHash(imageUri);
+    const entry = {
+      type: 'pest' as AICacheType,
+      data: result,
+      timestamp: Date.now(),
+      ttl: getTTL('pest'),
+    };
+    await AsyncStorage.setItem(
+      cacheKey('pest', imageHash),
+      JSON.stringify(entry)
+    );
+  } catch (error) {
+    console.error('Error caching disease data:', error);
   }
 }
 

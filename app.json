@@ -12,7 +12,8 @@
       "backgroundColor": "#E8F5E9"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ninamarie.gartenplaner"
     },
     "android": {
       "package": "com.ninamarie.gartenplaner",
@@ -34,6 +35,9 @@
         "projectId": "ad7f9126-e077-42cf-a823-aab2affc870e"
       }
     },
-    "owner": "ninamarie"
+    "owner": "ninamarie",
+    "plugins": [
+      "expo-sharing"
+    ]
   }
 }

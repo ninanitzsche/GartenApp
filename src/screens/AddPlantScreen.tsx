@@ -18,7 +18,7 @@ import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { PlantFormData, PLANT_STATUSES, PLANT_TYPES } from '../types/plant';
 import { createPlant } from '../services/plantService';
-import { getPlantInfo, updatePlantWithPlantInfo } from '../services/plantInfoService';
+import { fetchAllPlantData, updatePlantWithAllData, createLearningsFromCombinedData } from '../services/plantInfoService';
 import GlassInput from '../components/ui/GlassInput';
 import GlassCard from '../components/ui/GlassCard';
 import AnimatedButton from '../components/ui/AnimatedButton';
@@ -78,15 +78,16 @@ export default function AddPlantScreen({ navigation, route }: Props) {
 
       const newPlant = await createPlant(cleanData);
 
-      if (formData.name && identificationSource === 'ai') {
+      if (formData.name) {
         setFetchingPlantInfo(true);
         try {
-          const plantInfo = await getPlantInfo(formData.name);
-          if (plantInfo && !plantInfo.notFound && newPlant) {
-            await updatePlantWithPlantInfo(newPlant.id, plantInfo);
+          const allData = await fetchAllPlantData(formData.name);
+          if (newPlant) {
+            await updatePlantWithAllData(newPlant.id, allData);
+            await createLearningsFromCombinedData(newPlant.id, allData);
           }
         } catch (error) {
-          console.error('Failed to fetch PlantNet info:', error);
+          console.error('Failed to fetch plant data:', error);
         } finally {
           setFetchingPlantInfo(false);
         }

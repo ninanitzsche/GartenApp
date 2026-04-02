@@ -231,7 +231,7 @@ export default function PhotoGalleryScreen({ navigation }: Props) {
   const PHOTO_GRID_ROW_HEIGHT = PHOTO_ITEM_HEIGHT + 8;
 
   const getItemLayout = useCallback(
-    (_data: PhotoGridItem[] | null, index: number) => ({
+    (_data: any, index: number) => ({
       length: PHOTO_GRID_ROW_HEIGHT,
       offset: Math.floor(index / 2) * PHOTO_GRID_ROW_HEIGHT,
       index,

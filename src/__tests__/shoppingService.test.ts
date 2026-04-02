@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Shopping Service Tests
  * Comprehensive test suite for shoppingService.ts

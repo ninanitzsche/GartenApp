@@ -20,6 +20,13 @@ export interface Plant {
   plantnet_id?: string;
   plantnet_data?: any;
   plantnet_fetched_at?: string;
+  perenual_data?: any;
+  permapeople_data?: any;
+  openai_care?: any; // AI-generated care information
+  plant_info_fetched_at?: string;
+  plant_info_sources?: string[];
+  disease_data?: any;
+  last_health_check?: string;
   user_id: string;
   created_at?: string;
   updated_at?: string;

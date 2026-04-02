@@ -20,7 +20,7 @@ interface PhotoFilterModalProps {
   currentFilters?: PhotoFilters;
 }
 
-type DateRangeType = 'all-time' | 'this-year' | 'this-month';
+type DateRangeType = 'all-time' | 'this-year' | 'this-month' | 'custom';
 
 export default function PhotoFilterModal({
   visible,

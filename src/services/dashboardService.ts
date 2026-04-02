@@ -32,6 +32,23 @@ export interface RecentActivity {
   detail?: string;
 }
 
+export interface PlantTaskProgress {
+  plantId: string;
+  plantName: string;
+  plantStatus: string;
+  totalTasks: number;
+  completedTasks: number;
+  completionRate: number;
+  allDone: boolean;
+}
+
+export interface GardenGrowthData {
+  plants: PlantTaskProgress[];
+  totalTasks: number;
+  completedTasks: number;
+  overallProgress: number;
+}
+
 /**
  * Get harvest metrics for dashboard
  */
@@ -157,7 +174,7 @@ export async function getRecentActivity(limit: number = 5): Promise<RecentActivi
         type: 'harvest',
         title: `${h.quantity} ${h.unit} von ${h.plant_name} geerntet`,
         date: h.harvest_date,
-        detail: h.notes,
+        detail: h.notes ?? undefined,
       });
     });
 
@@ -192,15 +209,86 @@ export async function getRecentActivity(limit: number = 5): Promise<RecentActivi
 }
 
 /**
+ * Get plant task progress for garden growth visualization
+ */
+export async function getPlantTaskProgress(): Promise<GardenGrowthData> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user || userError) throw new Error('User not authenticated');
+
+    // Fetch plants with their linked tasks in one query
+    const { data, error } = await supabase
+      .from('plants')
+      .select(`
+        id,
+        name,
+        status,
+        plant_tasks(
+          tasks(
+            id,
+            completed_at
+          )
+        )
+      `)
+      .eq('user_id', user.id)
+      .neq('status', 'entfernt')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    const plants: PlantTaskProgress[] = (data || [])
+      .map((plant: any) => {
+        const taskLinks = plant.plant_tasks || [];
+        const totalTasks = taskLinks.length;
+        const completedTasks = taskLinks.filter(
+          (pt: any) => pt.tasks?.completed_at
+        ).length;
+        const completionRate = totalTasks > 0
+          ? Math.round((completedTasks / totalTasks) * 100)
+          : 0;
+
+        return {
+          plantId: plant.id,
+          plantName: plant.name,
+          plantStatus: plant.status || 'unklar',
+          totalTasks,
+          completedTasks,
+          completionRate,
+          allDone: totalTasks > 0 && completedTasks === totalTasks,
+        };
+      })
+      // Only show plants that have tasks
+      .filter((p) => p.totalTasks > 0)
+      // Sort: incomplete first, then by completion rate descending
+      .sort((a, b) => {
+        if (a.allDone !== b.allDone) return a.allDone ? 1 : -1;
+        return b.completionRate - a.completionRate;
+      });
+
+    const totalTasks = plants.reduce((sum, p) => sum + p.totalTasks, 0);
+    const completedTasks = plants.reduce((sum, p) => sum + p.completedTasks, 0);
+    const overallProgress = totalTasks > 0
+      ? Math.round((completedTasks / totalTasks) * 100)
+      : 0;
+
+    return { plants, totalTasks, completedTasks, overallProgress };
+  } catch (error: any) {
+    console.error('Error getting plant task progress:', error);
+    return { plants: [], totalTasks: 0, completedTasks: 0, overallProgress: 0 };
+  }
+}
+
+/**
  * Get all dashboard data in one call
  */
 export async function getDashboardData() {
   try {
-    const [harvests, tasks, statusDistribution, recentActivity] = await Promise.all([
+    const [harvests, tasks, statusDistribution, recentActivity, gardenGrowth] = await Promise.all([
       getHarvestMetrics(),
       getTaskMetrics(),
       getPlantStatusDistribution(),
       getRecentActivity(5),
+      getPlantTaskProgress(),
     ]);
 
     return {
@@ -208,6 +296,7 @@ export async function getDashboardData() {
       tasks,
       statusDistribution,
       recentActivity,
+      gardenGrowth,
     };
   } catch (error: any) {
     console.error('Error getting dashboard data:', error);
@@ -216,6 +305,7 @@ export async function getDashboardData() {
       tasks: { totalTasks: 0, completedTasks: 0, completionRate: 0, avgTimeSpent: 0, totalTimeSpent: 0 },
       statusDistribution: [],
       recentActivity: [],
+      gardenGrowth: { plants: [], totalTasks: 0, completedTasks: 0, overallProgress: 0 },
     };
   }
 }

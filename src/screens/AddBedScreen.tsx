@@ -12,8 +12,8 @@ import {
   Text,
   Alert,
   ActivityIndicator,
-  Slider,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';

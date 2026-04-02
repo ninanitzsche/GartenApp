@@ -21,12 +21,14 @@ import { RootStackParamList } from '../types/navigation';
 import { TaskListItem } from '../types/task';
 import Colors from '../theme/colors';
 import { Colors2026 } from '../theme/designSystemV2';
-import { fetchTasks, toggleTaskCompletion, sortTasks, getSortLabel, getCurrentSeason, getSeasonFromDate, isTaskOverdue, isTaskDueThisWeek, isTaskDueNextWeek, filterTasksBySeason, sortTasksByMonth } from '../services/taskService';
+import { fetchTasks, toggleTaskCompletion, sortTasks, getSortLabel, getCurrentSeason, getSeasonFromDate, isTaskOverdue, isTaskDueThisWeek, isTaskDueThisMonth, filterTasksBySeason, sortTasksByMonth } from '../services/taskService';
+import { Flower2, Sun, Leaf, Snowflake } from 'lucide-react-native';
 import EmptyState from './ui/EmptyState';
 import TaskListItemComp from '../components/TaskListItem';
 import { QuickFilterType } from './ui/QuickFilterChips';
 import QuickFilterChips from './ui/QuickFilterChips';
 import SeasonFilterDropdown from './ui/SeasonFilterDropdown';
+import SortFilterDropdown from './ui/SortFilterDropdown';
 import ExtendedFilterModal from './ui/ExtendedFilterModal';
 
 interface TaskListContentProps {
@@ -50,7 +52,6 @@ export default function TaskListContent({
   const [refreshing, setRefreshing] = useState(false);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('priority');
-  const [showSortMenu, setShowSortMenu] = useState(false);
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,6 +63,15 @@ export default function TaskListContent({
   // New Filter State
   const [quickFilter, setQuickFilter] = useState<QuickFilterType | null>(null);
   const [selectedSeason, setSelectedSeason] = useState('Alle');
+  
+  const currentSeason = getCurrentSeason();
+  const seasonColors: Record<string, string> = {
+    'Frühling': '#5A8F6B',
+    'Sommer': '#E8A838',
+    'Herbst': '#8D5B3E',
+    'Winter': '#4A6FA5',
+  };
+  
   const [showExtendedFilter, setShowExtendedFilter] = useState(false);
   const [extendedFilters, setExtendedFilters] = useState({
     priorities: [] as string[],
@@ -135,8 +145,8 @@ export default function TaskListContent({
       result = result.filter(t => isTaskOverdue(t.due_date || null));
     } else if (quickFilter === 'thisWeek') {
       result = result.filter(t => isTaskDueThisWeek(t.due_date || null));
-    } else if (quickFilter === 'nextWeek') {
-      result = result.filter(t => isTaskDueNextWeek(t.due_date || null));
+    } else if (quickFilter === 'thisMonth') {
+      result = result.filter(t => isTaskDueThisMonth(t.due_date || null));
     } else if (quickFilter === 'nextSteps') {
       result = result.filter(t => 
         t.priority === 'hoch' && 
@@ -242,7 +252,7 @@ export default function TaskListContent({
   const quickFilterCounts = useMemo(() => ({
     overdue: tasks.filter(t => isTaskOverdue(t.due_date || null)).length,
     thisWeek: tasks.filter(t => isTaskDueThisWeek(t.due_date || null)).length,
-    nextWeek: tasks.filter(t => isTaskDueNextWeek(t.due_date || null)).length,
+    thisMonth: tasks.filter(t => isTaskDueThisMonth(t.due_date || null)).length,
     nextSteps: tasks.filter(t => 
       t.priority === 'hoch' && 
       !isTaskOverdue(t.due_date || null) &&
@@ -301,6 +311,15 @@ export default function TaskListContent({
       {showHeader && (
         <View style={styles.header}>
           <View>
+            <View style={styles.headerSeasonRow}>
+              {currentSeason === 'Frühling' && <Flower2 size={20} color={seasonColors['Frühling']} />}
+              {currentSeason === 'Sommer' && <Sun size={20} color={seasonColors['Sommer']} />}
+              {currentSeason === 'Herbst' && <Leaf size={20} color={seasonColors['Herbst']} />}
+              {currentSeason === 'Winter' && <Snowflake size={20} color={seasonColors['Winter']} />}
+              <Text style={[styles.headerSeasonText, { color: seasonColors[currentSeason] }]}>
+                Es ist {currentSeason}
+              </Text>
+            </View>
             <Text style={styles.headerTitle}>Aufgaben</Text>
             <Text style={styles.headerSubtitle}>
               {filteredAndSortedTasks.length === 1 
@@ -354,19 +373,16 @@ export default function TaskListContent({
           onSeasonChange={setSelectedSeason}
         />
         
-        <TouchableOpacity
-          style={styles.sortChip}
-          onPress={() => setShowSortMenu(!showSortMenu)}
-        >
-          <MaterialIcons name="sort" size={16} color={Colors2026.primary} />
-          <Text style={styles.sortChipText}>{getSortLabel(sortBy)}</Text>
-        </TouchableOpacity>
+        <SortFilterDropdown
+          selectedSort={sortBy}
+          onSortChange={setSortBy}
+        />
 
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowExtendedFilter(true)}
         >
-          <MaterialIcons name="tune" size={18} color={Colors2026.primary} />
+          <MaterialIcons name="tune" size={18} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -379,13 +395,8 @@ export default function TaskListContent({
         availablePlants={tasks.flatMap(t => t.linked_plants || []).filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)}
       />
 
-      {/* Legacy Filter Chips (for backward compatibility) */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterChipsContainer}
-        contentContainerStyle={styles.filterChipsContent}
-      >
+      {/* Legacy Filter Chips */}
+      <View style={styles.filterChipsContent}>
         {/* Filter Toggle */}
         <TouchableOpacity
           style={[
@@ -397,7 +408,7 @@ export default function TaskListContent({
           <MaterialIcons 
             name="filter-list" 
             size={16} 
-            color={showFilters ? '#fff' : Colors2026.primary} 
+            color={showFilters ? '#fff' : Colors2026.textSecondary} 
           />
           <Text style={[
             styles.filterChipText,
@@ -405,15 +416,6 @@ export default function TaskListContent({
           ]}>
             Filter
           </Text>
-        </TouchableOpacity>
-
-        {/* Sort Button */}
-        <TouchableOpacity
-          style={styles.filterChip}
-          onPress={() => setShowSortMenu(!showSortMenu)}
-        >
-          <MaterialIcons name="sort" size={16} color={Colors2026.primary} />
-          <Text style={styles.filterChipText}>{getSortLabel(sortBy)}</Text>
         </TouchableOpacity>
 
         {/* Clear Filters */}
@@ -426,7 +428,7 @@ export default function TaskListContent({
             <Text style={styles.clearFilterText}>Zurücksetzen</Text>
           </TouchableOpacity>
         )}
-      </ScrollView>
+      </View>
 
       {/* Expanded Filters */}
       {showFilters && (
@@ -474,37 +476,6 @@ export default function TaskListContent({
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-      )}
-
-      {/* Sort Menu */}
-      {showSortMenu && (
-        <View style={styles.sortMenu} accessibilityLabel="Sortieroptionen">
-          {['priority', 'created_at', 'category', 'title', 'month'].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[
-                styles.sortOption,
-                sortBy === option && styles.sortOptionActive,
-              ]}
-              onPress={() => {
-                setSortBy(option);
-                setShowSortMenu(false);
-              }}
-              accessibilityLabel={`Sortieren nach ${option === 'month' ? 'Nach Monat' : getSortLabel(option)}`}
-              accessibilityRole="button"
-            >
-              <Text style={[
-                styles.sortOptionText,
-                sortBy === option && styles.sortOptionTextActive,
-              ]}>
-                {option === 'month' ? 'Nach Monat' : getSortLabel(option)}
-              </Text>
-              {sortBy === option && (
-                <MaterialIcons name="check" size={18} color={Colors2026.primary} />
-              )}
-            </TouchableOpacity>
-          ))}
         </View>
       )}
 
@@ -563,6 +534,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerSeasonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  headerSeasonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -608,20 +589,22 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors2026.divider,
   },
   filterChipsContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     gap: 8,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(45, 71, 57, 0.1)', // 2026 Style
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors2026.primary,
+    borderColor: Colors2026.divider,
   },
   filterChipActive: {
     backgroundColor: Colors2026.primary,
@@ -630,7 +613,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors2026.textSecondary,
+    color: Colors2026.text,
   },
   filterChipTextActive: {
     color: '#fff',
@@ -638,10 +621,10 @@ const styles = StyleSheet.create({
   clearFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 6,
+    height: 40,
+    borderRadius: 16,
     backgroundColor: '#ffebee',
     borderWidth: 1,
     borderColor: Colors2026.status.error,
@@ -684,7 +667,7 @@ const styles = StyleSheet.create({
   },
   priorityChipText: {
     fontSize: 12,
-    color: Colors2026.textLight,
+    color: Colors2026.textSecondary,
   },
   priorityChipTextActive: {
     color: '#fff',
@@ -709,31 +692,6 @@ const styles = StyleSheet.create({
   categoryChipTextActive: {
     color: '#fff',
     fontWeight: '600',
-  },
-  sortMenu: {
-    backgroundColor: Colors2026.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors2026.divider,
-  },
-  sortOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors2026.divider,
-  },
-  sortOptionActive: {
-    backgroundColor: '#f0f0f0',
-  },
-  sortOptionText: {
-    fontSize: 14,
-    color: Colors2026.text,
-  },
-  sortOptionTextActive: {
-    fontWeight: '600',
-    color: Colors2026.primary,
   },
   listContent: {
     paddingHorizontal: 12,
@@ -769,27 +727,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors2026.divider,
   },
-  sortChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors2026.primaryLight,
-    borderWidth: 1,
-    borderColor: Colors2026.primary,
-  },
-  sortChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors2026.primary,
-  },
   filterButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors2026.primaryLight,
+    backgroundColor: Colors2026.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },

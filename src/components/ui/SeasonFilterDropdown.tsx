@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Flower2, Sun, Leaf, Snowflake, Check } from 'lucide-react-native';
 import { Colors2026 } from '../../theme/designSystemV2';
-import { getCurrentSeason } from '../../services/taskService';
 
 const SEASONS = ['Alle', 'Frühling', 'Sommer', 'Herbst', 'Winter'];
+
+const SEASON_COLORS: Record<string, string> = {
+  'Frühling': '#5A8F6B',
+  'Sommer': '#E8A838',
+  'Herbst': '#8D5B3E',
+  'Winter': '#4A6FA5',
+};
+
+const SEASON_ICONS: Record<string, React.ComponentType<any>> = {
+  'Frühling': Flower2,
+  'Sommer': Sun,
+  'Herbst': Leaf,
+  'Winter': Snowflake,
+};
 
 interface Props {
   selectedSeason: string;
@@ -13,19 +26,20 @@ interface Props {
 
 export default function SeasonFilterDropdown({ selectedSeason, onSeasonChange }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  const defaultSeason = getCurrentSeason();
+  const seasonColor = SEASON_COLORS[selectedSeason] || Colors2026.primary;
+  const SeasonIcon = SEASON_ICONS[selectedSeason];
+  const isActive = selectedSeason !== 'Alle';
 
   return (
-    <View style={styles.container}>
+    <>
       <TouchableOpacity 
-        style={styles.dropdown}
+        style={[styles.dropdown, isActive && { backgroundColor: seasonColor, borderColor: seasonColor }]}
         onPress={() => setIsOpen(true)}
       >
-        <MaterialIcons name="filter-list" size={18} color={Colors2026.textMuted} />
-        <Text style={styles.dropdownText}>
+        {SeasonIcon && <SeasonIcon size={18} color={isActive ? '#fff' : seasonColor} />}
+        <Text style={[styles.dropdownText, isActive && styles.dropdownTextActive]}>
           {selectedSeason === 'Alle' ? 'Jahreszeit' : selectedSeason}
         </Text>
-        <MaterialIcons name="arrow-drop-down" size={20} color={Colors2026.textMuted} />
       </TouchableOpacity>
 
       <Modal
@@ -37,50 +51,58 @@ export default function SeasonFilterDropdown({ selectedSeason, onSeasonChange }:
         <Pressable style={styles.overlay} onPress={() => setIsOpen(false)}>
           <View style={styles.menu}>
             <Text style={styles.menuTitle}>Jahreszeit</Text>
-            {SEASONS.map((season) => (
-              <TouchableOpacity
-                key={season}
-                style={[styles.menuItem, selectedSeason === season && styles.menuItemActive]}
-                onPress={() => {
-                  onSeasonChange(season);
-                  setIsOpen(false);
-                }}
-              >
-                <Text style={[styles.menuItemText, selectedSeason === season && styles.menuItemTextActive]}>
-                  {season}
-                </Text>
-                {season === defaultSeason && (
-                  <Text style={styles.currentBadge}>Aktuell</Text>
-                )}
-                {selectedSeason === season && (
-                  <MaterialIcons name="check" size={20} color={Colors2026.primary} />
-                )}
-              </TouchableOpacity>
-            ))}
+            {SEASONS.map((season) => {
+              const IconComponent = SEASON_ICONS[season];
+              return (
+                <TouchableOpacity
+                  key={season}
+                  style={[styles.menuItem, selectedSeason === season && styles.menuItemActive]}
+                  onPress={() => {
+                    onSeasonChange(season);
+                    setIsOpen(false);
+                  }}
+                >
+                  <View style={styles.menuItemLeft}>
+                    {IconComponent && <IconComponent size={20} color={selectedSeason === season ? '#fff' : Colors2026.text} style={styles.menuItemIcon} />}
+                    <Text style={[styles.menuItemText, selectedSeason === season && styles.menuItemTextActive]}>
+                      {season}
+                    </Text>
+                  </View>
+                  {selectedSeason === season && (
+                    <Check size={20} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Pressable>
       </Modal>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
   dropdown: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(45, 71, 57, 0.1)', // 10% opacity - 2026 Style
+    paddingVertical: 6,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: Colors2026.surface,
     borderWidth: 1,
-    borderColor: Colors2026.primary,
+    borderColor: Colors2026.divider,
   },
   dropdownText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors2026.textSecondary, // Nicht primär für inaktiv
+    color: Colors2026.text,
+  },
+  dropdownActive: {
+    backgroundColor: Colors2026.primary,
+  },
+  dropdownTextActive: {
+    color: '#fff',
   },
   overlay: {
     flex: 1,
@@ -109,15 +131,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  menuItemIcon: {
+    marginRight: 12,
+  },
   menuItemActive: {
-    backgroundColor: Colors2026.primaryLight,
+    backgroundColor: Colors2026.primary,
   },
   menuItemText: {
     fontSize: 14,
     color: Colors2026.text,
   },
   menuItemTextActive: {
-    color: Colors2026.primary,
+    color: '#fff',
     fontWeight: '600',
   },
   currentBadge: {

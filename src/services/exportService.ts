@@ -3,7 +3,7 @@
  * Story 052: Export-Funktion
  */
 
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Task } from '../types/task';
 import { Plant } from '../types/plant';
@@ -139,14 +139,12 @@ export async function saveAndShareExport(
   mimeType: string
 ): Promise<boolean> {
   try {
-    const fileUri = `${FileSystem.documentDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(fileUri, content, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
+    const file = new File(Paths.document, filename);
+    await file.write(content);
 
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(fileUri, {
+      await Sharing.shareAsync(file.uri, {
         mimeType,
         dialogTitle: 'Gartenplaner Export teilen',
       });

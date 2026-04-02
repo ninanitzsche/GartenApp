@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     borderColor: Colors2026.divider,
   },
   chipActive: { backgroundColor: Colors2026.primary, borderColor: Colors2026.primary },
-  chipText: { fontSize: 14, color: Colors2026.text },
+  chipText: { fontSize: 14, color: Colors2026.textSecondary },
   chipTextActive: { color: '#fff', fontWeight: '600' },
   footer: {
     flexDirection: 'row',

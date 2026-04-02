@@ -31,6 +31,7 @@ import {
   TaskMetrics,
   PlantStatusDistribution,
   RecentActivity,
+  GardenGrowthData,
 } from '../services/dashboardService';
 import { formatTimeSpent, fetchTasks, toggleTaskCompletion } from '../services/taskService';
 import { Task } from '../types/task';
@@ -41,6 +42,7 @@ import { getAktuelleSaison, getJahreszeitLabel, getJahreszeit, getZeitraumShortL
 import { Zeitraum } from '../types/zeitraum';
 import LearningCard from '../components/LearningCard';
 import Toast from '../components/Toast';
+import GardenGrowthSection from '../components/ui/GardenGrowthSection';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -49,6 +51,7 @@ interface DashboardCache {
   tasks: TaskMetrics;
   statusDistribution: PlantStatusDistribution[];
   recentActivity: RecentActivity[];
+  gardenGrowth: GardenGrowthData;
   timestamp: number;
 }
 
@@ -68,6 +71,12 @@ export default function HomeScreen({ navigation }: Props) {
   });
   const [statusDistribution, setStatusDistribution] = useState<PlantStatusDistribution[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [gardenGrowth, setGardenGrowth] = useState<GardenGrowthData>({
+    plants: [],
+    totalTasks: 0,
+    completedTasks: 0,
+    overallProgress: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [prioritizedTasks, setPrioritizedTasks] = useState<Task[]>([]);
@@ -95,6 +104,7 @@ export default function HomeScreen({ navigation }: Props) {
       setTasks(cacheRef.current.tasks);
       setStatusDistribution(cacheRef.current.statusDistribution);
       setRecentActivity(cacheRef.current.recentActivity);
+      setGardenGrowth(cacheRef.current.gardenGrowth);
       setLoading(false);
       return;
     }
@@ -107,6 +117,7 @@ export default function HomeScreen({ navigation }: Props) {
       setTasks(data.tasks);
       setStatusDistribution(data.statusDistribution);
       setRecentActivity(data.recentActivity);
+      setGardenGrowth(data.gardenGrowth);
 
       cacheRef.current = {
         ...data,
@@ -300,6 +311,14 @@ export default function HomeScreen({ navigation }: Props) {
           </GlassCard>
         </View>
 
+        {/* Garden Growth */}
+        {gardenGrowth.plants.length > 0 && (
+          <GardenGrowthSection
+            data={gardenGrowth}
+            onPlantPress={(plantId) => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } })}
+          />
+        )}
+
         {/* Tasks Section */}
         {prioritizedTasks.length > 0 && (
           <View style={styles.section}>
@@ -334,7 +353,7 @@ export default function HomeScreen({ navigation }: Props) {
           <View style={styles.section}>
             <SectionHeader
               title="Tipps für dich"
-              subtitle={getJahreszeitLabel(getJahreszeit(getAktuelleSaison())) || undefined}
+              subtitle={getJahreszeit(getAktuelleSaison()) ? getJahreszeitLabel(getJahreszeit(getAktuelleSaison())!) : undefined}
               icon={<Flower2 size={20} color={Colors2026.primary} />}
               animated={true}
               delay={100}
@@ -427,7 +446,7 @@ export default function HomeScreen({ navigation }: Props) {
             action={
               <AnimatedButton
                 title="Pflanze hinzufügen"
-                onPress={() => navigation.navigate('PlantList')}
+                onPress={() => (navigation as any).navigate('PlantList')}
                 variant="primary"
               />
             }

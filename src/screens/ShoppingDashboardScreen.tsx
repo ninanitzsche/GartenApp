@@ -178,7 +178,7 @@ export default function ShoppingDashboardScreen({ navigation }: Props) {
   ) => (
     <View style={styles.categoryHeader}>
       <View style={styles.categoryTitleSection}>
-        <MaterialIcons name={getCategoryIcon(category.category)} size={24} color={Colors2026.primary} />
+        <MaterialIcons name={getCategoryIcon(category.category) as any} size={24} color={Colors2026.primary} />
         <View style={styles.categoryInfo}>
           <Text style={styles.categoryTitle}>{category.categoryLabel}</Text>
           <Text style={styles.categoryMeta}>

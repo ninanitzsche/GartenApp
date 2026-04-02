@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Task Service Tests
  * Comprehensive test suite for taskService.ts

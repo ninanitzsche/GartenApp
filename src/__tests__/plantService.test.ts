@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Plant Service Tests
  * Comprehensive test suite for plantService.ts

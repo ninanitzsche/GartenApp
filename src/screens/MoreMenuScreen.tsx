@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
 import { BlurView } from 'expo-blur';
 import Animated, {
   useSharedValue,
@@ -126,7 +127,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
             <MenuItem
               icon={<User size={20} color={Colors2026.primary} />}
               label="Mein Profil"
-              onPress={() => navigation.navigate({ name: 'Profile' })}
+              onPress={() => (navigation as any).navigate({ name: 'Profile' })}
             />
           </GlassCard>
         </View>
@@ -173,12 +174,12 @@ export default function MoreMenuScreen({ navigation }: Props) {
             <MenuItem
               icon={<ShoppingCart size={20} color={Colors2026.primary} />}
               label="Einkaufsliste"
-              onPress={() => navigation.navigate({ name: 'ShoppingDashboard' })}
+              onPress={() => (navigation as any).navigate({ name: 'ShoppingDashboard' })}
             />
             <MenuItem
               icon={<Sprout size={20} color={Colors2026.primary} />}
               label="Ernte-Tagebuch"
-              onPress={() => navigation.navigate('HarvestLog')}
+              onPress={() => (navigation as any).navigate('HarvestLog')}
             />
             <MenuItem
               icon={<BookOpen size={20} color={Colors2026.primary} />}
