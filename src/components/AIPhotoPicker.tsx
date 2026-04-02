@@ -17,8 +17,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { identifyPlant, pickImage } from '../services/aiService';
 import { cacheIdentification, getCachedIdentification } from '../services/cacheService';
-import { analyzePhotoWithHealth } from '../services/aiIntegrationService';
-import { fetchPlants } from '../services/plantService';
+import { analyzePhotoWithHealth, compressImage } from '../services/aiIntegrationService';
+import { fetchPlants, createPlant } from '../services/plantService';
+import { uploadPhoto } from '../services/photoService';
+import { createHealthCheck } from '../services/healthCheckService';
+import { Plant } from '../types/plant';
 import { PlantIdentificationResult, AIPhotoAnalysis } from '../types/ai';
 import TaskSuggestionModal from './TaskSuggestionModal';
 import AIPhotoStep2 from './AIPhotoStep2';
@@ -48,6 +51,8 @@ export default function AIPhotoPicker({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<TaskSuggestion[]>([]);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<AIPhotoAnalysis | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState({
     identification: 'pending' as 'pending' | 'loading' | 'done' | 'error',
     disease: 'pending' as 'pending' | 'loading' | 'done' | 'error',
@@ -92,41 +97,95 @@ export default function AIPhotoPicker({
   const handleIdentify = async () => {
     if (!selectedImage) return;
 
+    setCurrentStep(2);
     setIsLoading(true);
     setError(null);
-    setCurrentStep(2);
-    setAnalysisStatus({
-      identification: 'loading',
-      disease: 'loading',
-      matching: 'loading',
-    });
 
     try {
-      const plants = await fetchPlants();
-      const analysis = await analyzePhotoWithHealth(selectedImage, plants);
-      
-      setAnalysisResult(analysis);
-      setResult(analysis.plantIdentification);
-      
-      setAnalysisStatus({
-        identification: analysis.plantIdentification ? 'done' : 'error',
-        disease: analysis.diseaseAnalysis !== null ? 'done' : 'done',
-        matching: 'done',
-      });
-      
-      if (analysis.plantIdentification) {
+      const existingPlants = await fetchPlants();
+      const analysisResult = await analyzePhotoWithHealth(selectedImage, existingPlants);
+      setAnalysis(analysisResult);
+
+      if (analysisResult.plantIdentification) {
+        await cacheIdentification(selectedImage, analysisResult.plantIdentification);
+      }
+
+      if (analysisResult.bestMatch && (analysisResult.plantIdentification?.confidence ?? 0) >= 0.8) {
+        setSelectedPlantId(analysisResult.bestMatch.id);
         setCurrentStep(4);
       } else {
-        setError(analysis.errors?.identification || 'Pflanze konnte nicht identifiziert werden');
+        setCurrentStep(3);
       }
     } catch (err: any) {
-      console.error('Identification error:', err);
-      setError(err.message || 'Fehler bei der Pflanzen-Erkennung');
-      setAnalysisStatus({
-        identification: 'error',
-        disease: 'error',
-        matching: 'error',
+      setError(err.message || 'Fehler bei der Analyse');
+      setCurrentStep(1);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectPlant = (plant: Plant) => {
+    setSelectedPlantId(plant.id);
+    setCurrentStep(4);
+  };
+
+  const handleConfirmAssignment = async () => {
+    if (!selectedImage || !selectedPlantId || !analysis?.plantIdentification) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const compressedUri = await compressImage(selectedImage);
+      const fileName = `ai-picker-${Date.now()}.jpg`;
+      await uploadPhoto(selectedPlantId, compressedUri, fileName);
+
+      await createHealthCheck(selectedPlantId, {
+        photoUri: compressedUri,
+        runAI: true,
+        notes: `Automatisch erstellt durch AI-Identifikation: ${analysis.plantIdentification.name}`,
       });
+
+      onPlantIdentified(analysis.plantIdentification);
+      handleClose();
+    } catch (err: any) {
+      setError(err.message || 'Fehler bei der Zuordnung');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateNewPlant = async (newPlantName?: string) => {
+    if (!selectedImage || !analysis?.plantIdentification) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const name = newPlantName || analysis.plantIdentification.name;
+      const newPlant = await createPlant({
+        name,
+        latin_name: analysis.plantIdentification.scientificName,
+        status: 'geplant',
+        identification_source: 'ai',
+      });
+
+      const compressedUri = await compressImage(selectedImage);
+      const fileName = `ai-picker-${Date.now()}.jpg`;
+      await uploadPhoto(newPlant.id, compressedUri, fileName);
+
+      await createHealthCheck(newPlant.id, {
+        photoUri: compressedUri,
+        runAI: true,
+        notes: `Automatisch erstellt durch AI-Identifikation: ${name}`,
+      });
+
+      if (analysis.plantIdentification) {
+        onPlantIdentified(analysis.plantIdentification);
+      }
+      handleClose();
+    } catch (err: any) {
+      setError(err.message || 'Fehler beim Anlegen der Pflanze');
     } finally {
       setIsLoading(false);
     }
@@ -165,146 +224,48 @@ export default function AIPhotoPicker({
   };
 
   const renderContent = () => {
-    if (currentStep === 4 && analysisResult && result) {
+    if (currentStep === 4 && analysis && selectedPlantId) {
+      const selectedPlant = analysis.matchingPlants.find(p => p.id === selectedPlantId) || analysis.bestMatch;
       return (
         <AIPhotoStep4
-          bestMatch={analysisResult.bestMatch}
-          hasMultipleMatches={analysisResult.matchingPlants.length > 1}
-          onConfirm={() => {
-            onPlantIdentified(result);
-            handleClose();
-          }}
-          onCreateNew={() => {
-            onPlantIdentified(result);
-            handleClose();
-          }}
-          onSelectDifferent={() => {
-            setCurrentStep(3);
-          }}
-          onBack={() => {
-            setCurrentStep(3);
-          }}
+          bestMatch={selectedPlant}
+          hasMultipleMatches={analysis.matchingPlants.length > 1}
+          onConfirm={handleConfirmAssignment}
+          onCreateNew={() => handleCreateNewPlant()}
+          onSelectDifferent={() => setCurrentStep(3)}
+          onBack={() => setCurrentStep(3)}
         />
       );
     }
 
-    if (currentStep === 3 && analysisResult && result) {
+    if (currentStep === 3 && analysis && analysis.plantIdentification) {
       return (
         <AIPhotoStep3
-          plantName={result.name}
-          scientificName={result.scientificName}
-          confidence={result.confidence}
-          family={result.family}
-          commonNames={result.commonNames}
-          healthStatus={analysisResult.healthStatus}
-          matchingPlants={analysisResult.matchingPlants}
-          onSelectPlant={(plant) => {
-            onPlantIdentified(result);
-            handleClose();
-          }}
-          onCreateNewPlant={() => {
-            onPlantIdentified(result);
-            handleClose();
-          }}
+          plantName={analysis.plantIdentification.name}
+          scientificName={analysis.plantIdentification.scientificName}
+          confidence={analysis.plantIdentification.confidence}
+          family={analysis.plantIdentification.family}
+          commonNames={analysis.plantIdentification.commonNames}
+          healthStatus={analysis.healthStatus}
+          matchingPlants={analysis.matchingPlants}
+          onSelectPlant={handleSelectPlant}
+          onCreateNewPlant={() => handleCreateNewPlant()}
           onRetry={handleRetry}
         />
       );
     }
 
-    if (result) {
+    if (currentStep === 2) {
       return (
-        <View style={styles.resultContainer}>
-          <MaterialIcons name="check-circle" size={64} color={Colors2026.status.success} />
-          <Text style={styles.resultTitle}>Erkannt!</Text>
-          
-          <View style={styles.resultCard}>
-            <Text style={styles.plantName}>{result.name}</Text>
-            <Text style={styles.scientificName}>{result.scientificName}</Text>
-            
-            <View style={styles.confidenceContainer}>
-              <Text style={styles.confidenceLabel}>Konfidenz:</Text>
-              <Text
-                style={[
-                  styles.confidenceValue,
-                  { color: getConfidenceColor(result.confidence) },
-                ]}
-              >
-                {Math.round(result.confidence * 100)}%
-              </Text>
-            </View>
-
-            {result.family && (
-              <Text style={styles.familyText}>Familie: {result.family}</Text>
-            )}
-
-            {result.commonNames.length > 0 && (
-              <Text style={styles.commonNamesText}>
-                Auch bekannt als: {result.commonNames.slice(0, 3).join(', ')}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
-              onPress={handleRetry}
-            >
-              <MaterialIcons name="refresh" size={20} color={Colors2026.text} />
-              <Text style={styles.secondaryButtonText}>Nochmal</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
-              onPress={() => {
-                onPlantIdentified(result);
-                handleClose();
-              }}
-            >
-              <MaterialIcons name="add" size={20} color={Colors2026.text} />
-              <Text style={styles.secondaryButtonText}>Pflanze</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.primaryButton]}
-              onPress={handleAccept}
-            >
-              <MaterialIcons name="lightbulb" size={20} color={Colors2026.surface} />
-              <Text style={styles.primaryButtonText}>+ Aufgaben</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.resultContainer}>
-          <MaterialIcons name="error-outline" size={64} color={Colors2026.status.error} />
-          <Text style={styles.errorTitle}>Erkennung fehlgeschlagen</Text>
-          <Text style={styles.errorText}>{error}</Text>
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
-              onPress={handleRetry}
-            >
-              <MaterialIcons name="refresh" size={20} color={Colors2026.text} />
-              <Text style={styles.secondaryButtonText}>Nochmal versuchen</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <AIPhotoStep2
+          identificationStatus={analysisStatus.identification}
+          diseaseStatus={analysisStatus.disease}
+          matchingStatus={analysisStatus.matching}
+        />
       );
     }
 
     if (selectedImage) {
-      if (currentStep === 2) {
-        return (
-          <AIPhotoStep2
-            identificationStatus={analysisStatus.identification}
-            diseaseStatus={analysisStatus.disease}
-            matchingStatus={analysisStatus.matching}
-          />
-        );
-      }
-
       return (
         <View style={styles.previewContainer}>
           <Image source={{ uri: selectedImage }} style={styles.previewImage} />
