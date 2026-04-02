@@ -83,12 +83,13 @@ src/
 ### Datenfluss
 
 1. **Foto-Aufnahme**: Nutzer macht Foto oder wählt aus Galerie (✓ existiert)
-2. **Komprimierung**: Bild wird auf 1200x1200 komprimiert
-3. **Parallele KI-Aufrufe** (`Promise.allSettled`):
-   - PlantNet Identification API (Pflanzenerkennung)
-   - PlantNet Disease API (Krankheitserkennung)
-   - Plant Matching (existierende Pflanzen)
-4. **Partial-Results**: Ergebnisse werden einzeln angezeigt wenn verfügbar
+2. **Komprimierung**: Bild wird auf 1200x1200 komprimiert via `expo-image-manipulator`
+3. **Sequenzieller KI-Flow**:
+   - **Schritt 3a**: PlantNet Identification (Pflanzenerkennung) - MUSS zuerst laufen
+   - **Schritt 3b**: Parallel nach Identification:
+     - PlantNet Disease API (Krankheitserkennung)
+     - Plant Matching (existierende Pflanzen) - benötigt Identification-Result
+4. **Progressive Results**: Ergebnisse werden angezeigt wenn verfügbar
 5. **Zuordnung**: Nutzer bestätigt oder wählt aus
 
 ## UI-Änderungen an AIPhotoPicker.tsx
@@ -160,27 +161,30 @@ function findMatchingPlants(
 ): Plant[]
 ```
 
-### Promise.allSettled für Partial-Results
+### Sequenzieller Flow mit Partial-Results
 
 ```typescript
-const results = await Promise.allSettled([
-  identifyPlant(photoUri),
+// Schritt 1: Identification MUSS zuerst laufen (Name wird für Matching benötigt)
+const identification = await identifyPlant(photoUri);
+
+// Schritt 2: Disease + Matching parallel (beide benötigen Identification)
+const [diseaseResult, matchingResult] = await Promise.allSettled([
   identifyDisease(photoUri),
-  findMatchingPlants(identifiedName, existingPlants),
+  findMatchingPlants(identification.name, existingPlants),
 ]);
 
 // Partial-Result-Handling
 const analysis: AIPhotoAnalysis = {
-  plantIdentification: results[0].status === 'fulfilled' ? results[0].value : null,
-  diseaseAnalysis: results[1].status === 'fulfilled' ? results[1].value : null,
-  matchingPlants: results[2].status === 'fulfilled' ? results[2].value : [],
+  plantIdentification: identification,
+  diseaseAnalysis: diseaseResult.status === 'fulfilled' ? diseaseResult.value : null,
+  matchingPlants: matchingResult.status === 'fulfilled' ? matchingResult.value : [],
   healthStatus: calculateHealthStatus(
-    results[1].status === 'fulfilled' ? results[1].value : null
+    diseaseResult.status === 'fulfilled' ? diseaseResult.value : null
   ),
   errors: {
-    identification: results[0].status === 'rejected' ? results[0].reason : undefined,
-    disease: results[1].status === 'rejected' ? results[1].reason : undefined,
-    matching: results[2].status === 'rejected' ? results[2].reason : undefined,
+    identification: undefined,
+    disease: diseaseResult.status === 'rejected' ? diseaseResult.reason : undefined,
+    matching: matchingResult.status === 'rejected' ? matchingResult.reason : undefined,
   },
 };
 ```
@@ -213,12 +217,49 @@ const analysis: AIPhotoAnalysis = {
 // Bestehend in cacheService.ts
 await cacheIdentification(imageHash, identification);
 await cacheDisease(imageHash, diseaseData);  // NEU
+
+// NEU: getCachedDisease
+export async function getCachedDisease(imageHash: string): Promise<PlantDiseaseData | null> {
+  return getCached(`ai:disease:${imageHash}`);
+}
 ```
 
 ### Key-Format
 ```
 ai:identification:{imageHash}
 ai:disease:{imageHash}
+```
+
+### Timeout-Handling
+
+```typescript
+// In aiService.ts: identifyPlant - NEU: AbortController hinzufügen
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 30000); // 30s
+
+const response = await fetch(url, {
+  method: 'POST',
+  body: formData,
+  signal: controller.signal,
+});
+
+clearTimeout(timeout);
+```
+
+### Bildkomprimierung
+
+```typescript
+// In aiPhotoOrchestrator.ts - NEU
+import * as ImageManipulator from 'expo-image-manipulator';
+
+async function compressImage(uri: string): Promise<string> {
+  const result = await ImageManipulator.manipulateAsync(
+    uri,
+    [{ resize: { width: 1200, height: 1200 } }],
+    { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+  );
+  return result.uri;
+}
 ```
 
 ## API-Sicherheit
@@ -244,10 +285,11 @@ ai:disease:{imageHash}
 
 ## Performance-Optimierung
 
-1. **Parallele KI-Aufrufe**: `Promise.allSettled` für Partial-Results
-2. **Bild-Komprimierung**: 1200x1200, 70% JPEG-Qualität
+1. **Sequenzieller KI-Flow**: Identification zuerst, dann Disease + Matching parallel
+2. **Bild-Komprimierung**: 1200x1200, 70% JPEG-Qualität via `expo-image-manipulator`
 3. **Caching**: KI-Ergebnisse via AsyncStorage
 4. **Progressive Loading**: Ergebnisse einzeln anzeigen
+5. **Timeout**: 30s für alle KI-Aufrufe via AbortController
 
 ## Implementierungsreihenfolge
 
