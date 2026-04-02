@@ -13,7 +13,6 @@
 ## File Structure
 
 ### Dateien die erstellt werden:
-- `src/types/aiPhoto.ts` - AIPhotoAnalysis Interface (falls nicht in ai.ts)
 - `src/components/AIPhotoStep2.tsx` - Loading-Animation Step
 - `src/components/AIPhotoStep3.tsx` - Ergebnis + Gesundheit Step
 - `src/components/AIPhotoStep4.tsx` - Zuordnung Step
@@ -27,6 +26,12 @@
 - `src/services/cacheService.ts` - cacheDisease() (✓ bereits hinzugefügt)
 - `src/services/aiService.ts` - AbortController (✓ bereits hinzugefügt)
 - `src/services/plantDiseaseService.ts` - AbortController (✓ bereits hinzugefügt)
+
+### Bestehende Services (verifiziert):
+- `src/services/photoService.ts` - uploadPhoto(), enrichPhotoWithUrl()
+- `src/services/healthCheckService.ts` - createHealthCheck(), fetchHealthChecks()
+- `src/services/plantService.ts` - createPlant(), fetchPlants(), searchPlants()
+- `src/components/TaskSuggestionModal.tsx` - Bestehender Task-Suggestion-Flow
 
 ---
 
@@ -205,19 +210,27 @@ export async function analyzePhotoWithHealth(
   existingPlants: Plant[]
 ): Promise<AIPhotoAnalysis> {
   // Schritt 1: Identification MUSS zuerst laufen
-  let identification: PlantIdentificationResult | null = null;
-  let identificationError: string | undefined;
-  
+  // Bei Fehler: Early Return (wie in Spec definiert)
+  let identification: PlantIdentificationResult;
   try {
     identification = await aiIdentificationWithCache(photoUri);
   } catch (error) {
-    identificationError = (error as Error).message;
+    return {
+      plantIdentification: null,
+      diseaseAnalysis: null,
+      healthStatus: 'unsicher',
+      matchingPlants: [],
+      bestMatch: null,
+      errors: {
+        identification: (error as Error).message,
+      },
+    };
   }
 
   // Schritt 2: Disease + Matching parallel
   const [diseaseResult, matchingResult] = await Promise.allSettled([
     identifyDiseaseWithCache(photoUri),
-    identification ? findMatchingPlants(identification.name, existingPlants) : Promise.resolve([]),
+    findMatchingPlants(identification.name, existingPlants),
   ]);
 
   return {
@@ -231,7 +244,7 @@ export async function analyzePhotoWithHealth(
       diseaseResult.status === 'fulfilled' ? diseaseResult.value : undefined
     ),
     errors: {
-      identification: identificationError,
+      identification: undefined,
       disease: diseaseResult.status === 'rejected' ? diseaseResult.reason : undefined,
       matching: matchingResult.status === 'rejected' ? matchingResult.reason : undefined,
     },
@@ -847,14 +860,26 @@ git commit -m "feat: add AIPhotoStep4 plant assignment component"
 **Files:**
 - Modify: `src/components/AIPhotoPicker.tsx`
 
+**Hinweis**: Der bestehende TaskSuggestion-Flow (TaskSuggestionModal + getAllSuggestions) wird beibehalten. Nach erfolgreicher Zuordnung kann optional das TaskSuggestionModal angezeigt werden.
+
 - [ ] **Step 1: Erstelle Gesamtflow in AIPhotoPicker**
 
 ```typescript
-// src/components/AIPhotoPicker.tsx - Hauptlogik
+// src/components/AIPhotoPicker.tsx - Imports
 import { analyzePhotoWithHealth } from '../services/aiIntegrationService';
-import { fetchPlants } from '../services/plantService';
+import { fetchPlants, createPlant } from '../services/plantService';
 import { uploadPhoto } from '../services/photoService';
 import { createHealthCheck } from '../services/healthCheckService';
+import { Plant } from '../types/plant';
+
+// Props Interface erweitern
+interface AIPhotoPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onPlantIdentified: (result: PlantIdentificationResult) => void;
+  onAnalysisComplete?: (analysis: AIPhotoAnalysis) => void;  // NEU: Optional
+  linkedPlantId?: string;
+}
 
 // Handle Identify - erweitert
 const handleIdentify = async () => {
@@ -877,7 +902,14 @@ const handleIdentify = async () => {
       await cacheIdentification(selectedImage, analysisResult.plantIdentification);
     }
 
-    setCurrentStep(3);
+    // Auto-Suggestion bei hoher Konfidenz (>80%)
+    if (analysisResult.bestMatch && analysisResult.plantIdentification?.confidence >= 0.8) {
+      // Direkt zu Step 4 mit Vorselektion
+      setSelectedPlantId(analysisResult.bestMatch.id);
+      setCurrentStep(4);
+    } else {
+      setCurrentStep(3);
+    }
   } catch (err: any) {
     console.error('Analysis error:', err);
     setError(err.message || 'Fehler bei der Analyse');
@@ -918,6 +950,20 @@ const handleConfirmAssignment = async (plantId: string) => {
 
     if (onAnalysisComplete) {
       onAnalysisComplete(analysis!);
+    }
+
+    // 4. Optional: Task-Vorschläge anzeigen (bestehender Flow)
+    if (analysis?.plantIdentification) {
+      const suggestions = getAllSuggestions({
+        plantFamily: analysis.plantIdentification.family,
+        plantName: analysis.plantIdentification.name,
+        linkedPlantId: plantId,
+      });
+      if (suggestions.length > 0) {
+        setSuggestions(suggestions);
+        setShowSuggestions(true);
+        return; // Modal wird geschlossen nach Suggestions
+      }
     }
 
     handleClose();
