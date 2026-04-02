@@ -1,7 +1,15 @@
 import { supabase } from './supabase';
 import { HealthCheck, HealthCheckFormData, calculateHealthStatus } from '../types/healthCheck';
-import { uploadPhoto, enrichPhotoWithUrl } from './photoService';
+import { uploadPhoto, enrichPhotoWithUrl, fetchPhotos } from './photoService';
 import { identifyDisease } from './plantDiseaseService';
+import { fetchPlants } from './plantService';
+
+export interface BatchHealthCheckResult {
+  plantId: string;
+  plantName: string;
+  status: 'success' | 'skipped' | 'error';
+  reason?: string;
+}
 
 export async function fetchHealthChecks(plantId: string): Promise<HealthCheck[]> {
   const { data, error } = await supabase
@@ -81,4 +89,57 @@ export async function deleteHealthCheck(healthCheckId: string): Promise<void> {
     .eq('id', healthCheckId);
 
   if (error) throw error;
+}
+
+export async function runBatchHealthCheck(
+  onProgress?: (current: number, total: number, plantName: string) => void
+): Promise<BatchHealthCheckResult[]> {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (!user || userError) throw new Error('User not authenticated');
+
+  const plants = await fetchPlants();
+  const results: BatchHealthCheckResult[] = [];
+
+  for (let i = 0; i < plants.length; i++) {
+    const plant = plants[i];
+    onProgress?.(i + 1, plants.length, plant.name);
+
+    try {
+      const photos = await fetchPhotos(plant.id);
+
+      if (photos.length > 0) {
+        const photoUrl = photos[0].photo_url;
+        if (!photoUrl) {
+          results.push({ plantId: plant.id, plantName: plant.name, status: 'skipped', reason: 'Kein Bild-URL' });
+          continue;
+        }
+
+        const diseaseData = await identifyDisease(photoUrl);
+        const healthStatus = calculateHealthStatus(diseaseData || undefined);
+
+        await supabase.from('health_checks').insert({
+          plant_id: plant.id,
+          photo_id: photos[0].id,
+          disease_data: diseaseData,
+          health_status: healthStatus,
+          user_id: user.id,
+        });
+
+        results.push({ plantId: plant.id, plantName: plant.name, status: 'success' });
+      } else {
+        await supabase.from('health_checks').insert({
+          plant_id: plant.id,
+          health_status: 'gesund',
+          notes: 'Ohne Bild angelegt',
+          user_id: user.id,
+        });
+
+        results.push({ plantId: plant.id, plantName: plant.name, status: 'skipped', reason: 'Kein Bild' });
+      }
+    } catch (error: any) {
+      results.push({ plantId: plant.id, plantName: plant.name, status: 'error', reason: error.message });
+    }
+  }
+
+  return results;
 }

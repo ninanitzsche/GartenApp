@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Heart, Zap } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Colors2026, Spacing2026, Typography2026 } from '../../theme/designSystemV2';
+import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../../theme/designSystemV2';
 import SectionHeader from '../ui/SectionHeader';
 import HealthCheckCard from './HealthCheckCard';
 import HealthCheckDetailModal from './HealthCheckDetailModal';
+import BatchHealthCheckModal from './BatchHealthCheckModal';
 import { HealthCheck } from '../../types/healthCheck';
 import { createHealthCheck } from '../../services/healthCheckService';
 
@@ -26,6 +27,7 @@ export default function HealthHistoryGrid({
 }: Props) {
   const [selectedCheck, setSelectedCheck] = useState<HealthCheck | null>(null);
   const [checking, setChecking] = useState(false);
+  const [batchVisible, setBatchVisible] = useState(false);
 
   const handleNewCheck = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -108,6 +110,21 @@ export default function HealthHistoryGrid({
           onUpdate={onRefresh}
         />
       )}
+
+      {isExistingPlant && (
+        <Pressable onPress={() => setBatchVisible(true)} style={styles.batchButton}>
+          <Zap size={14} color={Colors2026.primary} />
+          <Text style={styles.batchButtonText}>Alle Pflanzen prüfen</Text>
+        </Pressable>
+      )}
+
+      <BatchHealthCheckModal
+        visible={batchVisible}
+        onClose={() => {
+          setBatchVisible(false);
+          onRefresh();
+        }}
+      />
     </View>
   );
 }
@@ -138,5 +155,18 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: Typography2026.body.fontSize,
     color: Colors2026.textMuted,
+  },
+  batchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing2026.md,
+    paddingVertical: 8,
+  },
+  batchButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors2026.primary,
   },
 });
