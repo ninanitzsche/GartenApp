@@ -437,14 +437,15 @@ function getDefaultValueForField(field: string): any {
  */
 export async function identifyPlant(imageUri: string): Promise<import('../types/ai').PlantIdentificationResult> {
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!SUPABASE_URL) throw new Error('Supabase URL not configured');
+  if (!SUPABASE_ANON_KEY) throw new Error('Supabase anon key not configured');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
   try {
-    // Use the Supabase edge function proxy to avoid CORS
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/plantnet-proxy`,
       {
@@ -452,6 +453,7 @@ export async function identifyPlant(imageUri: string): Promise<import('../types/
         body: JSON.stringify({ imageUrl: imageUri }),
         headers: {
           'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
         },
         signal: controller.signal,
       }
