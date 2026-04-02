@@ -14,7 +14,9 @@ import {
   RefreshControl,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Leaf, Sprout, Sun, Droplets, Flower2, Calendar, CheckCircle2, Clock, Sparkles } from 'lucide-react-native';
+import { Leaf, Sprout, Sun, Droplets, Flower2, Calendar, CheckCircle2, Clock, Sparkles, Camera } from 'lucide-react-native';
+import AIPhotoPicker from '../components/AIPhotoPicker';
+import { PlantIdentificationResult } from '../types/ai';
 import EmptyTasksIllustration from '../components/illustrations/EmptyTasksIllustration';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,6 +45,15 @@ import { Zeitraum } from '../types/zeitraum';
 import LearningCard from '../components/LearningCard';
 import Toast from '../components/Toast';
 import GardenGrowthSection from '../components/ui/GardenGrowthSection';
+import GamificationBar from '../components/ui/GamificationBar';
+import ConfettiCelebration from '../components/ui/ConfettiCelebration';
+import {
+  calculateStreak,
+  checkAchievements,
+  getMotivationMessage,
+  StreakData,
+  Achievement,
+} from '../services/gamificationService';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -86,6 +97,11 @@ export default function HomeScreen({ navigation }: Props) {
     message: '',
     type: 'success',
   });
+  const [streak, setStreak] = useState<StreakData>({ currentStreak: 0, bestStreak: 0, lastActiveDate: null });
+  const [motivation, setMotivation] = useState('');
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [aiPickerVisible, setAIPickerVisible] = useState(false);
 
   const cacheRef = useRef<DashboardCache | null>(null);
 
@@ -135,6 +151,7 @@ export default function HomeScreen({ navigation }: Props) {
       loadDashboard();
       loadPrioritizedTasks();
       loadLearnings();
+      loadGamification();
     }, [loadDashboard])
   );
 
@@ -144,6 +161,7 @@ export default function HomeScreen({ navigation }: Props) {
       await loadDashboard(true);
       await loadPrioritizedTasks();
       await loadLearnings();
+      await loadGamification();
     } finally {
       setRefreshing(false);
     }
@@ -173,10 +191,38 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
+  const loadGamification = async () => {
+    try {
+      const streakData = await calculateStreak();
+      setStreak(streakData);
+
+      const msg = getMotivationMessage(gardenGrowth.plants);
+      setMotivation(msg);
+
+      const allAchievements = await checkAchievements(streakData, gardenGrowth.plants);
+      setAchievements(allAchievements);
+    } catch (error) {
+      console.error('Error loading gamification:', error);
+    }
+  };
+
   const handleToggleTask = async (taskId: string) => {
     try {
       await toggleTaskCompletion(taskId);
+      await loadDashboard(true); // Refresh gardenGrowth data
       await loadPrioritizedTasks();
+      // loadGamification must run AFTER loadDashboard so it has updated gardenGrowth
+      const streakData = await calculateStreak();
+      setStreak(streakData);
+      // Get updated gardenGrowth from the refreshed state
+      setTimeout(async () => {
+        const data = await getDashboardData();
+        setGardenGrowth(data.gardenGrowth);
+        setMotivation(getMotivationMessage(data.gardenGrowth.plants));
+        const allAchievements = await checkAchievements(streakData, data.gardenGrowth.plants);
+        setAchievements(allAchievements);
+      }, 100);
+      setShowConfetti(true);
       showToast('Aufgabe erledigt!', 'success');
     } catch (error: any) {
       console.error('Error toggling task:', error);
@@ -204,6 +250,10 @@ export default function HomeScreen({ navigation }: Props) {
       console.error('Error dismissing learning:', error);
       showToast('Fehler beim Verwerfen', 'error');
     }
+  };
+
+  const handlePlantIdentified = (result: PlantIdentificationResult) => {
+    showToast(`Pflanze erkannt: ${result.name}`, 'success');
   };
 
   const getStatusColor = (status: string): string => {
@@ -261,6 +311,10 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <>
+      <ConfettiCelebration
+        visible={showConfetti}
+        onComplete={() => setShowConfetti(false)}
+      />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -284,31 +338,46 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </BlurView>
 
+        {/* Gamification Bar */}
+        <GamificationBar
+          streak={streak}
+          motivation={motivation}
+          achievements={achievements}
+          onMotivationPress={() => navigation.navigate('Tasks')}
+          pendingTasks={prioritizedTasks.slice(0, 5).map(t => ({
+            id: t.id,
+            title: t.title,
+            plantName: t.linked_plants?.[0]?.name || 'Alle Pflanzen',
+          }))}
+          onToggleTask={handleToggleTask}
+          todayCompletedCount={tasks.completedTasks}
+        />
+
         {/* Quick Stats */}
         <View style={styles.statsRow}>
-          <GlassCard variant="tint" animated={false}>
+          <Pressable style={styles.statsCard} onPress={() => navigation.navigate('GardenOverview')}>
             <View style={styles.statItem}>
               <Sprout size={20} color={Colors2026.primary} />
               <Text style={styles.statValue}>{harvests.totalHarvests}</Text>
               <Text style={styles.statLabel}>Ernten</Text>
             </View>
-          </GlassCard>
+          </Pressable>
 
-          <GlassCard variant="tint" animated={false}>
+          <Pressable style={styles.statsCard} onPress={() => navigation.navigate('Tasks')}>
             <View style={styles.statItem}>
               <CheckCircle2 size={20} color={Colors2026.primary} />
               <Text style={styles.statValue}>{tasks.completedTasks}/{tasks.totalTasks}</Text>
               <Text style={styles.statLabel}>Aufgaben</Text>
             </View>
-          </GlassCard>
+          </Pressable>
 
-          <GlassCard variant="tint" animated={false}>
+          <Pressable style={styles.statsCard} onPress={() => navigation.navigate('Plants')}>
             <View style={styles.statItem}>
               <Sparkles size={20} color={Colors2026.primary} />
               <Text style={styles.statValue}>{statusDistribution.length}</Text>
               <Text style={styles.statLabel}>Status</Text>
             </View>
-          </GlassCard>
+          </Pressable>
         </View>
 
         {/* Garden Growth */}
@@ -316,6 +385,7 @@ export default function HomeScreen({ navigation }: Props) {
           <GardenGrowthSection
             data={gardenGrowth}
             onPlantPress={(plantId) => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } })}
+            todayCompletedCount={tasks.completedTasks}
           />
         )}
 
@@ -339,7 +409,7 @@ export default function HomeScreen({ navigation }: Props) {
             ))}
 
             {prioritizedTasks.length > 3 && (
-              <Pressable style={styles.viewAllButton} onPress={() => navigation.navigate('Plants')}>
+              <Pressable style={styles.viewAllButton} onPress={() => navigation.navigate('Tasks')}>
                 <Text style={styles.viewAllText}>
                   Alle {prioritizedTasks.length} Aufgaben anzeigen
                 </Text>
@@ -446,7 +516,7 @@ export default function HomeScreen({ navigation }: Props) {
             action={
               <AnimatedButton
                 title="Pflanze hinzufügen"
-                onPress={() => (navigation as any).navigate('PlantList')}
+                onPress={() => navigation.navigate('Plants')}
                 variant="primary"
               />
             }
@@ -456,11 +526,21 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.spacer} />
       </ScrollView>
 
+      <Pressable style={styles.aiFab} onPress={() => setAIPickerVisible(true)}>
+        <Camera size={24} color="#fff" />
+      </Pressable>
+
       <Toast
         visible={toast.visible}
         message={toast.message}
         type={toast.type}
         onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
+
+      <AIPhotoPicker
+        visible={aiPickerVisible}
+        onClose={() => setAIPickerVisible(false)}
+        onPlantIdentified={handlePlantIdentified}
       />
     </>
   );
@@ -520,6 +600,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing2026.sm,
     padding: Spacing2026.xl,
+  },
+  statsCard: {
+    flex: 1,
+    backgroundColor: Colors2026.glass.tint,
+    borderRadius: Radius2026.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(45,157,79,0.15)',
+    paddingVertical: Spacing2026.md,
   },
   statItem: {
     alignItems: 'center',
@@ -611,5 +699,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginTop: 4,
+  },
+  aiFab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 100,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors2026.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows2026.lg,
   },
 });

@@ -19,7 +19,7 @@ import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useReduceMotion } from '../utils/accessibility';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Search, Filter, X, ChevronRight, Sprout, Leaf, Snowflake, Sparkles, MapPin, Plus } from 'lucide-react-native';
+import { Search, Filter, X, ChevronRight, Sprout, Leaf, Snowflake, Sparkles, MapPin, Plus, Camera } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
@@ -34,6 +34,8 @@ import StatusBadge from '../components/ui/StatusBadge';
 import EmptyPlantsIllustration from '../components/illustrations/EmptyPlantsIllustration';
 import TaskListContent from '../components/TaskListContent';
 import ShoppingListContent from '../components/ShoppingListContent';
+import AIPhotoPicker from '../components/AIPhotoPicker';
+import { PlantIdentificationResult } from '../types/ai';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PlantList'>;
 
@@ -47,6 +49,7 @@ export default function PlantListScreen({ navigation }: Props) {
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedTab, setSelectedTab] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  const [aiPickerVisible, setAIPickerVisible] = useState(false);
   const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const tabs = ['Pflanzen', 'Aufgaben', 'Einkauf'];
@@ -108,6 +111,11 @@ export default function PlantListScreen({ navigation }: Props) {
     setFilterStatusList(prev =>
       prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
     );
+  };
+
+  const handlePlantIdentified = (result: PlantIdentificationResult) => {
+    // After identification, reload plants to show the new/updated plant
+    loadPlants();
   };
 
   const renderPlantItem = ({ item, index }: { item: Plant; index: number }) => {
@@ -315,12 +323,23 @@ export default function PlantListScreen({ navigation }: Props) {
 
       {/* FAB */}
       {selectedTab === 0 && (
-        <FloatingAction
-          onPress={() => (navigation as any).navigate('AddPlant')}
-          icon={<Plus size={24} color="#fff" />}
-          accessibilityLabel="Pflanze hinzufügen"
-        />
+        <>
+          <FloatingAction
+            onPress={() => (navigation as any).navigate('AddPlant')}
+            icon={<Plus size={24} color="#fff" />}
+            accessibilityLabel="Pflanze hinzufügen"
+          />
+          <Pressable style={styles.aiFabButton} onPress={() => setAIPickerVisible(true)}>
+            <Camera size={24} color="#fff" />
+          </Pressable>
+        </>
       )}
+
+      <AIPhotoPicker
+        visible={aiPickerVisible}
+        onClose={() => setAIPickerVisible(false)}
+        onPlantIdentified={handlePlantIdentified}
+      />
     </View>
   );
 }
@@ -514,5 +533,17 @@ const styles = StyleSheet.create({
     fontSize: Typography2026.small.fontSize,
     color: Colors2026.textSecondary,
     fontWeight: '500',
+  },
+  aiFabButton: {
+    position: 'absolute',
+    right: 24,
+    bottom: 100,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors2026.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows2026.lg,
   },
 });

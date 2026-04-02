@@ -3,7 +3,7 @@
  * Cleaner layout, pull-to-refresh, dynamic FAB, merged Steckbrief
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Pressable,
 } from 'react-native';
-import { Leaf, Edit, Sprout, ChevronLeft, Snowflake, MapPin, Sparkles, Camera as CameraIcon } from 'lucide-react-native';
+import { Leaf, Edit, Sprout, ChevronLeft, Snowflake, MapPin, Sparkles, Camera as CameraIcon, Camera } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,6 +29,8 @@ import PlantMetaSection from '../components/plant/PlantMetaSection';
 import HarvestPrediction from '../components/plant/HarvestPrediction';
 import PlantTasksCard from '../components/plant/PlantTasksCard';
 import { usePlantDetail } from '../hooks/usePlantDetail';
+import AIPhotoPicker from '../components/AIPhotoPicker';
+import { PlantIdentificationResult } from '../types/ai';
 
 type PlantDetailRouteProp = RouteProp<RootStackParamList, 'PlantDetail'>;
 type PlantDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'PlantDetail'>;
@@ -37,6 +39,8 @@ export default function PlantDetailScreen() {
   const route = useRoute<PlantDetailRouteProp>();
   const navigation = useNavigation<PlantDetailNavigationProp>();
   const { plantId } = route.params;
+
+  const [aiPickerVisible, setAIPickerVisible] = useState(false);
 
   const { plant, photos, harvestTotals, tasks, healthChecks, loading, refreshing, handleRefresh, refetch } = usePlantDetail(plantId);
 
@@ -57,6 +61,10 @@ export default function PlantDetailScreen() {
   };
 
   const fab = getFabConfig();
+
+  const handlePlantIdentified = (result: PlantIdentificationResult) => {
+    refetch();
+  };
 
   const isExistingPlant = plant && plant.status !== 'geplant' && plant.status !== 'bestellt';
 
@@ -227,12 +235,24 @@ export default function PlantDetailScreen() {
 
       {/* FAB */}
       {fab && (
-        <FloatingAction
-          onPress={fab.action}
-          icon={fab.icon}
-          accessibilityLabel={fab.label}
-        />
+        <View>
+          <FloatingAction
+            onPress={fab.action}
+            icon={fab.icon}
+            accessibilityLabel={fab.label}
+          />
+          <Pressable style={styles.aiButton} onPress={() => setAIPickerVisible(true)}>
+            <Camera size={20} color="#fff" />
+          </Pressable>
+        </View>
       )}
+
+      <AIPhotoPicker
+        visible={aiPickerVisible}
+        onClose={() => setAIPickerVisible(false)}
+        onPlantIdentified={handlePlantIdentified}
+        linkedPlantId={plantId}
+      />
     </View>
   );
 }
@@ -366,5 +386,17 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 100,
+  },
+  aiButton: {
+    position: 'absolute',
+    right: 90,
+    bottom: 24,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors2026.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.8,
   },
 });
