@@ -7,12 +7,14 @@ interface AIPhotoStep2Props {
   identificationStatus: 'pending' | 'loading' | 'done' | 'error';
   diseaseStatus: 'pending' | 'loading' | 'done' | 'error';
   matchingStatus: 'pending' | 'loading' | 'done' | 'error';
+  error?: string | null;
 }
 
 export default function AIPhotoStep2({
   identificationStatus,
   diseaseStatus,
   matchingStatus,
+  error,
 }: AIPhotoStep2Props) {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -46,6 +48,13 @@ export default function AIPhotoStep2({
           <Text style={styles.statusText}>Passende Pflanzen werden gesucht...</Text>
         </View>
       </View>
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error" size={20} color={Colors2026.status.error} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -76,5 +85,19 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     color: Colors2026.text,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: Colors2026.status.error + '20',
+    borderRadius: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: Colors2026.status.error,
+    flex: 1,
   },
 });

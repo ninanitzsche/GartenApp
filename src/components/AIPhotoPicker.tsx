@@ -3,7 +3,7 @@
  * Modal for taking/selecting photos and identifying plants
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -58,6 +58,18 @@ export default function AIPhotoPicker({
     disease: 'pending' as 'pending' | 'loading' | 'done' | 'error',
     matching: 'pending' as 'pending' | 'loading' | 'done' | 'error',
   });
+
+  const ANALYSIS_TIMEOUT = 30000;
+
+  useEffect(() => {
+    if (currentStep === 2) {
+      const timeout = setTimeout(() => {
+        setError('Analyse hat zu lange gedauert. Bitte erneut versuchen.');
+        setCurrentStep(1);
+      }, ANALYSIS_TIMEOUT);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentStep]);
 
   const resetState = () => {
     setSelectedImage(null);
@@ -251,6 +263,7 @@ export default function AIPhotoPicker({
           onSelectPlant={handleSelectPlant}
           onCreateNewPlant={() => handleCreateNewPlant()}
           onRetry={handleRetry}
+          isLoading={isLoading}
         />
       );
     }
@@ -261,6 +274,7 @@ export default function AIPhotoPicker({
           identificationStatus={analysisStatus.identification}
           diseaseStatus={analysisStatus.disease}
           matchingStatus={analysisStatus.matching}
+          error={error}
         />
       );
     }
@@ -299,6 +313,8 @@ export default function AIPhotoPicker({
           <TouchableOpacity
             style={styles.optionCard}
             onPress={handleTakePhoto}
+            accessibilityLabel="Foto mit Kamera aufnehmen"
+            accessibilityRole="button"
           >
             <MaterialIcons name="camera-alt" size={48} color={Colors2026.primary} />
             <Text style={styles.optionText}>Kamera</Text>
@@ -307,6 +323,8 @@ export default function AIPhotoPicker({
           <TouchableOpacity
             style={styles.optionCard}
             onPress={handlePickFromGallery}
+            accessibilityLabel="Foto aus Galerie auswählen"
+            accessibilityRole="button"
           >
             <MaterialIcons name="photo-library" size={48} color={Colors2026.primary} />
             <Text style={styles.optionText}>Galerie</Text>

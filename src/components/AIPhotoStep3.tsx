@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { Plant } from '../types/plant';
@@ -15,6 +15,7 @@ interface AIPhotoStep3Props {
   onSelectPlant: (plant: Plant) => void;
   onCreateNewPlant: () => void;
   onRetry: () => void;
+  isLoading?: boolean;
 }
 
 export default function AIPhotoStep3({
@@ -28,6 +29,7 @@ export default function AIPhotoStep3({
   onSelectPlant,
   onCreateNewPlant,
   onRetry,
+  isLoading = false,
 }: AIPhotoStep3Props) {
   const getConfidenceColor = () => {
     if (confidence >= 0.8) return Colors2026.status.success;
@@ -108,6 +110,9 @@ export default function AIPhotoStep3({
               key={plant.id}
               style={styles.matchingItem}
               onPress={() => onSelectPlant(plant)}
+              accessibilityLabel={`Pflanze ${plant.name} auswählen`}
+              accessibilityRole="button"
+              disabled={isLoading}
             >
               <MaterialIcons name="yard" size={20} color={Colors2026.primary} />
               <View style={styles.matchingInfo}>
@@ -125,17 +130,29 @@ export default function AIPhotoStep3({
       <View style={styles.actionsContainer}>
         {matchingPlants.length > 0 && (
           <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
+            style={[styles.button, styles.secondaryButton, isLoading && styles.buttonDisabled]}
             onPress={onCreateNewPlant}
+            disabled={isLoading}
+            accessibilityLabel="Neue Pflanze anlegen"
+            accessibilityRole="button"
           >
-            <MaterialIcons name="add" size={20} color={Colors2026.text} />
-            <Text style={styles.secondaryButtonText}>Neue Pflanze anlegen</Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={Colors2026.text} />
+            ) : (
+              <>
+                <MaterialIcons name="add" size={20} color={Colors2026.text} />
+                <Text style={styles.secondaryButtonText}>Neue Pflanze anlegen</Text>
+              </>
+            )}
           </TouchableOpacity>
         )}
         
         <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
+          style={[styles.button, styles.secondaryButton, isLoading && styles.buttonDisabled]}
           onPress={onRetry}
+          disabled={isLoading}
+          accessibilityLabel="Erneut versuchen"
+          accessibilityRole="button"
         >
           <MaterialIcons name="refresh" size={20} color={Colors2026.text} />
           <Text style={styles.secondaryButtonText}>Erneut versuchen</Text>
@@ -261,6 +278,9 @@ const styles = StyleSheet.create({
     gap: Spacing2026.sm,
     paddingVertical: 14,
     borderRadius: Radius2026.md,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   secondaryButton: {
     backgroundColor: Colors2026.background,
