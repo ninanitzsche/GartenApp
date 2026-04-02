@@ -48,8 +48,8 @@ export interface AIPhotoAnalysis {
   plantIdentification: PlantIdentificationResult | null;
   diseaseAnalysis: PlantDiseaseData | null;
   healthStatus: 'gesund' | 'krank' | 'unsicher';
-  matchingPlants: any[];
-  bestMatch: any | null;
+  matchingPlants: Plant[];  // Plant type aus types/plant.ts
+  bestMatch: Plant | null;
   errors?: {
     identification?: string;
     disease?: string;
@@ -65,7 +65,7 @@ export interface AIPhotoAnalysis {
 - [ ] **Step 2: Importiere Plant Typ**
   - Ändere `any[]` zu `Plant[]` für matchingPlants
   - Ändere `any | null` zu `Plant | null` für bestMatch
-  - Füge Import für Plant hinzu
+  - Füge Import für Plant hinzu: `import { Plant } from './plant';`
 
 - [ ] **Step 3: Commit**
 ```bash
@@ -75,7 +75,71 @@ git commit -m "fix: update AIPhotoAnalysis to use Plant type"
 
 ---
 
-## Task 2: aiIntegrationService erweitern - Orchestrator
+## Task 2: Bildkomprimierung implementieren
+
+**Files:**
+- Modify: `src/services/aiIntegrationService.ts`
+- Create: `src/__tests__/aiIntegrationService.test.ts`
+
+- [ ] **Step 1: Schreibe Tests für compressImage()**
+
+```typescript
+// src/__tests__/aiIntegrationService.test.ts
+import { compressImage } from '../services/aiIntegrationService';
+
+describe('compressImage', () => {
+  it('should compress image to max 1200px width', async () => {
+    const result = await compressImage('file://test-image.jpg');
+    expect(result).toBeDefined();
+    expect(result).toMatch(/^file:\/\//);
+  });
+
+  it('should handle invalid URI gracefully', async () => {
+    await expect(compressImage('invalid-uri')).rejects.toThrow();
+  });
+});
+```
+
+- [ ] **Step 2: Führe Tests aus - erwarte FAIL**
+```bash
+npm run test -- src/__tests__/aiIntegrationService.test.ts
+```
+
+- [ ] **Step 3: Implementiere compressImage()**
+
+```typescript
+// src/services/aiIntegrationService.ts
+import * as ImageManipulator from 'expo-image-manipulator';
+
+export async function compressImage(uri: string): Promise<string> {
+  try {
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 1200 } }],  // NUR Breite, Höhe proportional!
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    return result.uri;
+  } catch (error: any) {
+    console.error('Image compression error:', error);
+    throw new Error(`Bildkomprimierung fehlgeschlagen: ${error.message}`);
+  }
+}
+```
+
+- [ ] **Step 4: Führe Tests aus - erwarte PASS**
+```bash
+npm run test -- src/__tests__/aiIntegrationService.test.ts
+```
+
+- [ ] **Step 5: Commit**
+```bash
+git add src/services/aiIntegrationService.ts src/__tests__/aiIntegrationService.test.ts
+git commit -m "feat: add image compression with expo-image-manipulator"
+```
+
+---
+
+## Task 11: aiIntegrationService erweitern - Orchestrator
 
 **Files:**
 - Modify: `src/services/aiIntegrationService.ts`
@@ -277,7 +341,7 @@ git commit -m "feat: add analyzePhotoWithHealth orchestrator with matching and c
 
 ---
 
-## Task 3: AIPhotoPicker Step 2 - Loading Animation
+## Task 11: AIPhotoPicker Step 2 - Loading Animation
 
 **Files:**
 - Create: `src/components/AIPhotoStep2.tsx`
@@ -392,7 +456,7 @@ git commit -m "feat: add AIPhotoStep2 loading animation component"
 
 ---
 
-## Task 4: AIPhotoPicker Step 3 - Ergebnis + Gesundheit
+## Task 11: AIPhotoPicker Step 3 - Ergebnis + Gesundheit
 
 **Files:**
 - Create: `src/components/AIPhotoStep3.tsx`
@@ -617,7 +681,7 @@ git commit -m "feat: add AIPhotoStep3 results and health display component"
 
 ---
 
-## Task 5: AIPhotoPicker Step 4 - Zuordnung
+## Task 11: AIPhotoPicker Step 4 - Zuordnung
 
 **Files:**
 - Create: `src/components/AIPhotoStep4.tsx`
@@ -855,7 +919,7 @@ git commit -m "feat: add AIPhotoStep4 plant assignment component"
 
 ---
 
-## Task 6: AIPhotoPicker Integration - Gesamtflow
+## Task 11: AIPhotoPicker Integration - Gesamtflow
 
 **Files:**
 - Modify: `src/components/AIPhotoPicker.tsx`
@@ -1053,7 +1117,7 @@ git commit -m "feat: integrate full AI photo analysis flow with 4 steps"
 
 ---
 
-## Task 7: Tests für AIPhotoPicker
+## Task 11: Tests für AIPhotoPicker
 
 **Files:**
 - Create: `src/__tests__/AIPhotoPicker.test.tsx`
@@ -1122,7 +1186,7 @@ git commit -m "test: add AIPhotoPicker integration tests"
 
 ---
 
-## Task 8: Integration in Screens
+## Task 11: Integration in Screens
 
 **Files:**
 - Modify: `src/screens/HomeScreen.tsx`
@@ -1184,7 +1248,7 @@ git commit -m "feat: integrate AIPhotoPicker in Home, PlantList, and PlantDetail
 
 ---
 
-## Task 9: Error Handling & Polish
+## Task 11: Error Handling & Polish
 
 **Files:**
 - Modify: `src/components/AIPhotoPicker.tsx`
@@ -1249,7 +1313,7 @@ git commit -m "feat: add error handling, timeout, and loading states to AI photo
 
 ---
 
-## Task 10: Finale Tests & Cleanup
+## Task 11: Finale Tests & Cleanup
 
 - [ ] **Step 1: Führe alle Tests aus**
 ```bash
