@@ -18,7 +18,7 @@ Erweiterung der bestehenden `AIPhotoPicker.tsx` Komponente um automatische Gesun
 
 ### Nicht-funktionale Anforderungen
 - **NFR-01**: Ladeanimation während KI-Analyse (max 30s Timeout)
-- **NFR-02**: Parallele KI-Aufrufe via `Promise.allSettled` (Partial-Results)
+- **NFR-02**: Sequenzieller KI-Flow mit Partial-Results
 - **NFR-03**: Offline-Fähigkeit mit Retry-Logik
 - **NFR-04**: Wiederverwendbar von überall in der App
 
@@ -33,6 +33,7 @@ src/
 │   ├── plantDiseaseService.ts     ✓ PlantNet Disease API
 │   ├── healthCheckService.ts      ✓ Health Check CRUD
 │   ├── cacheService.ts            ✓ AsyncStorage Caching
+│   ├── aiIntegrationService.ts    ✓ AI Caching & Integration (ERWEITERN)
 │   └── plantService.ts            ✓ Pflanzen-Datenbank
 ```
 
@@ -51,10 +52,10 @@ src/
 │                              │                                   │
 │                              ▼                                   │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │              aiPhotoOrchestrator.ts (NEU)               │   │
-│  │  • Koordiniert parallele KI-Aufrufe (allSettled)        │   │
-│  │  • Partial-Result-Handling                              │   │
-│  │  • Error Handling & Retry Logic                         │   │
+│  │         aiIntegrationService.ts (ERWEITERN)             │   │
+│  │  • analyzePhotoWithHealth() - Orchestrator              │   │
+│  │  • Sequenzieller Flow: Identification → Disease+Match   │   │
+│  │  • Caching via bestehendes System                       │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                              │                                   │
 │         ┌────────────────────┼────────────────────┐             │
@@ -83,7 +84,7 @@ src/
 ### Datenfluss
 
 1. **Foto-Aufnahme**: Nutzer macht Foto oder wählt aus Galerie (✓ existiert)
-2. **Komprimierung**: Bild wird auf 1200x1200 komprimiert via `expo-image-manipulator`
+2. **Komprimierung**: Bild wird auf max 1200px Breite komprimiert via `expo-image-manipulator`
 3. **Sequenzieller KI-Flow**:
    - **Schritt 3a**: PlantNet Identification (Pflanzenerkennung) - MUSS zuerst laufen
    - **Schritt 3b**: Parallel nach Identification:
@@ -134,59 +135,105 @@ src/
 
 ## Service Layer
 
-### aiPhotoOrchestrator.ts (NEU)
+### aiIntegrationService.ts (ERWEITERN - nicht neuer Service!)
 
 ```typescript
-interface AIPhotoAnalysis {
-  plantIdentification: PlantIdentificationResult | null;
-  diseaseAnalysis: PlantDiseaseData | null;
-  healthStatus: 'gesund' | 'krank' | 'unsicher';
-  matchingPlants: Plant[];
-  bestMatch: Plant | null;
-  errors: {
-    identification?: string;
-    disease?: string;
-    matching?: string;
+// NEU: Gesamtanalyse mit Gesundheit
+export async function analyzePhotoWithHealth(
+  photoUri: string,
+  existingPlants: Plant[]
+): Promise<AIPhotoAnalysis> {
+  // Schritt 1: Identification MUSS zuerst laufen
+  let identification: PlantIdentificationResult;
+  try {
+    identification = await aiIdentificationWithCache(photoUri);
+  } catch (error) {
+    return {
+      plantIdentification: null,
+      diseaseAnalysis: null,
+      healthStatus: 'unsicher',
+      matchingPlants: [],
+      bestMatch: null,
+      errors: { identification: (error as Error).message },
+    };
+  }
+
+  // Schritt 2: Disease + Matching parallel
+  const [diseaseResult, matchingResult] = await Promise.allSettled([
+    identifyDiseaseWithCache(photoUri),
+    findMatchingPlants(identification.name, existingPlants),
+  ]);
+
+  return {
+    plantIdentification: identification,
+    diseaseAnalysis: diseaseResult.status === 'fulfilled' ? diseaseResult.value : null,
+    matchingPlants: matchingResult.status === 'fulfilled' ? matchingResult.value : [],
+    healthStatus: calculateHealthStatus(
+      diseaseResult.status === 'fulfilled' ? diseaseResult.value : null
+    ),
+    errors: {
+      identification: undefined,
+      disease: diseaseResult.status === 'rejected' ? diseaseResult.reason : undefined,
+      matching: matchingResult.status === 'rejected' ? matchingResult.reason : undefined,
+    },
   };
 }
 
-async function analyzePhoto(
-  photoUri: string,
-  existingPlants: Plant[]
-): Promise<AIPhotoAnalysis>
+// NEU: Disease mit Caching
+export async function identifyDiseaseWithCache(
+  imageUri: string
+): Promise<PlantDiseaseData | null> {
+  const imageHash = generateSimpleHash(imageUri);
+  
+  const cached = await getAICache<PlantDiseaseData>('pest', imageHash);
+  if (cached.found && cached.data) {
+    return cached.data;
+  }
 
-function findMatchingPlants(
+  const diseaseData = await identifyDisease(imageUri);
+  if (diseaseData) {
+    await cachePestDetection(imageUri, diseaseData);
+  }
+  
+  return diseaseData;
+}
+
+// NEU: Pflanzen-Matching
+export function findMatchingPlants(
   identifiedName: string,
   existingPlants: Plant[]
-): Plant[]
+): Plant[] {
+  const nameLower = identifiedName.toLowerCase();
+  
+  return existingPlants.filter(plant => {
+    const plantName = (plant.name || '').toLowerCase();
+    const latinName = (plant.latin_name || '').toLowerCase();
+    
+    // Fuzzy Matching: Enthält oder wird enthalten
+    return plantName.includes(nameLower) || 
+           nameLower.includes(plantName) ||
+           latinName.includes(nameLower) ||
+           nameLower.includes(latinName);
+  });
+}
 ```
 
-### Sequenzieller Flow mit Partial-Results
+### Callback-Signatur (ERWEITERT - nicht geändert!)
 
 ```typescript
-// Schritt 1: Identification MUSS zuerst laufen (Name wird für Matching benötigt)
-const identification = await identifyPlant(photoUri);
+// Bestehend in AIPhotoPicker.tsx
+interface AIPhotoPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onPlantIdentified: (result: PlantIdentificationResult) => void;  // ✓ bleibt
+  linkedPlantId?: string;
+  // NEU: Optional erweiterte Callbacks
+  onAnalysisComplete?: (analysis: AIPhotoAnalysis) => void;  // NEU: Optional
+}
 
-// Schritt 2: Disease + Matching parallel (beide benötigen Identification)
-const [diseaseResult, matchingResult] = await Promise.allSettled([
-  identifyDisease(photoUri),
-  findMatchingPlants(identification.name, existingPlants),
-]);
-
-// Partial-Result-Handling
-const analysis: AIPhotoAnalysis = {
-  plantIdentification: identification,
-  diseaseAnalysis: diseaseResult.status === 'fulfilled' ? diseaseResult.value : null,
-  matchingPlants: matchingResult.status === 'fulfilled' ? matchingResult.value : [],
-  healthStatus: calculateHealthStatus(
-    diseaseResult.status === 'fulfilled' ? diseaseResult.value : null
-  ),
-  errors: {
-    identification: undefined,
-    disease: diseaseResult.status === 'rejected' ? diseaseResult.reason : undefined,
-    matching: matchingResult.status === 'rejected' ? matchingResult.reason : undefined,
-  },
-};
+// Consumer können beide Callbacks nutzen:
+// Alte Consumer: onPlantIdentified (weiterhin kompatibel)
+// Neue Consumer: onAnalysisComplete (mit vollständiger Analyse)
 ```
 
 ## Error Handling
@@ -214,48 +261,55 @@ const analysis: AIPhotoAnalysis = {
 
 ### AsyncStorage (bestehend, beibehalten)
 ```typescript
-// Bestehend in cacheService.ts
-await cacheIdentification(imageHash, identification);
-await cacheDisease(imageHash, diseaseData);  // NEU
+// Bestehend in cacheService.ts - KEINE neuen Funktionen nötig!
+await cacheAIIdentification(imageHash, identification);  // ✓ existiert
+await cachePestDetection(imageHash, diseaseData);        // ✓ existiert
 
-// NEU: getCachedDisease
-export async function getCachedDisease(imageHash: string): Promise<PlantDiseaseData | null> {
-  return getCached(`ai:disease:${imageHash}`);
+// Bestehendes getAICache nutzen:
+const cached = await getAICache<PlantDiseaseData>('pest', imageHash);
+```
+
+### Key-Format (bestehend)
+```
+ai:plant:{imageHash}     // ✓ existiert
+ai:pest:{imageHash}      // ✓ existiert
+ai:suggestion:{plantId}  // ✓ existiert
+```
+
+## Timeout-Handling
+
+```typescript
+// In plantDiseaseService.ts - NEU: AbortController hinzufügen
+export async function identifyDisease(
+  imageUri: string,
+  organ: 'leaf' | 'flower' | 'fruit' | 'bark' | 'auto' = 'auto'
+): Promise<PlantDiseaseData | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000); // 30s
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    // ... restliche Logik
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 ```
 
-### Key-Format
-```
-ai:identification:{imageHash}
-ai:disease:{imageHash}
-```
-
-### Timeout-Handling
+## Bildkomprimierung
 
 ```typescript
-// In aiService.ts: identifyPlant - NEU: AbortController hinzufügen
-const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 30000); // 30s
-
-const response = await fetch(url, {
-  method: 'POST',
-  body: formData,
-  signal: controller.signal,
-});
-
-clearTimeout(timeout);
-```
-
-### Bildkomprimierung
-
-```typescript
-// In aiPhotoOrchestrator.ts - NEU
+// In aiIntegrationService.ts - NEU
 import * as ImageManipulator from 'expo-image-manipulator';
 
-async function compressImage(uri: string): Promise<string> {
+export async function compressImage(uri: string): Promise<string> {
   const result = await ImageManipulator.manipulateAsync(
     uri,
-    [{ resize: { width: 1200, height: 1200 } }],
+    [{ resize: { width: 1200 } }],  // NUR Breite, Höhe proportional!
     { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
   );
   return result.uri;
@@ -267,12 +321,12 @@ async function compressImage(uri: string): Promise<string> {
 ### PlantNet API Key
 - **Aktuell**: Clientseitig via `EXPO_PUBLIC_PLANTNET_API_KEY`
 - **Empfehlung**: Supabase Edge Function Proxy (wie ai-proxy)
-- **Status**: Muss separat implementiert werden (nicht Teil dieses Features)
+- **Status**: Separate Aufgabe (nicht Teil dieses Features)
 
 ## Testing-Strategie
 
 ### Unit Tests
-- `aiPhotoOrchestrator.ts`: Alle KI-Orchestrierung
+- `analyzePhotoWithHealth()`: Orchestrator-Logik
 - `findMatchingPlants()`: Matching-Logik
 - `calculateHealthStatus()`: Gesundheitsberechnung
 
@@ -286,16 +340,16 @@ async function compressImage(uri: string): Promise<string> {
 ## Performance-Optimierung
 
 1. **Sequenzieller KI-Flow**: Identification zuerst, dann Disease + Matching parallel
-2. **Bild-Komprimierung**: 1200x1200, 70% JPEG-Qualität via `expo-image-manipulator`
-3. **Caching**: KI-Ergebnisse via AsyncStorage
+2. **Bild-Komprimierung**: Max 1200px Breite, 70% JPEG-Qualität
+3. **Caching**: KI-Ergebnisse via AsyncStorage (bestehend)
 4. **Progressive Loading**: Ergebnisse einzeln anzeigen
 5. **Timeout**: 30s für alle KI-Aufrufe via AbortController
 
 ## Implementierungsreihenfolge
 
-1. **Phase 1**: aiPhotoOrchestrator.ts (Service Layer)
+1. **Phase 1**: aiIntegrationService.ts erweitern (Service Layer)
 2. **Phase 2**: AIPhotoPicker.tsx erweitern (UI)
-3. **Phase 3**: Integration in bestehende Screens
+3. **Phase 3**: Integration in bestehende Screens (Callback erweitern)
 4. **Phase 4**: Error Handling & Polish
 
 ## Akzeptanzkriterien
@@ -311,3 +365,4 @@ async function compressImage(uri: string): Promise<string> {
 - [ ] Ladeanimation während KI-Analyse
 - [ ] Error-Handling für alle Fehlerfälle (graceful degradation)
 - [ ] Offline-Modus mit Retry
+- [ ] Bestehende Consumer bleiben kompatibel (onPlantIdentified Callback)
