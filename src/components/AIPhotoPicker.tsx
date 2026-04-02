@@ -19,6 +19,7 @@ import { identifyPlant, pickImage } from '../services/aiService';
 import { cacheIdentification, getCachedIdentification } from '../services/cacheService';
 import { PlantIdentificationResult } from '../types/ai';
 import TaskSuggestionModal from './TaskSuggestionModal';
+import AIPhotoStep2 from './AIPhotoStep2';
 import { getAllSuggestions } from '../services/taskSuggestionService';
 import { TaskSuggestion } from '../types/taskSuggestion';
 
@@ -41,6 +42,12 @@ export default function AIPhotoPicker({
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<TaskSuggestion[]>([]);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const [analysisStatus, setAnalysisStatus] = useState({
+    identification: 'pending' as 'pending' | 'loading' | 'done' | 'error',
+    disease: 'pending' as 'pending' | 'loading' | 'done' | 'error',
+    matching: 'pending' as 'pending' | 'loading' | 'done' | 'error',
+  });
 
   const resetState = () => {
     setSelectedImage(null);
@@ -49,6 +56,12 @@ export default function AIPhotoPicker({
     setError(null);
     setShowSuggestions(false);
     setSuggestions([]);
+    setCurrentStep(1);
+    setAnalysisStatus({
+      identification: 'pending',
+      disease: 'pending',
+      matching: 'pending',
+    });
   };
 
   const handleClose = () => {
@@ -75,6 +88,12 @@ export default function AIPhotoPicker({
 
     setIsLoading(true);
     setError(null);
+    setCurrentStep(2);
+    setAnalysisStatus({
+      identification: 'loading',
+      disease: 'pending',
+      matching: 'pending',
+    });
 
     try {
       // Check cache first
@@ -215,6 +234,16 @@ export default function AIPhotoPicker({
     }
 
     if (selectedImage) {
+      if (currentStep === 2) {
+        return (
+          <AIPhotoStep2
+            identificationStatus={analysisStatus.identification}
+            diseaseStatus={analysisStatus.disease}
+            matchingStatus={analysisStatus.matching}
+          />
+        );
+      }
+
       return (
         <View style={styles.previewContainer}>
           <Image source={{ uri: selectedImage }} style={styles.previewImage} />
