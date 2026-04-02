@@ -6,15 +6,20 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import {
   PlantIdentificationResult,
   PestDetectionResult,
+  AIPhotoAnalysis,
+  PlantDiseaseData,
 } from '../types/ai';
+import { Plant } from '../types/plant';
 import {
   cacheAIIdentification,
   cachePestDetection,
   cacheSuggestions,
+  cacheDisease,
   getAICache,
   invalidateAICache,
 } from './cacheService';
 import { identifyPlant } from './aiService';
+import { identifyDisease } from './plantDiseaseService';
 
 export async function compressImage(uri: string): Promise<string> {
   try {
@@ -140,4 +145,95 @@ function getCurrentSeason(): string {
   if (month >= 5 && month <= 7) return 'summer';
   if (month >= 8 && month <= 10) return 'autumn';
   return 'winter';
+}
+
+export function findMatchingPlants(
+  identifiedName: string,
+  existingPlants: Plant[]
+): Plant[] {
+  if (!identifiedName || existingPlants.length === 0) return [];
+  
+  const nameLower = identifiedName.toLowerCase().trim();
+  
+  return existingPlants.filter(plant => {
+    const plantName = (plant.name || '').toLowerCase();
+    const latinName = (plant.latin_name || '').toLowerCase();
+    
+    if (plantName === nameLower || latinName === nameLower) return true;
+    if (plantName.includes(nameLower) || nameLower.includes(plantName)) return true;
+    if (latinName.includes(nameLower) || nameLower.includes(latinName)) return true;
+    
+    return false;
+  });
+}
+
+export async function identifyDiseaseWithCache(
+  imageUri: string
+): Promise<PlantDiseaseData | null> {
+  const imageHash = generateSimpleHash(imageUri);
+  
+  const cached = await getAICache<PlantDiseaseData>('pest', imageHash);
+  if (cached.found && cached.data) {
+    return cached.data;
+  }
+
+  const diseaseData = await identifyDisease(imageUri);
+  if (diseaseData) {
+    await cacheDisease(imageUri, diseaseData);
+  }
+  
+  return diseaseData;
+}
+
+function calculateHealthStatus(
+  diseaseData?: PlantDiseaseData
+): 'gesund' | 'krank' | 'unsicher' {
+  if (!diseaseData || !diseaseData.results || diseaseData.results.length === 0) {
+    return 'gesund';
+  }
+  const topScore = diseaseData.results[0]?.score || 0;
+  if (topScore >= 0.7) return 'krank';
+  if (topScore >= 0.4) return 'unsicher';
+  return 'gesund';
+}
+
+export async function analyzePhotoWithHealth(
+  photoUri: string,
+  existingPlants: Plant[]
+): Promise<AIPhotoAnalysis> {
+  let identification: PlantIdentificationResult;
+  try {
+    identification = await aiIdentificationWithCache(photoUri);
+  } catch (error) {
+    return {
+      plantIdentification: null,
+      diseaseAnalysis: null,
+      healthStatus: 'unsicher',
+      matchingPlants: [],
+      bestMatch: null,
+      errors: { identification: (error as Error).message },
+    };
+  }
+
+  const [diseaseResult, matchingResult] = await Promise.allSettled([
+    identifyDiseaseWithCache(photoUri),
+    findMatchingPlants(identification.name, existingPlants),
+  ]);
+
+  return {
+    plantIdentification: identification,
+    diseaseAnalysis: diseaseResult.status === 'fulfilled' ? diseaseResult.value : null,
+    matchingPlants: matchingResult.status === 'fulfilled' ? matchingResult.value : [],
+    bestMatch: matchingResult.status === 'fulfilled' && matchingResult.value.length > 0 
+      ? matchingResult.value[0] 
+      : null,
+    healthStatus: calculateHealthStatus(
+      diseaseResult.status === 'fulfilled' ? diseaseResult.value ?? undefined : undefined
+    ),
+    errors: {
+      identification: undefined,
+      disease: diseaseResult.status === 'rejected' ? String(diseaseResult.reason) : undefined,
+      matching: matchingResult.status === 'rejected' ? String(matchingResult.reason) : undefined,
+    },
+  };
 }
