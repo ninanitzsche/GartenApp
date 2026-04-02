@@ -2,6 +2,7 @@
  * AI Integration Service
  * Unified service for AI ↔ database operations with caching
  */
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
   PlantIdentificationResult,
   PestDetectionResult,
@@ -14,6 +15,20 @@ import {
   invalidateAICache,
 } from './cacheService';
 import { identifyPlant } from './aiService';
+
+export async function compressImage(uri: string): Promise<string> {
+  try {
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 1200 } }],
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    return result.uri;
+  } catch (error: any) {
+    console.error('Image compression error:', error);
+    throw new Error(`Bildkomprimierung fehlgeschlagen: ${error.message}`);
+  }
+}
 
 export async function aiIdentificationWithCache(
   imageUri: string
