@@ -733,27 +733,27 @@ describe('taskService', () => {
   describe('Color utility functions', () => {
     describe('getCategoryColor', () => {
       it('should return correct color for each category', () => {
-        expect(taskService.getCategoryColor('Aussaat')).toBe('#4CAF50');
-        expect(taskService.getCategoryColor('Pflanzen')).toBe('#2196F3');
-        expect(taskService.getCategoryColor('Gartenarbeiten')).toBe('#FF9800');
-        expect(taskService.getCategoryColor('Beobachten')).toBe('#9C27B0');
-        expect(taskService.getCategoryColor('Ernten')).toBe('#F44336');
+        expect(taskService.getCategoryColor('Aussaat')).toBe('#2D4739');
+        expect(taskService.getCategoryColor('Pflanzen')).toBe('#4A6FA5');
+        expect(taskService.getCategoryColor('Gartenarbeiten')).toBe('#8D5B3E');
+        expect(taskService.getCategoryColor('Beobachten')).toBe('#006064');
+        expect(taskService.getCategoryColor('Ernten')).toBe('#8D5B3E');
       });
 
       it('should return default color for unknown category', () => {
-        expect(taskService.getCategoryColor('Unknown')).toBe('#757575');
+        expect(taskService.getCategoryColor('Unknown')).toBe('#8A8A8A');
       });
     });
 
     describe('getPriorityColor', () => {
       it('should return correct color for each priority', () => {
-        expect(taskService.getPriorityColor('hoch')).toBe('#F44336'); // Red
-        expect(taskService.getPriorityColor('mittel')).toBe('#FFC107'); // Yellow
-        expect(taskService.getPriorityColor('niedrig')).toBe('#9E9E9E'); // Gray
+        expect(taskService.getPriorityColor('hoch')).toBe('#D32F2F');
+        expect(taskService.getPriorityColor('mittel')).toBe('#F57C00');
+        expect(taskService.getPriorityColor('niedrig')).toBe('#5A7A7A');
       });
 
       it('should return default color for unknown priority', () => {
-        expect(taskService.getPriorityColor('unknown')).toBe('#757575');
+        expect(taskService.getPriorityColor('unknown')).toBe('#8A8A8A');
       });
     });
 

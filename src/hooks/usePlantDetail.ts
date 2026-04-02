@@ -39,35 +39,10 @@ export function usePlantDetail(plantId: string): UsePlantDetailReturn {
 
   const refetch = useCallback(async () => {
     try {
-      setLoading(true);
-      const [plantData, photoDataResult, harvestData, totals, tasksData, healthChecksData] = await Promise.all([
-        fetchPlant(plantId),
-        supabase.from('photo_plants').select('photos(*)').eq('plant_id', plantId),
-        getHarvestsByPlant(plantId).catch(() => []),
-        getTotalHarvestByPlant(plantId).catch(() => []),
-        fetchTasksByPlant(plantId).catch(() => []),
-        fetchHealthChecks(plantId).catch(() => []),
-      ]);
-
-      setPlant(plantData);
-
-      if (!photoDataResult.error && photoDataResult.data) {
-        const photoList = photoDataResult.data
-          .map((pp: any) => pp.photos)
-          .filter((p: Photo | null) => p !== null)
-          .map((p: Photo) => enrichPhotoWithUrl(p))
-          .filter((p: Photo) => !!p.photo_url) as Photo[];
-        setPhotos(photoList);
-      }
-
-      setHarvests(harvestData);
-      setHarvestTotals(totals);
+      const tasksData = await fetchTasksByPlant(plantId).catch(() => []);
       setTasks(tasksData);
-      setHealthChecks(healthChecksData);
     } catch (error) {
-      console.error('Error fetching plant details:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error refetching tasks:', error);
     }
   }, [plantId]);
 

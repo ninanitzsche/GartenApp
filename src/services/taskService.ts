@@ -133,6 +133,8 @@ export async function createTask(formData: TaskFormData): Promise<Task> {
         location: formData.location || null,
         time_spent_minutes: formData.time_spent_minutes || null,
         zeitraum: formData.zeitraum || null,
+        due_date: formData.due_date || null,
+        scheduled_date: formData.scheduled_date || null,
         source: 'ai',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -178,6 +180,9 @@ export async function updateTask(taskId: string, formData: TaskFormData): Promis
         priority: formData.priority,
         location: formData.location || null,
         time_spent_minutes: formData.time_spent_minutes || null,
+        zeitraum: formData.zeitraum || null,
+        due_date: formData.due_date || null,
+        scheduled_date: formData.scheduled_date || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)

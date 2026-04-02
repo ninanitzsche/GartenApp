@@ -12,7 +12,7 @@ describe('QuickFilterChips', () => {
   const mockCounts = {
     overdue: 3,
     thisWeek: 5,
-    nextWeek: 2,
+    thisMonth: 2,
     nextSteps: 8,
   };
 
@@ -37,8 +37,8 @@ describe('QuickFilterChips', () => {
     );
     expect(getByText('Überfällig')).toBeTruthy();
     expect(getByText('Diese Woche')).toBeTruthy();
-    expect(getByText('Nächste Woche')).toBeTruthy();
-    expect(getByText('Next Steps')).toBeTruthy();
+    expect(getByText('30 Tage')).toBeTruthy();
+    expect(getByText('Wichtig')).toBeTruthy();
   });
 
   it('renders count badges when counts > 0', () => {

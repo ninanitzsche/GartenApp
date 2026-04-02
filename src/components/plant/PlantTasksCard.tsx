@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
 import { CheckCircle, Circle, Calendar, ChevronRight } from 'lucide-react-native';
 import { TaskListItem } from '../../types/task';
 import { toggleTaskCompletion } from '../../services/taskService';
@@ -21,13 +21,20 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function PlantTasksCard({ tasks, onTaskUpdate, delay = 120 }: Props) {
   const navigation = useNavigation<NavigationProp>();
+  const [loadingTaskId, setLoadingTaskId] = React.useState<string | null>(null);
 
   const handleToggleTask = async (taskId: string) => {
+    if (loadingTaskId) return;
+    
     try {
+      setLoadingTaskId(taskId);
       await toggleTaskCompletion(taskId);
       onTaskUpdate?.();
     } catch (err: any) {
       console.error('Error toggling task:', err);
+      Alert.alert('Fehler', 'Aufgabe konnte nicht aktualisiert werden');
+    } finally {
+      setLoadingTaskId(null);
     }
   };
 
@@ -71,12 +78,19 @@ export default function PlantTasksCard({ tasks, onTaskUpdate, delay = 120 }: Pro
             {pendingTasks.map((task) => (
               <Pressable
                 key={task.id}
-                style={styles.taskRow}
+                style={[styles.taskRow, loadingTaskId === task.id && styles.taskRowDisabled]}
                 onPress={() => handleToggleTask(task.id)}
+                disabled={loadingTaskId === task.id}
               >
-                <Circle size={20} color={getPriorityColor(task.priority)} />
+                {loadingTaskId === task.id ? (
+                  <View style={styles.loadingCircle} />
+                ) : (
+                  <Circle size={20} color={getPriorityColor(task.priority)} />
+                )}
                 <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
+                  <Text style={[styles.taskTitle, loadingTaskId === task.id && styles.taskTitleDisabled]}>
+                    {task.title}
+                  </Text>
                   {task.zeitraum && (
                     <View style={styles.zeitraumChip}>
                       <Calendar size={12} color={Colors2026.textMuted} />
@@ -186,5 +200,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors2026.primary,
     fontWeight: '500',
+  },
+  taskRowDisabled: {
+    opacity: 0.5,
+  },
+  loadingCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors2026.border,
+  },
+  taskTitleDisabled: {
+    color: Colors2026.textMuted,
   },
 });

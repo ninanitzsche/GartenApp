@@ -437,6 +437,7 @@ export async function createTasksFromAI(plantId: string, plantName: string, aiCa
         priority: 'medium',
         zeitraum,
         due_date: dueDate,
+        scheduled_date: dueDate ? dueDate.split('T')[0] : null,
         plant_ids: [plantId],
       });
       console.log('Task created:', created.id);

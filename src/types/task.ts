@@ -22,6 +22,7 @@ export interface Task {
   // Neue Felder für Zeitraum-System (Approach B)
   zeitraum?: string;
   due_date?: string | null;
+  scheduled_date?: string | null;
 }
 
 export interface TaskFormData {
@@ -36,6 +37,7 @@ export interface TaskFormData {
   // Neue Felder für Zeitraum-System (Approach B)
   zeitraum?: string;
   due_date?: string | null;
+  scheduled_date?: string | null;
 }
 
 export interface TaskListItem extends Task {
