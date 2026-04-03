@@ -7,7 +7,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Flame, ChevronRight, Circle, Info } from 'lucide-react-native';
+import { Flame, ChevronRight, Circle, Info, Sprout } from 'lucide-react-native';
 import {
   Colors2026,
   Spacing2026,
@@ -142,23 +142,29 @@ export default function GamificationBar({
               accessibilityState={{ expanded, disabled: !plantTaskMessage }}
             >
               <View style={styles.plantTaskContent}>
-                {/* Plant icon and message */}
-                <View style={styles.plantTaskMessageContent}>
-                  {/* Plant icon placeholder */}
-                  <View style={styles.plantTaskIconPlaceholder} />
-                  <Text style={styles.plantTaskText}>
-                    {plantTaskMessage || 'Alle Aufgaben erledigt! 🌻'}
-                  </Text>
+                {/* Plant icon */}
+                <View style={styles.plantTaskIcon}>
+                  <Sprout size={24} color={Colors2026.primary} />
                 </View>
+                <Text style={styles.plantTaskText} numberOfLines={2}>
+                  {plantTaskMessage || 'Alle Aufgaben erledigt! 🌻'}
+                </Text>
                 
-                 {/* Arrow icon */}
-                  <Animated.View style={arrowAnimatedStyle}>
-                   <ChevronRight 
-                     size={16} 
-                     color={Colors2026.primary} 
-                     style={styles.plantTaskArrow}
-                   />
-                 </Animated.View>
+                {/* Badge for task count */}
+                {pendingTasks && pendingTasks.length > 0 && (
+                  <View style={styles.plantTaskBadge}>
+                    <Text style={styles.plantTaskBadgeText}>{pendingTasks.length}</Text>
+                  </View>
+                )}
+                
+                {/* Arrow icon */}
+                <Animated.View style={arrowAnimatedStyle}>
+                  <ChevronRight 
+                    size={20} 
+                    color={Colors2026.primary} 
+                    style={styles.plantTaskArrow}
+                  />
+                </Animated.View>
               </View>
             </Pressable>
           </Animated.View>
@@ -177,26 +183,25 @@ export default function GamificationBar({
                  onPress={() => onToggleTask?.(task.id)}
                  accessibilityRole="checkbox"
                  accessibilityLabel={`Task ${task.title} für ${task.plantName}`}
-               >
-                 <View style={styles.taskCheckbox}>
-                   <Circle size={18} color={Colors2026.textLight} />
-                 </View>
-                 <View style={styles.taskContent}>
-                   {task.plantId && onTaskPlantPress ? (
-                     <Pressable 
-                       onPress={() => onTaskPlantPress(task.plantId!)} 
-                       style={styles.taskPlantLink}
-                       accessibilityRole="button"
-                       accessibilityLabel={`Pflanze ${task.plantName} anzeigen`}
-                     >
-                       <Text style={styles.taskPlantText}>{task.plantName}</Text>
-                     </Pressable>
-                   ) : (
-                     <Text style={styles.taskPlantText}>{task.plantName}</Text>
-                   )}
-                   <Text style={styles.taskTitle}>{task.title}</Text>
-                 </View>
-               </Pressable>
+                >
+                  <View style={styles.taskCheckbox}>
+                    <Circle size={18} color={Colors2026.textLight} />
+                  </View>
+                  <View style={styles.taskPreviewContent}>
+                    {task.plantId && onTaskPlantPress ? (
+                      <Pressable 
+                        onPress={() => onTaskPlantPress(task.plantId!)} 
+                        accessibilityRole="button"
+                        accessibilityLabel={`Pflanze ${task.plantName} anzeigen`}
+                      >
+                        <Text style={[styles.taskPreviewPlant, { textDecorationLine: 'underline' }]}>{task.plantName}</Text>
+                      </Pressable>
+                    ) : (
+                      <Text style={styles.taskPreviewPlant}>{task.plantName}</Text>
+                    )}
+                    <Text style={styles.taskPreviewTitle}>{task.title}</Text>
+                  </View>
+                </Pressable>
              ))}
            
             {/* More tasks button if needed */}
@@ -570,7 +575,6 @@ const styles = StyleSheet.create({
     fontSize: Typography2026.small.fontSize,
     fontWeight: '700',
     color: Colors2026.primary,
-    textDecorationLine: 'underline',
   },
   taskPreviewTitle: {
     flex: 1,
@@ -628,75 +632,80 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(45,71,57,0.06)',
-    borderRadius: Radius2026.md,
+    backgroundColor: Colors2026.primary + '15',
+    borderRadius: Radius2026.lg,
     borderWidth: 1,
-    borderColor: 'rgba(45,71,57,0.1)',
+    borderColor: Colors2026.primary + '30',
     paddingHorizontal: Spacing2026.md,
-    paddingVertical: Spacing2026.sm,
+    paddingVertical: Spacing2026.md,
+    shadowColor: Colors2026.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   plantTaskCardPressed: {
-    backgroundColor: 'rgba(45,71,57,0.12)',
+    backgroundColor: Colors2026.primary + '25',
   },
   plantTaskContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   plantTaskMessageContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  plantTaskIcon: {
+    marginRight: Spacing2026.sm,
   },
   plantTaskText: {
     fontSize: Typography2026.body.fontSize,
-    fontWeight: '500',
-    color: Colors2026.text,
+    fontWeight: '600',
+    color: Colors2026.primary,
+    flex: 1,
   },
-  plantTaskIconPlaceholder: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(45,71,57,0.2)',
-    marginRight: Spacing2026.xs,
+  plantTaskBadge: {
+    backgroundColor: Colors2026.primary,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: Spacing2026.sm,
+  },
+  plantTaskBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
   },
   plantTaskArrow: {
-    marginTop: 2,
+    marginLeft: Spacing2026.sm,
   },
   // Dropdown styles
   plantTaskDropdown: {
     backgroundColor: Colors2026.bg,
-    borderRadius: Radius2026.md,
+    borderRadius: Radius2026.lg,
     borderWidth: 1,
     borderColor: Colors2026.border,
     marginTop: Spacing2026.sm,
     padding: Spacing2026.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   plantTaskDropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing2026.sm,
     paddingVertical: Spacing2026.sm,
+    paddingHorizontal: Spacing2026.xs,
     borderBottomWidth: 1,
-    borderBottomColor: Colors2026.border,
+    borderBottomColor: Colors2026.border + '50',
   },
   plantTaskDropdownItemPressed: {
-    backgroundColor: 'rgba(45,157,79,0.08)',
-  },
-  taskContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  taskPlantLink: {
-    // Link styling
-  },
-  taskPlantText: {
-    fontSize: Typography2026.small.fontSize,
-    fontWeight: '700',
-    color: Colors2026.primary,
-  },
-  taskTitle: {
-    flex: 1,
-    fontSize: Typography2026.caption.fontSize,
-    color: Colors2026.text,
+    backgroundColor: Colors2026.primary + '10',
+    borderRadius: Radius2026.sm,
   },
 });
