@@ -6,7 +6,7 @@
 /** @jsxImportSource react */
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { FadeIn, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Flame, ChevronRight, Circle, Info } from 'lucide-react-native';
 import {
   Colors2026,
@@ -92,38 +92,35 @@ export default function GamificationBar({
      }
    }, [expanded]);
 
-   const handlePress = () => {
-     // Allow toggle even when no tasks - user should be able to see the state
-     setExpanded(prev => !prev);
-   };
+    const handlePress = () => {
+      // Allow toggle even when no tasks - user should be able to see the state
+      setExpanded(prev => !prev);
+    };
 
-    // Animation functions
+    // Animated styles
+    const dropdownAnimatedStyle = useAnimatedStyle(() => ({
+      opacity: fadeAnim.value,
+    }));
+
+    const arrowAnimatedStyle = useAnimatedStyle(() => ({
+      transform: [{ rotate: `${fadeAnim.value * 90}deg` }],
+    }));
+
+     // Animation functions
     const animateDropdownIn = () => {
-      fadeAnim.value = withTiming(1, {
-        duration: 200,
-        easing: Easing.out(Easing.cubic),
-      });
+      fadeAnim.value = withTiming(1, { duration: 200 });
     };
 
     const animateDropdownOut = () => {
-      fadeAnim.value = withTiming(0, {
-        duration: 200,
-        easing: Easing.out(Easing.cubic),
-      });
+      fadeAnim.value = withTiming(0, { duration: 200 });
     };
 
     const rotateArrowUp = () => {
-      rotateAnim.value = withTiming(1, {
-        duration: 150,
-        easing: Easing.out(Easing.cubic),
-      });
+      rotateAnim.value = withTiming(1, { duration: 150 });
     };
 
     const rotateArrowDown = () => {
-      rotateAnim.value = withTiming(0, {
-        duration: 150,
-        easing: Easing.out(Easing.cubic),
-      });
+      rotateAnim.value = withTiming(0, { duration: 150 });
     };
 
    return (
@@ -155,7 +152,7 @@ export default function GamificationBar({
                 </View>
                 
                  {/* Arrow icon */}
-                  <Animated.View style={{ transform: [{ rotate: `${rotateAnim.value * 90}deg`} ] }}>
+                  <Animated.View style={arrowAnimatedStyle}>
                    <ChevronRight 
                      size={16} 
                      color={Colors2026.primary} 
@@ -169,7 +166,7 @@ export default function GamificationBar({
         
         {/* Dropdown with plant tasks */}
         {showPlantTaskCard && plantTaskMessage && expanded && pendingTasks && pendingTasks.length > 0 && (
-           <Animated.View style={[styles.plantTaskDropdown, { opacity: fadeAnim.value }]}> 
+           <Animated.View style={[styles.plantTaskDropdown, dropdownAnimatedStyle]}>
              {pendingTasks.slice(0, 5).map((task) => (
                <Pressable
                  key={task.id}
