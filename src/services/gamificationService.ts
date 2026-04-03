@@ -227,12 +227,14 @@ interface PlantWithTasks {
   plantName: string;
   oldestTaskDate?: string;
   pendingTasks: number;
+  tasks: any[];
 }
 
 interface PlantTaskCardResult {
   message: string;
   plantId: string;
   pendingTaskCount: number;
+  pendingTasks: any[];
 }
 
 // Helper to find plant with oldest open task
@@ -287,6 +289,7 @@ export function findPlantWithOldestOpenTask(
       plantName: data.plantName,
       oldestTaskDate: oldestTask?.created_at || oldestTask?.due_date,
       pendingTasks: data.tasks.length,
+      tasks: data.tasks,
     };
     
     const plantTaskDate = plant.oldestTaskDate || '9999-12-31';
@@ -332,6 +335,7 @@ export async function getPlantTaskCardData(plants: any[]): Promise<PlantTaskCard
       message,
       plantId: plantId || '',
       pendingTaskCount: plantWithOldestTask.pendingTasks,
+      pendingTasks: plantWithOldestTask.tasks,
     };
   } catch (error) {
     console.error('[PLANT_TASK_CARD] Error:', error);

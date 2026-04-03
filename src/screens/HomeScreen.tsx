@@ -115,6 +115,7 @@ export default function HomeScreen({ navigation }: Props) {
   // NEW: Plant task card state
   const [plantTaskMessage, setPlantTaskMessage] = useState('');
   const [plantTaskPlantId, setPlantTaskPlantId] = useState<string | undefined>(undefined);
+  const [plantTaskPendingTasks, setPlantTaskPendingTasks] = useState<any[]>([]);
   const [aiPickerVisible, setAIPickerVisible] = useState(false);
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
@@ -180,9 +181,11 @@ export default function HomeScreen({ navigation }: Props) {
       if (plantTaskCardResult) {
         setPlantTaskMessage(plantTaskCardResult.message);
         setPlantTaskPlantId(plantTaskCardResult.plantId);
+        setPlantTaskPendingTasks(plantTaskCardResult.pendingTasks);
       } else {
         setPlantTaskMessage('');
         setPlantTaskPlantId(undefined);
+        setPlantTaskPendingTasks([]);
       }
     } catch (error) {
       console.error('Error loading gamification:', error);
@@ -379,22 +382,12 @@ export default function HomeScreen({ navigation }: Props) {
           motivation={motivation}
           achievements={achievements}
           onMotivationPress={() => navigation.navigate('Tasks')}
-          pendingTasks={(() => {
-            const displayTasks = filterTasksByMotivation(prioritizedTasks, motivation);
-            
-            console.log('[TASK_FILTER] Result:', {
-              plantName: extractPlantNameFromMotivation(motivation),
-              totalTasks: prioritizedTasks.length,
-              displayCount: displayTasks.length,
-            });
-            
-            return displayTasks.slice(0, 5).map(t => ({
-              id: t.id,
-              title: t.title,
-              plantName: t.linked_plants?.[0]?.name || 'Alle Pflanzen',
-              plantId: t.linked_plants?.[0]?.id,
-            }));
-          })()}
+          pendingTasks={plantTaskPendingTasks.slice(0, 5).map(t => ({
+            id: t.id,
+            title: t.title,
+            plantName: t.linked_plants?.[0]?.name || 'Alle Pflanzen',
+            plantId: t.linked_plants?.[0]?.id,
+          }))}
           onToggleTask={handleToggleTask}
           todayCompletedCount={tasks.completedTasks}
           onPlantPress={motivationPlantId ? () => setSelectedPlantId(motivationPlantId) : undefined}
