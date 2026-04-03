@@ -47,7 +47,6 @@ export default function TasksStackNavigator() {
         options={{
           title: 'Aufgabe',
           presentation: 'modal',
-          headerShown: true,
           headerStyle: {
             backgroundColor: Colors2026.surface,
           },

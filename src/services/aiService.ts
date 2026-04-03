@@ -7,6 +7,14 @@ import { supabase } from './supabase';
 
 const AI_PROXY_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-proxy`;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const PLANTNET_API_KEY = process.env.EXPO_PUBLIC_PLANTNET_API_KEY;
+
+export interface PlantStatusAnalysis {
+  zustand: 'jungpflanze' | 'bluete' | 'fruchtbildung' | 'wachstum' | 'trockene_blatter' | 'gesund' | 'unklar';
+  zustandBeschreibung: string;
+  klassifikation: 'unkraut' | 'helfer' | 'nutzpflanze';
+  klassifikationBegrundung: string;
+}
 
 export interface AIPlantCareData {
   plantingNotes: string[];
@@ -433,37 +441,56 @@ function getDefaultValueForField(field: string): any {
 }
 
 /**
- * Identify a plant from an image using PlantNet API via Supabase proxy
+ * Identify a plant from an image using PlantNet API directly
  */
 export async function identifyPlant(imageUri: string): Promise<import('../types/ai').PlantIdentificationResult> {
+  if (!PLANTNET_API_KEY) throw new Error('PlantNet API key not configured');
+
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-  
-  if (!SUPABASE_URL) throw new Error('Supabase URL not configured');
-  if (!SUPABASE_ANON_KEY) throw new Error('Supabase anon key not configured');
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Supabase not configured');
+  }
+
+  console.log('identifyPlant called with:', imageUri);
 
   try {
+    let imageData = imageUri;
+    
+    if (imageUri.startsWith('blob:')) {
+      try {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        imageData = base64;
+      } catch (e) {
+        console.error('Failed to convert blob:', e);
+      }
+    }
+    
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/plantnet-proxy`,
       {
         method: 'POST',
-        body: JSON.stringify({ imageUrl: imageUri }),
+        body: JSON.stringify({ imageUrl: imageData }),
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        signal: controller.signal,
       }
     );
 
-    clearTimeout(timeout);
-
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `PlantNet API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('PlantNet via proxy error:', response.status, errorText);
+      throw new Error(`PlantNet API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -482,10 +509,6 @@ export async function identifyPlant(imageUri: string): Promise<import('../types/
       powoId: best.powo?.id,
     };
   } catch (error: any) {
-    clearTimeout(timeout);
-    if (error.name === 'AbortError') {
-      throw new Error('PlantNet API timeout');
-    }
     throw error;
   }
 }
@@ -509,4 +532,119 @@ export async function pickImage(source: 'gallery' | 'camera'): Promise<{ uri: st
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
   if (result.canceled || !result.assets[0]) return null;
   return { uri: result.assets[0].uri };
+}
+
+/**
+ * Analyze plant status and classification using AI
+ */
+export async function analyzePlantStatus(
+  imageUri: string,
+  plantName?: string
+): Promise<PlantStatusAnalysis | null> {
+  try {
+    let imageData = imageUri;
+    
+    if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
+      try {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        imageData = base64;
+      } catch (e) {
+        console.error('Error converting image to base64:', e);
+      }
+    }
+
+    const plantContext = plantName ? `Identifizierte Pflanze: ${plantName}` : '';
+
+    const prompt = `${plantContext}
+
+Analysiere dieses Pflanzenfoto und beantworte:
+
+1. **Zustand**: Welcher Zustand liegt vor? Wähle aus:
+   - jungpflanze: Keine Blüten, kleine Pflanze, erste Blätter
+   - wachstum: Ausgewachsene Pflanze, keine Blüten/Frucht
+   - bluete: Pflanze hat Blüten
+   - fruchtbildung: Pflanze hat Früchte oder Samenstände
+   - trockene_blätter: Gelbe/braune Blätter, Anzeichen von Stress
+   - gesund: Kräftige Farben, keine sichtbaren Probleme
+   - unklar: Nicht bestimmbar
+
+2. **Klassifikation**: Ist das eine:
+   - unkraut: Unerwünschte Pflanze, die entfernt werden sollte
+   - helfer: Nützliche Pflanze für den Garten (Bienenfutter, Bodenverbesserer, etc.)
+   - nutzpflanze: Gewünschte Nutz- oder Zierpflanze
+
+Antworte NUR mit diesem JSON (keine Erklärungen):
+
+{
+  "zustand": "einer der Werte oben",
+  "zustandBeschreibung": "Kurze Beschreibung was du siehst (max 50 Wörter)",
+  "klassifikation": "unkraut|helfer|nutzpflanze",
+  "klassifikationBegrundung": "Kurze Begründung (max 30 Wörter)"
+}`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const response = await fetch(AI_PROXY_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'Du bist ein Botanik-Experte. Analysiere Pflanzenfotos und antworte nur im geforderten JSON-Format.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error('AI status analysis error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    let content = data.choices[0]?.message?.content?.trim();
+    
+    if (!content && data.choices[0]?.message?.reasoning) {
+      content = data.choices[0].message.reasoning.trim();
+    }
+    
+    if (!content) {
+      console.error('Empty AI response for status');
+      return null;
+    }
+
+    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      zustand: parsed.zustand || 'unklar',
+      zustandBeschreibung: parsed.zustandBeschreibung || '',
+      klassifikation: parsed.klassifikation || 'nutzpflanze',
+      klassifikationBegrundung: parsed.klassifikationBegrundung || '',
+    };
+  } catch (error: any) {
+    console.error('Plant status analysis error:', error);
+    return null;
+  }
 }

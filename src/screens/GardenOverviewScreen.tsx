@@ -45,6 +45,7 @@ interface BedWithPlantCount extends Bed {
 export default function GardenOverviewScreen({ navigation }: Props) {
   const [garden, setGarden] = useState<Garden | null>(null);
   const [beds, setBeds] = useState<BedWithPlantCount[]>([]);
+  const [taskCount, setTaskCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -88,6 +89,12 @@ export default function GardenOverviewScreen({ navigation }: Props) {
       }));
 
       setBeds(bedsWithCount);
+
+      const { data: openTasks } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('completed', false);
+      setTaskCount(openTasks?.length || 0);
     } catch (error) {
       Alert.alert('Fehler', 'Gartendaten konnten nicht geladen werden');
     } finally {
@@ -214,7 +221,7 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 
       {/* Stats */}
       <View style={styles.statsContainer}>
-        <GardenStatsCard bedCount={beds.length} plantCount={totalPlants} />
+        <GardenStatsCard bedCount={beds.length} plantCount={totalPlants} taskCount={taskCount} />
       </View>
 
       {beds.length === 0 ? (

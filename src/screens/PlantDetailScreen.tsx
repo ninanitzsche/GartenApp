@@ -95,7 +95,7 @@ export default function PlantDetailScreen() {
         {/* Header */}
         <BlurView intensity={60} style={styles.glassHeader}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Pressable onPress={() => navigation.navigate('PlantList')} style={styles.backButton}>
               <ChevronLeft size={24} color={Colors2026.text} />
             </Pressable>
             <View style={styles.headerInfo}>

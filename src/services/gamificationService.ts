@@ -21,9 +21,18 @@ export interface StreakData {
 export async function calculateStreak(): Promise<StreakData> {
   try {
     const tasks = await fetchTasks();
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
     const completedDates = tasks
       .filter(t => t.completed_at)
-      .map(t => new Date(t.completed_at!).toISOString().split('T')[0])
+      .map(t => {
+        const date = new Date(t.completed_at!);
+        return date.toISOString().split('T')[0];
+      })
       .filter((v, i, a) => a.indexOf(v) === i)
       .sort()
       .reverse();
@@ -32,16 +41,14 @@ export async function calculateStreak(): Promise<StreakData> {
       return { currentStreak: 0, bestStreak: 0, lastActiveDate: null };
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
     const dateSet = new Set(completedDates);
     let currentStreak = 0;
-    if (completedDates[0] === today || completedDates[0] === yesterday) {
+    
+    if (completedDates[0] === todayStr || completedDates[0] === yesterdayStr) {
       let checkDay: string = completedDates[0];
       while (dateSet.has(checkDay)) {
         currentStreak++;
-        const d = new Date(checkDay + 'T00:00:00');
+        const d = new Date(checkDay);
         d.setDate(d.getDate() - 1);
         checkDay = d.toISOString().split('T')[0];
       }
@@ -157,9 +164,9 @@ export function getMotivationMessage(
     return { message: 'Starte mit deiner ersten Aufgabe! 🌱' };
   }
 
-  // Find plants with open tasks (not done, has tasks)
+  // Find plants with remaining tasks (not all done AND has open tasks)
   const openPlants = plantProgress
-    .filter(p => !p.allDone && p.totalTasks > 0);
+    .filter(p => !p.allDone && (p.totalTasks - p.completedTasks) > 0);
 
   if (openPlants.length === 0) {
     if (plantProgress.some(p => p.allDone)) {
@@ -168,7 +175,7 @@ export function getMotivationMessage(
     return { message: 'Gut gemacht heute! 🌟' };
   }
 
-  // Random plant with open tasks
+  // Random plant with remaining tasks
   const randomPlant = openPlants[Math.floor(Math.random() * openPlants.length)];
   const remaining = randomPlant.totalTasks - randomPlant.completedTasks;
 
@@ -201,4 +208,14 @@ export function getMotivationMessage(
   }
 
   return { message: plantMsg, plantId: randomPlant.plantId };
+}
+
+// Helper function to get today's completed task count
+export function getTodayCompletedCount(tasks: any[]): number {
+  const today = new Date().toISOString().split('T')[0];
+  return tasks.filter(t => {
+    if (!t.completed_at) return false;
+    const completedDate = new Date(t.completed_at).toISOString().split('T')[0];
+    return completedDate === today;
+  }).length;
 }

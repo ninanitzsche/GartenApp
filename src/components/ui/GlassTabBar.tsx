@@ -5,11 +5,12 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { Home, Leaf, Flower2, Menu, CheckSquare, ListTodo } from 'lucide-react-native';
 import { Colors2026, Spacing2026, TouchTargets2026 } from '../../theme/designSystemV2';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { CommonActions } from '@react-navigation/native';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Home,
   Plants: Leaf,
-  Tasks: CheckSquare,  // Aufgaben-Icon
+  Tasks: CheckSquare,
   GardenOverview: Flower2,
   More: Menu,
 };
@@ -34,6 +35,20 @@ export default function GlassTabBar({ state, descriptors, navigation }: BottomTa
         const Icon = iconMap[route.name] || Home;
         
         const onPress = () => {
+          if (route.name === 'Plants') {
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [
+                  { name: 'Plants' },
+                  { name: 'Plants', params: { screen: 'PlantList' } },
+                ],
+              })
+            );
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            return;
+          }
+          
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);

@@ -1,15 +1,12 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { StyleSheet, Alert } from 'react-native';
-import { CheckCircle, Circle, Calendar, ChevronRight } from 'lucide-react-native';
+import { CheckCircle, Circle, Calendar } from 'lucide-react-native';
 import { TaskListItem } from '../../types/task';
 import { toggleTaskCompletion } from '../../services/taskService';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../../theme/designSystemV2';
 import GlassCard from '../ui/GlassCard';
 import SectionHeader from '../ui/SectionHeader';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types/navigation';
 
 interface Props {
   tasks: TaskListItem[];
@@ -17,10 +14,7 @@ interface Props {
   delay?: number;
 }
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 export default function PlantTasksCard({ tasks, onTaskUpdate, delay = 120 }: Props) {
-  const navigation = useNavigation<NavigationProp>();
   const [loadingTaskId, setLoadingTaskId] = React.useState<string | null>(null);
 
   const handleToggleTask = async (taskId: string) => {
@@ -125,14 +119,6 @@ export default function PlantTasksCard({ tasks, onTaskUpdate, delay = 120 }: Pro
             ))}
           </>
         )}
-
-        <Pressable
-          style={styles.viewAllButton}
-          onPress={() => navigation.navigate('TaskList')}
-        >
-          <Text style={styles.viewAllText}>Alle Aufgaben anzeigen</Text>
-          <ChevronRight size={16} color={Colors2026.primary} />
-        </Pressable>
       </GlassCard>
     </View>
   );

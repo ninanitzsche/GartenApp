@@ -15,6 +15,8 @@ module.exports = {
   // Module name mapper for handling assets and non-JS imports
   moduleNameMapper: {
     '^react-native$': '<rootDir>/src/__tests__/mocks/reactNative.js',
+    '^react-native-reanimated$': '<rootDir>/src/__tests__/mocks/react-native-reanimated.js',
+    '^expo-blur$': '<rootDir>/src/__tests__/mocks/expo-blur.js',
     '@expo/vector-icons': '<rootDir>/src/__tests__/mocks/expoVectorIcons.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/src/__tests__/mocks/fileMock.ts',

@@ -37,16 +37,71 @@ export function usePlantDetail(plantId: string): UsePlantDetailReturn {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const refetch = useCallback(async () => {
+  const loadInitialData = useCallback(async () => {
+    setLoading(true);
     try {
-      const tasksData = await fetchTasksByPlant(plantId).catch(() => []);
+      const [plantData, photosData, harvestsData, tasksData, healthData] = await Promise.all([
+        fetchPlant(plantId).catch(() => null),
+        supabase.from('photos').select('*').eq('plant_id', plantId).order('created_at', { ascending: false }).then(r => r.data || []),
+        getHarvestsByPlant(plantId).catch(() => []),
+        fetchTasksByPlant(plantId).catch(() => []),
+        fetchHealthChecks(plantId).catch(() => []),
+      ]);
+
+      setPlant(plantData);
+
+      if (photosData) {
+        const enrichedPhotos = await Promise.all(photosData.map((p: any) => enrichPhotoWithUrl(p)));
+        setPhotos(enrichedPhotos as Photo[]);
+      }
+
+      setHarvests(harvestsData);
+
+      if (harvestsData.length > 0) {
+        const totals = await getTotalHarvestByPlant(plantId).catch(() => []);
+        setHarvestTotals(totals);
+      }
+
       setTasks(tasksData);
+      setHealthChecks(healthData);
     } catch (error) {
-      console.error('Error refetching tasks:', error);
+      console.error('Error loading plant detail:', error);
+    } finally {
+      setLoading(false);
     }
   }, [plantId]);
 
-  useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
+  useFocusEffect(useCallback(() => { loadInitialData(); }, [loadInitialData]));
+
+  const refetch = useCallback(async () => {
+    try {
+      const [plantData, photosData, harvestsData, tasksData, healthData] = await Promise.all([
+        fetchPlant(plantId).catch(() => null),
+        supabase.from('photos').select('*').eq('plant_id', plantId).order('created_at', { ascending: false }).then(r => r.data || []),
+        getHarvestsByPlant(plantId).catch(() => []),
+        fetchTasksByPlant(plantId).catch(() => []),
+        fetchHealthChecks(plantId).catch(() => []),
+      ]);
+
+      setPlant(plantData);
+
+      if (photosData) {
+        const enrichedPhotos = await Promise.all(photosData.map((p: any) => enrichPhotoWithUrl(p)));
+        setPhotos(enrichedPhotos as Photo[]);
+      }
+
+      setHarvests(harvestsData);
+      setTasks(tasksData);
+      setHealthChecks(healthData);
+
+      if (harvestsData.length > 0) {
+        const totals = await getTotalHarvestByPlant(plantId).catch(() => []);
+        setHarvestTotals(totals);
+      }
+    } catch (error) {
+      console.error('Error refetching:', error);
+    }
+  }, [plantId]);
 
   const handleRefresh = useCallback(async () => {
     if (!plant) return { success: false, sources: [] };

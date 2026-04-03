@@ -24,6 +24,7 @@ const KeyboardAvoidingView = createMockComponent('KeyboardAvoidingView');
 const SafeAreaView = createMockComponent('SafeAreaView');
 const ActivityIndicator = createMockComponent('ActivityIndicator');
 const Modal = createMockComponent('Modal');
+const BlurView = createMockComponent('BlurView');
 
 const StyleSheet = {
   create: (styles) => styles,
@@ -55,7 +56,24 @@ const PixelRatio = {
   getFontScale: () => 1,
 };
 
-module.exports = {
+const mockAnimatedComponent = (Component) => Component;
+
+const Animated = function() {};
+Animated.View = createMockComponent('Animated.View');
+Animated.Text = createMockComponent('Animated.Text');
+Animated.Image = createMockComponent('Animated.Image');
+Animated.ScrollView = createMockComponent('Animated.ScrollView');
+Animated.createAnimatedComponent = mockAnimatedComponent;
+Animated.useSharedValue = jest.fn(() => ({ value: 0 }));
+Animated.useAnimatedStyle = jest.fn(() => ({}));
+Animated.withSpring = jest.fn();
+Animated.withTiming = jest.fn();
+Animated.withDelay = jest.fn();
+Animated.withSequence = jest.fn();
+Animated.interpolate = jest.fn();
+Animated.Extrapolate = { CLAMP: 'clamp' };
+
+const reactNativeMock = {
   View,
   Text,
   TouchableOpacity,
@@ -69,9 +87,19 @@ module.exports = {
   SafeAreaView,
   ActivityIndicator,
   Modal,
+  BlurView,
   StyleSheet,
   Dimensions,
   Platform,
   BackHandler,
   PixelRatio,
+  Animated,
 };
+
+module.exports = reactNativeMock;
+module.exports.default = reactNativeMock;
+
+Object.keys(reactNativeMock).forEach((key) => {
+  module.exports[key] = reactNativeMock[key];
+  module.exports.default[key] = reactNativeMock[key];
+});

@@ -73,6 +73,8 @@ jest.mock('lucide-react-native', () => ({
   MoreVertical: 'MoreVertical',
   Sprout: 'Sprout',
   ChevronRight: 'ChevronRight',
+  LayoutGrid: 'LayoutGrid',
+  CheckSquare: 'CheckSquare',
 }));
 
 // Mock Supabase (configured in individual tests)

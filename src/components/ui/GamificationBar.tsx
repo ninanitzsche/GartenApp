@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
-import { Flame, ChevronRight, Circle } from 'lucide-react-native';
+import { Flame, ChevronRight, Circle, Info } from 'lucide-react-native';
 import {
   Colors2026,
   Spacing2026,
@@ -90,33 +90,35 @@ export default function GamificationBar({
         <Pressable
           style={styles.motivationRow}
           onPress={() => {
-            // Always toggle expand when there are pending tasks
+            // Toggle expand to show pending tasks
             if (pendingTasks.length > 0) {
               setExpanded(!expanded);
             }
+          }}
+          onLongPress={() => {
+            // Long press to open plant details modal
+            onPlantPress?.();
           }}
           accessibilityRole="button"
           accessibilityLabel={expanded ? 'Einklappen' : 'Aufgaben anzeigen'}
         >
           <View style={styles.motivationContent}>
-            {onPlantPress ? (
+            <Text style={styles.motivationText} numberOfLines={1}>
+              {motivation}
+            </Text>
+          </View>
+          <View style={styles.motivationRight}>
+            {onPlantPress && (
               <Pressable 
                 onPress={(e) => {
                   e.stopPropagation();
                   onPlantPress();
                 }}
+                hitSlop={8}
               >
-                <Text style={styles.motivationTextLink} numberOfLines={1}>
-                  {motivation}
-                </Text>
+                <Info size={16} color={Colors2026.textSecondary} />
               </Pressable>
-            ) : (
-              <Text style={styles.motivationText} numberOfLines={1}>
-                {motivation}
-              </Text>
             )}
-          </View>
-          <View style={styles.motivationRight}>
             {pendingTasks.length > 0 && (
               <Text style={styles.taskCountBadge}>{pendingTasks.length}</Text>
             )}

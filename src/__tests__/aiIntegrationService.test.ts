@@ -10,6 +10,7 @@ jest.mock('expo-image-manipulator', () => ({
 
 jest.mock('../services/aiService', () => ({
   identifyPlant: jest.fn(),
+  analyzePlantStatus: jest.fn(),
 }));
 
 jest.mock('../services/plantDiseaseService', () => ({

@@ -8,7 +8,7 @@ import Animated, {
   FadeInUp,
 } from 'react-native-reanimated';
 import { Circle, CheckCircle2 } from 'lucide-react-native';
-import { Task } from '../types/task';
+import { Task, TaskListItem } from '../types/task';
 import { Zeitraum } from '../types/zeitraum';
 import { getZeitraumShortLabel, getZeitraumIconComponent } from '../utils/zeitraumUtils';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
@@ -18,10 +18,11 @@ import { useReduceMotion } from '../utils/accessibility';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface TaskCardProps {
-  task: Task;
+  task: Task | TaskListItem;
   onToggle: () => void;
   onPress: () => void;
   loading?: boolean;
+  showPlantName?: boolean;
 }
 
 function getTaskZeitraum(task: Task): Zeitraum | undefined {
@@ -47,7 +48,7 @@ function SkeletonCard() {
   );
 }
 
-export default function TaskCard({ task, onToggle, onPress, loading = false }: TaskCardProps) {
+export default function TaskCard({ task, onToggle, onPress, loading = false, showPlantName = true }: TaskCardProps) {
   if (loading) {
     return <SkeletonCard />;
   }
@@ -56,6 +57,9 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
   const isCompleted = !!task.completed_at;
   const zeitraum = getTaskZeitraum(task);
   const zeitraumLabel = zeitraum ? getZeitraumShortLabel(zeitraum) : '';
+  
+  const linkedPlants = (task as any).linked_plants || [];
+  const plantNameText = linkedPlants.length > 0 ? linkedPlants[0].name : null;
 
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -103,6 +107,9 @@ export default function TaskCard({ task, onToggle, onPress, loading = false }: T
             {task.title}
           </Text>
           <View style={styles.meta}>
+            {plantNameText && showPlantName && (
+              <Text style={styles.plantNameText}>{plantNameText}</Text>
+            )}
             {task.location && <Text style={styles.location}>{task.location}</Text>}
             {zeitraumLabel && zeitraum && (
               <View style={styles.zeitraumRow}>
@@ -155,6 +162,11 @@ const styles = StyleSheet.create({
   location: {
     ...Typography2026.small,
     color: Colors2026.textSecondary,
+  },
+  plantNameText: {
+    ...Typography2026.small,
+    fontWeight: '700',
+    color: Colors2026.primary,
   },
   zeitraumRow: {
     flexDirection: 'row',

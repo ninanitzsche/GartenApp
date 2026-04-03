@@ -256,6 +256,12 @@ export interface AIPhotoAnalysis {
   healthStatus: 'gesund' | 'krank' | 'unsicher';
   matchingPlants: Plant[];
   bestMatch: Plant | null;
+  plantStatusAnalysis?: {
+    zustand: string;
+    zustandBeschreibung: string;
+    klassifikation: 'unkraut' | 'helfer' | 'nutzpflanze';
+    klassifikationBegrundung: string;
+  };
   errors?: {
     identification?: string;
     disease?: string;

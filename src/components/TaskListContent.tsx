@@ -61,10 +61,9 @@ export default function TaskListContent({
   const searchDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // New Filter State
-  const [quickFilter, setQuickFilter] = useState<QuickFilterType | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState('Alle');
-  
   const currentSeason = getCurrentSeason();
+  const [quickFilter, setQuickFilter] = useState<QuickFilterType | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState(currentSeason);
   const seasonColors: Record<string, string> = {
     'Frühling': '#5A8F6B',
     'Sommer': '#E8A838',
@@ -141,16 +140,17 @@ export default function TaskListContent({
     }
 
     // Quick Filter
+    const getDate = (task: TaskListItem) => task.scheduled_date || task.due_date || null;
     if (quickFilter === 'overdue') {
-      result = result.filter(t => isTaskOverdue(t.due_date || null));
+      result = result.filter(t => isTaskOverdue(getDate(t)));
     } else if (quickFilter === 'thisWeek') {
-      result = result.filter(t => isTaskDueThisWeek(t.due_date || null));
+      result = result.filter(t => isTaskDueThisWeek(getDate(t)));
     } else if (quickFilter === 'thisMonth') {
-      result = result.filter(t => isTaskDueThisMonth(t.due_date || null));
+      result = result.filter(t => isTaskDueThisMonth(getDate(t)));
     } else if (quickFilter === 'nextSteps') {
       result = result.filter(t => 
         t.priority === 'hoch' && 
-        !isTaskOverdue(t.due_date || null) &&
+        !isTaskOverdue(getDate(t)) &&
         !t.completed_at
       );
     }
@@ -249,16 +249,19 @@ export default function TaskListContent({
   const hasActiveFilters = searchQuery || filterPriorities.length > 0 || filterCategories.length > 0 || quickFilter !== null || selectedSeason !== 'Alle' || extendedFilters.priorities.length > 0 || extendedFilters.categories.length > 0 || extendedFilters.status.length > 0;
 
   // Quick Filter Counts
-  const quickFilterCounts = useMemo(() => ({
-    overdue: tasks.filter(t => isTaskOverdue(t.due_date || null)).length,
-    thisWeek: tasks.filter(t => isTaskDueThisWeek(t.due_date || null)).length,
-    thisMonth: tasks.filter(t => isTaskDueThisMonth(t.due_date || null)).length,
-    nextSteps: tasks.filter(t => 
-      t.priority === 'hoch' && 
-      !isTaskOverdue(t.due_date || null) &&
-      !t.completed_at
-    ).length,
-  }), [tasks]);
+  const quickFilterCounts = useMemo(() => {
+    const getDate = (task: TaskListItem) => task.scheduled_date || task.due_date || null;
+    return {
+      overdue: tasks.filter(t => isTaskOverdue(getDate(t))).length,
+      thisWeek: tasks.filter(t => isTaskDueThisWeek(getDate(t))).length,
+      thisMonth: tasks.filter(t => isTaskDueThisMonth(getDate(t))).length,
+      nextSteps: tasks.filter(t => 
+        t.priority === 'hoch' && 
+        !isTaskOverdue(getDate(t)) &&
+        !t.completed_at
+      ).length,
+    };
+  }, [tasks]);
 
   const renderTaskItem = useCallback(
     ({ item }: { item: TaskListItem }) => (

@@ -42,30 +42,41 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('=== plantnet-proxy START ===')
+    
     let imageUrls: string[] = []
     let organs = 'auto'
     
-    // Try to parse JSON body first
     const contentType = req.headers.get('content-type') || ''
+    console.log('Content-Type:', contentType)
     
     if (contentType.includes('application/json')) {
-      const body = await req.json()
-      imageUrls = Array.isArray(body.imageUrl) ? body.imageUrl : [body.imageUrl].filter(Boolean)
+      const bodyText = await req.text()
+      console.log('Body text:', bodyText.substring(0, 200))
+      const body = JSON.parse(bodyText)
+      const rawUrl = body.imageUrl
+      console.log('Raw imageUrl:', typeof rawUrl, rawUrl ? rawUrl.substring(0, 100) : 'null/undefined')
+      
+      if (rawUrl && typeof rawUrl === 'string') {
+        imageUrls = [rawUrl]
+      } else if (Array.isArray(rawUrl)) {
+        imageUrls = rawUrl.filter((u): u is string => typeof u === 'string' && u.length > 0)
+      }
       organs = body.organ || body.organs || 'auto'
     } else {
-      // Fall back to formData
       const formData = await req.formData()
       const images = formData.getAll('images')
       const organsParam = formData.get('organs') as string
       organs = organsParam || 'auto'
       
-      // Handle images as URLs in formData
       for (const image of images) {
         if (typeof image === 'string') {
           imageUrls.push(image)
         }
       }
     }
+
+    console.log('Final imageUrls count:', imageUrls.length)
 
     if (imageUrls.length === 0) {
       return new Response(

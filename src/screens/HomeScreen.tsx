@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
+  Modal,
+  Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Leaf, Sprout, Sun, Droplets, Flower2, Calendar, CheckCircle2, Clock, Sparkles, Camera } from 'lucide-react-native';
@@ -47,13 +49,19 @@ import Toast from '../components/Toast';
 import GardenGrowthSection from '../components/ui/GardenGrowthSection';
 import GamificationBar from '../components/ui/GamificationBar';
 import ConfettiCelebration from '../components/ui/ConfettiCelebration';
+import PlantQuickViewModal from '../components/ui/PlantQuickViewModal';
 import {
   calculateStreak,
   checkAchievements,
   getMotivationMessage,
+  getTodayCompletedCount,
   StreakData,
   Achievement,
 } from '../services/gamificationService';
+import {
+  extractPlantNameFromMotivation,
+  filterTasksByMotivation,
+} from '../utils/motivationTaskUtils';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -103,6 +111,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [aiPickerVisible, setAIPickerVisible] = useState(false);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
   const cacheRef = useRef<DashboardCache | null>(null);
 
@@ -147,14 +156,37 @@ export default function HomeScreen({ navigation }: Props) {
     }
   }, []);
 
+  const loadGamification = useCallback(async () => {
+    try {
+      const allTasks = await fetchTasks();
+      const todayCompletedCount = getTodayCompletedCount(allTasks);
+      const streakData = await calculateStreak();
+      setStreak(streakData);
+
+      const result = getMotivationMessage(gardenGrowth.plants, todayCompletedCount);
+      setMotivation(result.message);
+      setMotivationPlantId(result.plantId);
+
+      const allAchievements = await checkAchievements(streakData, gardenGrowth.plants);
+      setAchievements(allAchievements);
+    } catch (error) {
+      console.error('Error loading gamification:', error);
+    }
+  }, [gardenGrowth.plants]);
+
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
       loadPrioritizedTasks();
       loadLearnings();
-      loadGamification(tasks.completedTasks);
-    }, [loadDashboard, tasks.completedTasks])
+    }, [loadDashboard])
   );
+
+  useEffect(() => {
+    if (!loading && gardenGrowth.plants.length > 0) {
+      loadGamification();
+    }
+  }, [loading, gardenGrowth.plants, loadGamification]);
 
   const onRefresh = async () => {
     try {
@@ -162,7 +194,7 @@ export default function HomeScreen({ navigation }: Props) {
       await loadDashboard(true);
       await loadPrioritizedTasks();
       await loadLearnings();
-      await loadGamification(tasks.completedTasks);
+      await loadGamification();
     } finally {
       setRefreshing(false);
     }
@@ -192,36 +224,19 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
-  const loadGamification = async (todayCompleted: number = 0) => {
-    try {
-      const streakData = await calculateStreak();
-      setStreak(streakData);
-
-      const result = getMotivationMessage(gardenGrowth.plants, todayCompleted);
-      setMotivation(result.message);
-      setMotivationPlantId(result.plantId);
-
-      const allAchievements = await checkAchievements(streakData, gardenGrowth.plants);
-      setAchievements(allAchievements);
-    } catch (error) {
-      console.error('Error loading gamification:', error);
-    }
-  };
-
   const handleToggleTask = async (taskId: string) => {
     try {
       await toggleTaskCompletion(taskId);
-      await loadDashboard(true); // Refresh gardenGrowth data
+      await loadDashboard(true);
       await loadPrioritizedTasks();
-      // loadGamification must run AFTER loadDashboard so it has updated gardenGrowth
       const streakData = await calculateStreak();
       setStreak(streakData);
-      // Get updated gardenGrowth from the refreshed state
-      const newCompletedCount = tasks.completedTasks + 1;
       setTimeout(async () => {
         const data = await getDashboardData();
         setGardenGrowth(data.gardenGrowth);
-        const result = getMotivationMessage(data.gardenGrowth.plants, newCompletedCount);
+        const allTasks = await fetchTasks();
+        const todayCount = getTodayCompletedCount(allTasks);
+        const result = getMotivationMessage(data.gardenGrowth.plants, todayCount);
         setMotivation(result.message);
         setMotivationPlantId(result.plantId);
         const allAchievements = await checkAchievements(streakData, data.gardenGrowth.plants);
@@ -350,24 +365,11 @@ export default function HomeScreen({ navigation }: Props) {
           achievements={achievements}
           onMotivationPress={() => navigation.navigate('Tasks')}
           pendingTasks={(() => {
-            // Filter to specific plant's tasks if we have a motivation plant
-            // If filter returns 0, fall back to all tasks
-            const filteredTasks = motivationPlantId
-              ? prioritizedTasks.filter(t => {
-                  const taskPlantId = t.linked_plants?.[0]?.id;
-                  return taskPlantId === motivationPlantId;
-                })
-              : prioritizedTasks;
-            
-            // If filter returned 0 but we have a plant ID, show all tasks
-            const displayTasks = (filteredTasks.length === 0 && motivationPlantId)
-              ? prioritizedTasks
-              : filteredTasks;
+            const displayTasks = filterTasksByMotivation(prioritizedTasks, motivation);
             
             console.log('[TASK_FILTER] Result:', {
-              motivationPlantId,
+              plantName: extractPlantNameFromMotivation(motivation),
               totalTasks: prioritizedTasks.length,
-              filteredCount: filteredTasks.length,
               displayCount: displayTasks.length,
             });
             
@@ -380,8 +382,8 @@ export default function HomeScreen({ navigation }: Props) {
           })()}
           onToggleTask={handleToggleTask}
           todayCompletedCount={tasks.completedTasks}
-          onPlantPress={motivationPlantId ? () => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId: motivationPlantId } }) : undefined}
-          onTaskPlantPress={(plantId) => (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } })}
+          onPlantPress={motivationPlantId ? () => setSelectedPlantId(motivationPlantId) : undefined}
+          onTaskPlantPress={(plantId) => setSelectedPlantId(plantId)}
         />
 
         {/* Quick Stats */}
@@ -420,34 +422,52 @@ export default function HomeScreen({ navigation }: Props) {
           />
         )}
 
-        {/* Tasks Section */}
-        {prioritizedTasks.length > 0 && (
-          <View style={styles.section}>
-            <SectionHeader
-              title="Nächste Aufgaben"
-              subtitle={`${prioritizedTasks.length} Aufgaben`}
-              icon={<Calendar size={20} color={Colors2026.primary} />}
-              animated={true}
-            />
-
-            {prioritizedTasks.slice(0, 3).map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggle={() => handleToggleTask(task.id)}
-                onPress={() => {}}
+        {/* Tasks Section - filtered by motivation plant */}
+        {(() => {
+          let displayTasks: typeof prioritizedTasks = [];
+          
+          if (motivationPlantId) {
+            const plantTasks = prioritizedTasks.filter(t => {
+              const taskPlantId = t.linked_plants?.[0]?.id;
+              return taskPlantId === motivationPlantId;
+            });
+            if (plantTasks.length > 0) {
+              displayTasks = plantTasks.slice(0, 3);
+            }
+          } else {
+            displayTasks = prioritizedTasks.slice(0, 3);
+          }
+          
+          if (displayTasks.length === 0) {
+            return null;
+          }
+          
+          return (
+            <View style={styles.section}>
+              <SectionHeader
+                title="Nächste Aufgaben"
+                subtitle={`${displayTasks.length} Aufgaben`}
+                icon={<Calendar size={20} color={Colors2026.primary} />}
+                animated={true}
               />
-            ))}
-
-            {prioritizedTasks.length > 3 && (
-              <Pressable style={styles.viewAllButton} onPress={() => navigation.navigate('Tasks')}>
-                <Text style={styles.viewAllText}>
-                  Alle {prioritizedTasks.length} Aufgaben anzeigen
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        )}
+              {displayTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggle={() => handleToggleTask(task.id)}
+                  onPress={() => {}}
+                />
+              ))}
+              {displayTasks.length > 3 && (
+                <Pressable style={styles.viewAllButton} onPress={() => navigation.navigate('Tasks')}>
+                  <Text style={styles.viewAllText}>
+                    Alle {displayTasks.length} Aufgaben anzeigen
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        })()}
 
         {/* Learnings Section */}
         {learnings.length > 0 && (
@@ -572,6 +592,20 @@ export default function HomeScreen({ navigation }: Props) {
         visible={aiPickerVisible}
         onClose={() => setAIPickerVisible(false)}
         onPlantIdentified={handlePlantIdentified}
+        onPlantCreated={(plantId) => {
+          setAIPickerVisible(false);
+          (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } });
+        }}
+      />
+
+      <PlantQuickViewModal
+        visible={!!selectedPlantId}
+        plantId={selectedPlantId}
+        onClose={() => setSelectedPlantId(null)}
+        onViewDetails={(plantId) => {
+          setSelectedPlantId(null);
+          (navigation as any).navigate('Plants', { screen: 'PlantDetail', params: { plantId } });
+        }}
       />
     </>
   );

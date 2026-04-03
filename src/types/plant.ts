@@ -46,6 +46,9 @@ export interface PlantFormData {
   notes?: string;
   tags?: string[];
   identification_source?: 'ai' | 'manual';
+  openai_care?: any;
+  plantnet_data?: any;
+  bed_id?: string;
 }
 
 export const PLANT_STATUSES = [

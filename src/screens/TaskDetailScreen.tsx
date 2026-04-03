@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
+import { fetchTask } from '../services/taskService';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import GlassCard from '../components/ui/GlassCard';
 import { TasksStackParamList } from '../types/navigation';
@@ -29,9 +30,12 @@ interface Task {
   category: string;
   priority: string;
   scheduled_date: string;
+  due_date?: string;
   description: string;
   knowledge_article_ids: string[];
   completed?: boolean;
+  linked_plants?: { id: string; name: string }[];
+  created_at?: string;
 }
 
 type Props = NativeStackScreenProps<TasksStackParamList, 'TaskDetail'>;
@@ -62,21 +66,18 @@ export const TaskDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     try {
       setLoading(true);
 
-      const { data: taskData, error: taskError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-        .single();
+      const taskData = await fetchTask(taskId);
+      
+      if (!taskData) throw new Error('Task not found');
+      
+      setTask(taskData as any);
 
-      if (taskError) throw taskError;
-      setTask(taskData);
-
-      if (taskData?.knowledge_article_ids && taskData.knowledge_article_ids.length > 0) {
+      const knowledgeIds = (taskData as any).knowledge_article_ids;
+      if (knowledgeIds && knowledgeIds.length > 0) {
         const { data: articles, error: articlesError } = await supabase
           .from('knowledge_articles')
           .select('id, title, category, content')
-          .in('id', taskData.knowledge_article_ids);
+          .in('id', knowledgeIds);
 
         if (articlesError) throw articlesError;
         setRelatedArticles(articles || []);
@@ -148,6 +149,33 @@ export const TaskDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
           </View>
 
+          {task.due_date && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailItem}>
+                <View style={styles.detailIcon}>
+                  <MaterialIcons name="schedule" size={20} color={Colors2026.primary} />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Fällig am</Text>
+                  <Text style={styles.detailValue}>{task.due_date}</Text>
+                </View>
+              </View>
+            </>
+          )}
+
+          <View style={styles.divider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.detailIcon}>
+              <MaterialIcons name="event-available" size={20} color={Colors2026.textSecondary} />
+            </View>
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Erstellt am</Text>
+              <Text style={styles.detailValue}>{task.created_at ? new Date(task.created_at).toLocaleDateString('de-DE') : '-'}</Text>
+            </View>
+          </View>
+
           <View style={styles.divider} />
 
           <View style={styles.detailItem}>
@@ -173,6 +201,23 @@ export const TaskDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               </Text>
             </View>
           </View>
+
+          {task.linked_plants && task.linked_plants.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailItem}>
+                <View style={styles.detailIcon}>
+                  <MaterialIcons name="grass" size={20} color={Colors2026.primary} />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Pflanze</Text>
+                  <Text style={styles.detailValue}>
+                    {task.linked_plants.map(p => p.name).join(', ')}
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
 
           {task.description && (
             <>

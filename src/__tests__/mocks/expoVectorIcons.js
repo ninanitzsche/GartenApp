@@ -5,7 +5,7 @@
 const React = require('react');
 
 const MockIcon = ({ name, size, color, ...props }) => {
-  return React.createElement('MockIcon', { name, size, color, ...props }, null);
+  return React.createElement('View', { testID: `icon-${name}` }, null);
 };
 
 const MaterialIcons = MockIcon;
@@ -34,7 +34,21 @@ module.exports = {
   Octicons,
   SimpleLineIcons,
   Zocial,
-  createIconSet: jest.fn(),
-  createIconSetFromFontello: jest.fn(),
-  createMultiStyleIconSet: jest.fn(),
+  createIconSet: jest.fn(() => MockIcon),
+  createIconSetFromFontello: jest.fn(() => MockIcon),
+  createMultiStyleIconSet: jest.fn(() => MockIcon),
+  default: {
+    MaterialIcons,
+    Ionicons,
+    FontAwesome,
+    FontAwesome5,
+    Feather,
+    AntDesign,
+    Entypo,
+    EvilIcons,
+    Foundation,
+    Octicons,
+    SimpleLineIcons,
+    Zocial,
+  },
 };

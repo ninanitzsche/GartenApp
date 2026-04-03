@@ -190,11 +190,12 @@ export async function getRecentActivity(limit: number = 5): Promise<RecentActivi
       .slice(0, limit);
 
     completedTasks.forEach((t) => {
+      const plantName = t.linked_plants?.[0]?.name;
       activities.push({
         type: 'task',
         title: `Aufgabe abgeschlossen: ${t.title}`,
         date: t.completed_at || new Date().toISOString(),
-        detail: t.description,
+        detail: plantName ? `${plantName}${t.description ? ` - ${t.description}` : ''}` : t.description,
       });
     });
 

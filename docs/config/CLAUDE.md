@@ -551,6 +551,31 @@ Checklist Compliance: __% ✅
 
 ## ⚠️ GOLDEN RULES (Always)
 
+### 🚨 WORKFLOW - IMMER BEACHTEN
+
+**Bei JEDEM Task, JEDEM Bug, JEDER Aufgabe GILT:**
+
+```
+1. brainstorming Skill laden → Requirements klären
+2. (optional) writing-plans Skill → Implementation plan erstellen  
+3. (optional) test-driven-development Skill → Tests schreiben
+4. implementieren
+5. verification-before-completion → Testen
+```
+
+**WARUM:** 
+- Spart 40-50% durch weniger Retries
+- Klare Requirements = schneller Fix
+- Bessere Qualität = weniger Bugs
+
+**Skills die ich自动isch lade wenn Task startet:**
+- `brainstorming` - Für neue Features/Bugs
+- `test-driven-development` - Für Implementierung
+- `systematic-debugging` - Für Bugfixes
+- `verification-before-completion` - Vor Abschluss
+
+---
+
 1. **Check MEMORY.md FIRST** - Before asking AI (50% savings!)
 2. **Sequential Only** - No parallel agents (80% cost reduction!)
 3. **Schema-First** - Use SCHEMA-CHECKLIST.md before coding (70% fewer bugs!)

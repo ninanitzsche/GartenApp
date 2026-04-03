@@ -1,39 +1,54 @@
 import { PlantDiseaseData } from '../types/ai';
 
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
 export async function identifyDisease(
   imageUri: string,
   organ: 'leaf' | 'flower' | 'fruit' | 'bark' | 'auto' = 'auto'
 ): Promise<PlantDiseaseData | null> {
-  const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  
-  if (!SUPABASE_URL) {
-    console.warn('Supabase URL not configured');
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('Supabase not configured');
     return null;
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
   try {
     console.log('Sending disease identification request via proxy...');
+
+    let imageData = imageUri;
+    
+    if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
+      try {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        imageData = base64;
+      } catch (e) {
+        console.error('Error converting image to base64:', e);
+      }
+    }
     
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/plantnet-disease-proxy`,
       {
         method: 'POST',
-        body: JSON.stringify({ imageUrl: imageUri, organ }),
+        body: JSON.stringify({ imageUrl: imageData, organ }),
         headers: {
           'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        signal: controller.signal,
       }
     );
 
-    clearTimeout(timeout);
-
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('PlantNet disease API error:', response.status, errorData);
+      const errorText = await response.text();
+      console.error('PlantNet disease API error:', response.status, errorText);
       return null;
     }
 
@@ -45,11 +60,6 @@ export async function identifyDisease(
       identifiedAt: new Date().toISOString(),
     };
   } catch (error: any) {
-    clearTimeout(timeout);
-    if (error.name === 'AbortError') {
-      console.error('Disease identification timeout');
-      return null;
-    }
     console.error('Disease identification error:', error);
     return null;
   }

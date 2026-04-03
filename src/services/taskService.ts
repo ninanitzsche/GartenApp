@@ -659,18 +659,22 @@ export function getSeasonFromDate(dateStr: string | null): string {
 }
 
 /**
- * Check if task is overdue
+ * Check if task is overdue - ignores year, uses only month/day
  */
 export function isTaskOverdue(scheduledDate: string | null): boolean {
   if (!scheduledDate) return false;
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const scheduled = new Date(scheduledDate);
-  return scheduled < today;
+  
+  // Use month/day only - ignore year
+  const todayMD = today.getMonth() * 100 + today.getDate();
+  const scheduledMD = scheduled.getMonth() * 100 + scheduled.getDate();
+  
+  return scheduledMD < todayMD;
 }
 
 /**
- * Check if task is due this week
+ * Check if task is due this week - ignores year, uses only month/day
  */
 export function isTaskDueThisWeek(scheduledDate: string | null): boolean {
   if (!scheduledDate) return false;
@@ -684,11 +688,23 @@ export function isTaskDueThisWeek(scheduledDate: string | null): boolean {
   sunday.setDate(monday.getDate() + 6);
   
   const scheduled = new Date(scheduledDate);
-  return scheduled >= monday && scheduled <= sunday;
+  
+  // Compare month/day only, ignoring year
+  const scheduledMD = scheduled.getMonth() * 100 + scheduled.getDate();
+  const mondayMD = monday.getMonth() * 100 + monday.getDate();
+  const sundayMD = sunday.getMonth() * 100 + sunday.getDate();
+  
+  // Handle year boundary (e.g., end of December / start of January)
+  if (mondayMD > sundayMD) {
+    // We're crossing a year boundary
+    return scheduledMD >= mondayMD || scheduledMD <= sundayMD;
+  }
+  
+  return scheduledMD >= mondayMD && scheduledMD <= sundayMD;
 }
 
 /**
- * Check if task is due next week
+ * Check if task is due next week - ignores year
  */
 export function isTaskDueNextWeek(scheduledDate: string | null): boolean {
   if (!scheduledDate) return false;
@@ -704,22 +720,39 @@ export function isTaskDueNextWeek(scheduledDate: string | null): boolean {
   followingSunday.setDate(nextMonday.getDate() + 6);
   
   const scheduled = new Date(scheduledDate);
-  return scheduled >= nextMonday && scheduled <= followingSunday;
+  const scheduledMD = scheduled.getMonth() * 100 + scheduled.getDate();
+  const nextMondayMD = nextMonday.getMonth() * 100 + nextMonday.getDate();
+  const followingSundayMD = followingSunday.getMonth() * 100 + followingSunday.getDate();
+  
+  if (nextMondayMD > followingSundayMD) {
+    return scheduledMD >= nextMondayMD || scheduledMD <= followingSundayMD;
+  }
+  
+  return scheduledMD >= nextMondayMD && scheduledMD <= followingSundayMD;
 }
 
 /**
- * Check if task is due within the next 30 days
+ * Check if task is due within the next 30 days - ignores year
  */
 export function isTaskDueThisMonth(scheduledDate: string | null): boolean {
   if (!scheduledDate) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const in30Days = new Date(today);
-  in30Days.setDate(today.getDate() + 30);
-  
   const scheduled = new Date(scheduledDate);
-  return scheduled >= today && scheduled <= in30Days;
+  
+  // Calculate difference in days based on month/day only
+  const todayMD = today.getMonth() * 100 + today.getDate();
+  const scheduledMD = scheduled.getMonth() * 100 + scheduled.getDate();
+  
+  let diff = scheduledMD - todayMD;
+  
+  // Handle year boundary
+  if (diff < -1100) {
+    diff += 1200; // Add months in a year
+  }
+  
+  return diff >= 0 && diff <= 30;
 }
 
 /**

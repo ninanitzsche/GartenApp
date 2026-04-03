@@ -8,18 +8,20 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { LayoutGrid, Sprout } from 'lucide-react-native';
+import { LayoutGrid, Sprout, CheckSquare } from 'lucide-react-native';
 import GlassCard from './ui/GlassCard';
 import { Colors2026, Spacing2026, Typography2026 } from '../theme/designSystemV2';
 
 interface GardenStatsCardProps {
   bedCount: number;
   plantCount: number;
+  taskCount?: number;
 }
 
 export default function GardenStatsCard({
   bedCount,
   plantCount,
+  taskCount,
 }: GardenStatsCardProps) {
   return (
     <View style={styles.container}>
@@ -47,6 +49,17 @@ export default function GardenStatsCard({
             </View>
           </GlassCard>
         </View>
+        {taskCount !== undefined && (
+          <View style={styles.statItem}>
+            <GlassCard variant="tint" animated={false}>
+              <View style={styles.statContent}>
+                <CheckSquare size={20} color={Colors2026.primary} />
+                <Text style={styles.statValue}>{taskCount}</Text>
+                <Text style={styles.statLabel}>Aufgaben</Text>
+              </View>
+            </GlassCard>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

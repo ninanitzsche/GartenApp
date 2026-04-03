@@ -18,7 +18,7 @@ import {
   getAICache,
   invalidateAICache,
 } from './cacheService';
-import { identifyPlant } from './aiService';
+import { identifyPlant, analyzePlantStatus } from './aiService';
 import { identifyDisease } from './plantDiseaseService';
 
 export async function compressImage(uri: string): Promise<string> {
@@ -215,9 +215,10 @@ export async function analyzePhotoWithHealth(
     };
   }
 
-  const [diseaseResult, matchingResult] = await Promise.allSettled([
+  const [diseaseResult, matchingResult, statusResult] = await Promise.allSettled([
     identifyDiseaseWithCache(photoUri),
     findMatchingPlants(identification.name, existingPlants),
+    analyzePlantStatus(photoUri, identification.name),
   ]);
 
   return {
@@ -227,6 +228,7 @@ export async function analyzePhotoWithHealth(
     bestMatch: matchingResult.status === 'fulfilled' && matchingResult.value.length > 0 
       ? matchingResult.value[0] 
       : null,
+    plantStatusAnalysis: statusResult.status === 'fulfilled' ? statusResult.value ?? undefined : undefined,
     healthStatus: calculateHealthStatus(
       diseaseResult.status === 'fulfilled' ? diseaseResult.value ?? undefined : undefined
     ),

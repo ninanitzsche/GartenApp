@@ -88,7 +88,7 @@ describe('TaskListContent Filter Integration', () => {
   describe('Quick Filter - Next Week', () => {
     it('should filter tasks due next week', () => {
       const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 10);
+      nextWeek.setDate(nextWeek.getDate() + 7);
       
       const tasks = [
         createMockTask({ id: '1', scheduled_date: nextWeek.toISOString() }),

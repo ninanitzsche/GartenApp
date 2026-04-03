@@ -28,13 +28,16 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('de-DE', {
       month: 'short',
       day: 'numeric',
     });
   };
+
+  const displayDate = task.scheduled_date || task.due_date || undefined;
 
   return (
     <TouchableOpacity
@@ -70,7 +73,7 @@ export default function TaskListItem({ task, onPress, onToggleCompletion, isComp
           >
             {task.title}
           </Text>
-          <Text style={styles.date}>{formatDate(task.created_at)}</Text>
+          <Text style={styles.date}>{formatDate(displayDate)}</Text>
         </View>
 
         {/* Category and plants row */}
