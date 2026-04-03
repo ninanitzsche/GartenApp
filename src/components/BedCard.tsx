@@ -45,11 +45,6 @@ export default function BedCard({
       </View>
 
       <View style={styles.details}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailText}>
-            {bed.width.toFixed(0)}% × {bed.height.toFixed(0)}%
-          </Text>
-        </View>
         {plantCount > 0 && (
           <View style={styles.detailRow}>
             <Sprout size={14} color={Colors2026.status.success} />
