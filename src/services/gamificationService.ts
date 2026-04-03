@@ -219,3 +219,122 @@ export function getTodayCompletedCount(tasks: any[]): number {
     return completedDate === today;
   }).length;
 }
+
+// ── Plant Task Card ──
+
+interface PlantWithTasks {
+  plantId: string;
+  plantName: string;
+  oldestTaskDate?: string;
+  pendingTasks: number;
+}
+
+interface PlantTaskCardResult {
+  message: string;
+  plantId: string;
+  pendingTaskCount: number;
+}
+
+// Helper to find plant with oldest open task
+export function findPlantWithOldestOpenTask(
+  plants: any[], 
+  tasks: any[]
+): PlantWithTasks | null {
+  const pendingTasksByPlant: Map<string, { plantName: string; tasks: any[] }> = new Map();
+  
+  // Group pending tasks by plant
+  tasks.forEach(task => {
+    if (task.completed_at) return; // Skip completed tasks
+    
+    const linkedPlants = task.linked_plants || [];
+    if (linkedPlants.length === 0) {
+      // Task not linked to specific plant - use "All"
+      const existing = pendingTasksByPlant.get('__all__');
+      if (existing) {
+        existing.tasks.push(task);
+      } else {
+        pendingTasksByPlant.set('__all__', { plantName: 'Alle Pflanzen', tasks: [task] });
+      }
+    } else {
+      linkedPlants.forEach((plant: any) => {
+        const existing = pendingTasksByPlant.get(plant.id);
+        if (existing) {
+          existing.tasks.push(task);
+        } else {
+          pendingTasksByPlant.set(plant.id, { plantName: plant.name, tasks: [task] });
+        }
+      });
+    }
+  });
+  
+  if (pendingTasksByPlant.size === 0) {
+    return null;
+  }
+  
+  // Find plant with oldest task
+  let oldestPlant: PlantWithTasks | null = null;
+  
+  pendingTasksByPlant.forEach((data, plantId) => {
+    const oldestTask = data.tasks.reduce((oldest, task) => {
+      if (!oldest) return task;
+      const oldestDate = new Date(oldest.created_at || oldest.due_date || '1970-01-01');
+      const taskDate = new Date(task.created_at || task.due_date || '1970-01-01');
+      return taskDate < oldestDate ? task : oldest;
+    }, null as any);
+    
+    const plant: PlantWithTasks = {
+      plantId,
+      plantName: data.plantName,
+      oldestTaskDate: oldestTask?.created_at || oldestTask?.due_date,
+      pendingTasks: data.tasks.length,
+    };
+    
+    const plantTaskDate = plant.oldestTaskDate || '9999-12-31';
+    const oldestTaskDate = oldestPlant?.oldestTaskDate || '9999-12-31';
+    
+    if (!oldestPlant || plantTaskDate < oldestTaskDate) {
+      oldestPlant = plant;
+    }
+  });
+  
+  return oldestPlant;
+}
+
+// Generate motivational message for plant task card
+export function createPlantTaskMessage(plant: PlantWithTasks): string {
+  const taskWord = plant.pendingTasks === 1 ? 'Aufgabe' : 'Aufgaben';
+  const plantArticle = /^[aeiouAEIOU]/.test(plant.plantName) ? 'n' : '';
+  
+  const options = [
+    `${plant.plantName} braucht dich: ${plant.pendingTasks} ${taskWord} offen! 💧`,
+    `${plant.plantName} wartet${plantArticle} auf dich 🌿`,
+    `Dein${plantArticle} ${plant.plantName} braucht Aufmerksamkeit! 🍃`,
+    `${plant.plantName}: ${plant.pendingTasks} ${taskWord} warten auf dich! 🌱`,
+  ];
+  
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+// Get complete plant task card data
+export async function getPlantTaskCardData(plants: any[]): Promise<PlantTaskCardResult | null> {
+  try {
+    const tasks = await fetchTasks();
+    const plantWithOldestTask = findPlantWithOldestOpenTask(plants, tasks);
+    
+    if (!plantWithOldestTask) {
+      return null;
+    }
+    
+    const message = createPlantTaskMessage(plantWithOldestTask);
+    const plantId = plantWithOldestTask.plantId === '__all__' ? undefined : plantWithOldestTask.plantId;
+    
+    return {
+      message,
+      plantId: plantId || '',
+      pendingTaskCount: plantWithOldestTask.pendingTasks,
+    };
+  } catch (error) {
+    console.error('[PLANT_TASK_CARD] Error:', error);
+    return null;
+  }
+}

@@ -55,6 +55,7 @@ import {
   checkAchievements,
   getMotivationMessage,
   getTodayCompletedCount,
+  getPlantTaskCardData,
   StreakData,
   Achievement,
 } from '../services/gamificationService';
@@ -110,6 +111,10 @@ export default function HomeScreen({ navigation }: Props) {
   const [motivationPlantId, setMotivationPlantId] = useState<string | undefined>(undefined);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  
+  // NEW: Plant task card state
+  const [plantTaskMessage, setPlantTaskMessage] = useState('');
+  const [plantTaskPlantId, setPlantTaskPlantId] = useState<string | undefined>(undefined);
   const [aiPickerVisible, setAIPickerVisible] = useState(false);
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
@@ -169,6 +174,16 @@ export default function HomeScreen({ navigation }: Props) {
 
       const allAchievements = await checkAchievements(streakData, gardenGrowth.plants);
       setAchievements(allAchievements);
+
+      // NEW: Load plant task card data
+      const plantTaskCardResult = await getPlantTaskCardData(gardenGrowth.plants);
+      if (plantTaskCardResult) {
+        setPlantTaskMessage(plantTaskCardResult.message);
+        setPlantTaskPlantId(plantTaskCardResult.plantId);
+      } else {
+        setPlantTaskMessage('');
+        setPlantTaskPlantId(undefined);
+      }
     } catch (error) {
       console.error('Error loading gamification:', error);
     }
@@ -384,6 +399,11 @@ export default function HomeScreen({ navigation }: Props) {
           todayCompletedCount={tasks.completedTasks}
           onPlantPress={motivationPlantId ? () => setSelectedPlantId(motivationPlantId) : undefined}
           onTaskPlantPress={(plantId) => setSelectedPlantId(plantId)}
+          // NEW: Plant task card props
+          showPlantTaskCard={!!plantTaskMessage}
+          plantTaskMessage={plantTaskMessage}
+          plantTaskPlantId={plantTaskPlantId}
+          onPlantTaskPress={(plantId) => setSelectedPlantId(plantId || null)}
         />
 
         {/* Quick Stats */}

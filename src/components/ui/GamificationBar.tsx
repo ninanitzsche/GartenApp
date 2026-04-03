@@ -3,11 +3,10 @@
  * Streak, motivation ticker, and achievement display for dashboard
  */
 
-import React, { useEffect, useState } from 'react';
+/** @jsxImportSource react */
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, {
-  FadeIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import { Flame, ChevronRight, Circle, Info } from 'lucide-react-native';
 import {
   Colors2026,
@@ -35,6 +34,11 @@ interface GamificationBarProps {
   todayCompletedCount?: number;
   onPlantPress?: () => void;
   onTaskPlantPress?: (plantId: string) => void;
+  // NEW: Plant task card props
+  showPlantTaskCard?: boolean;
+  plantTaskMessage?: string;
+  plantTaskPlantId?: string;
+  onPlantTaskPress?: (plantId: string) => void;
 }
 
 export default function GamificationBar({
@@ -48,12 +52,21 @@ export default function GamificationBar({
   todayCompletedCount = 0,
   onPlantPress,
   onTaskPlantPress,
+  // NEW: Plant task card props
+  showPlantTaskCard = false,
+  plantTaskMessage = '',
+  plantTaskPlantId = '',
+  onPlantTaskPress = () => {},
 }: GamificationBarProps) {
   const [expanded, setExpanded] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const unlocked = achievements.filter(a => a.unlockedAt);
 
-  const prevTasksRef = React.useRef<string>('');
+   const prevTasksRef = React.useRef<string>('');
+   
+    // Animation values for plant task card
+    const fadeAnim = useSharedValue(0);
+    const rotateAnim = useSharedValue(0);
 
   useEffect(() => {
     const taskIds = pendingTasks.map(t => t.id).join(',');
@@ -63,38 +76,168 @@ export default function GamificationBar({
     prevTasksRef.current = taskIds;
   }, [pendingTasks]);
 
-  useEffect(() => {
-    setExpanded(false);
-  }, [motivation]);
+   useEffect(() => {
+     // Reset expanded state when motivation changes (e.g., after reload)
+     setExpanded(false);
+   }, [motivation]);
 
-  return (
-    <View style={styles.container}>
-      {/* Streak - Prominent above */}
-      {streak.currentStreak > 0 && (
-        <Animated.View entering={FadeIn.duration(400)} style={styles.streakRow}>
-          <View style={styles.streakBadge}>
-            <Flame size={16} color="#E87A3D" />
-            <Text style={styles.streakCount}>{streak.currentStreak}</Text>
-            <Text style={styles.streakLabel}>
-              {streak.currentStreak === 1 ? 'Tag' : 'Tage'}
-            </Text>
-          </View>
-          {streak.currentStreak >= 7 && (
-            <Text style={styles.streakMilestone}>Wow, eine Woche!</Text>
-          )}
-        </Animated.View>
-      )}
+   // Run animations when expanded state changes
+   useEffect(() => {
+     if (expanded) {
+       animateDropdownIn();
+       rotateArrowUp();
+     } else {
+       animateDropdownOut();
+       rotateArrowDown();
+     }
+   }, [expanded]);
+
+   const handlePress = () => {
+     // Allow toggle even when no tasks - user should be able to see the state
+     setExpanded(prev => !prev);
+   };
+
+    // Animation functions
+    const animateDropdownIn = () => {
+      fadeAnim.value = withTiming(1, {
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
+    const animateDropdownOut = () => {
+      fadeAnim.value = withTiming(0, {
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
+    const rotateArrowUp = () => {
+      rotateAnim.value = withTiming(1, {
+        duration: 150,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
+    const rotateArrowDown = () => {
+      rotateAnim.value = withTiming(0, {
+        duration: 150,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
+   return (
+     <View style={styles.container}>
+       {/* NEW: Plant task card with animation */}
+        {showPlantTaskCard && (
+          <Animated.View entering={FadeIn.duration(300)} style={styles.plantTaskCardContainer}>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.plantTaskCard,
+                pressed && styles.plantTaskCardPressed
+              ]}
+              onPress={plantTaskMessage ? handlePress : undefined}
+              accessibilityRole="button"
+              accessibilityLabel={plantTaskMessage 
+                ? (expanded ? 'Aufgaben einklappen' : 'Aufgaben anzeigen')
+                : 'Alle Aufgaben erledigt'}
+              accessibilityHint={plantTaskMessage ? "Doppelklick zum Öffnen des Dropdowns" : "Alle Aufgaben sind erledigt"}
+              accessibilityState={{ expanded, disabled: !plantTaskMessage }}
+            >
+              <View style={styles.plantTaskContent}>
+                {/* Plant icon and message */}
+                <View style={styles.plantTaskMessageContent}>
+                  {/* Plant icon placeholder */}
+                  <View style={styles.plantTaskIconPlaceholder} />
+                  <Text style={styles.plantTaskText}>
+                    {plantTaskMessage || 'Alle Aufgaben erledigt! 🌻'}
+                  </Text>
+                </View>
+                
+                 {/* Arrow icon */}
+                  <Animated.View style={{ transform: [{ rotate: `${rotateAnim.value * 90}deg`} ] }}>
+                   <ChevronRight 
+                     size={16} 
+                     color={Colors2026.primary} 
+                     style={styles.plantTaskArrow}
+                   />
+                 </Animated.View>
+              </View>
+            </Pressable>
+          </Animated.View>
+        )}
+        
+        {/* Dropdown with plant tasks */}
+        {showPlantTaskCard && plantTaskMessage && expanded && pendingTasks && pendingTasks.length > 0 && (
+           <Animated.View style={[styles.plantTaskDropdown, { opacity: fadeAnim.value }]}> 
+             {pendingTasks.slice(0, 5).map((task) => (
+               <Pressable
+                 key={task.id}
+                 style={({ pressed }) => [
+                   styles.plantTaskDropdownItem,
+                   pressed && styles.plantTaskDropdownItemPressed
+                 ]}
+                 onPress={() => onToggleTask?.(task.id)}
+                 accessibilityRole="checkbox"
+                 accessibilityLabel={`Task ${task.title} für ${task.plantName}`}
+               >
+                 <View style={styles.taskCheckbox}>
+                   <Circle size={18} color={Colors2026.textLight} />
+                 </View>
+                 <View style={styles.taskContent}>
+                   {task.plantId && onTaskPlantPress ? (
+                     <Pressable 
+                       onPress={() => onTaskPlantPress(task.plantId!)} 
+                       style={styles.taskPlantLink}
+                       accessibilityRole="button"
+                       accessibilityLabel={`Pflanze ${task.plantName} anzeigen`}
+                     >
+                       <Text style={styles.taskPlantText}>{task.plantName}</Text>
+                     </Pressable>
+                   ) : (
+                     <Text style={styles.taskPlantText}>{task.plantName}</Text>
+                   )}
+                   <Text style={styles.taskTitle}>{task.title}</Text>
+                 </View>
+               </Pressable>
+             ))}
+           
+            {/* More tasks button if needed */}
+            {pendingTasks.length > 5 && (
+              <Pressable 
+                onPress={onMotivationPress}
+                accessibilityRole="button"
+                accessibilityLabel={`${pendingTasks.length - 5} weitere Aufgaben anzeigen`}
+              >
+                <Text style={styles.moreTasksText}>+{pendingTasks.length - 5} weitere anzeigen</Text>
+             </Pressable>
+           )}
+         </Animated.View>
+       )}
+       {/* Streak - Prominent above */}
+       {streak.currentStreak > 0 && (
+         <Animated.View style={[
+           styles.streakRow,
+           { opacity: 1 } // Simple fade-in for compatibility
+         ]}>
+           <View style={styles.streakBadge}>
+             <Flame size={16} color="#E87A3D" />
+             <Text style={styles.streakCount}>{streak.currentStreak}</Text>
+             <Text style={styles.streakLabel}>
+               {streak.currentStreak === 1 ? 'Tag' : 'Tage'}
+             </Text>
+           </View>
+           {streak.currentStreak >= 7 && (
+             <Text style={styles.streakMilestone}>Wow, eine Woche!</Text>
+           )}
+         </Animated.View>
+       )}
 
       {/* Motivation Ticker - Clear call to action */}
       <View>
         <Pressable
           style={styles.motivationRow}
-          onPress={() => {
-            // Toggle expand to show pending tasks
-            if (pendingTasks.length > 0) {
-              setExpanded(!expanded);
-            }
-          }}
+          onPress={handlePress}
           onLongPress={() => {
             // Long press to open plant details modal
             onPlantPress?.();
@@ -478,5 +621,85 @@ const styles = StyleSheet.create({
   achievementDetailDesc: {
     fontSize: Typography2026.small.fontSize,
     color: Colors2026.textMuted,
+  },
+  // Plant task card styles
+  plantTaskCardContainer: {
+    marginBottom: Spacing2026.md,
+    paddingHorizontal: Spacing2026.xl,
+  },
+  plantTaskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(45,71,57,0.06)',
+    borderRadius: Radius2026.md,
+    borderWidth: 1,
+    borderColor: 'rgba(45,71,57,0.1)',
+    paddingHorizontal: Spacing2026.md,
+    paddingVertical: Spacing2026.sm,
+  },
+  plantTaskCardPressed: {
+    backgroundColor: 'rgba(45,71,57,0.12)',
+  },
+  plantTaskContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  plantTaskMessageContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  plantTaskText: {
+    fontSize: Typography2026.body.fontSize,
+    fontWeight: '500',
+    color: Colors2026.text,
+  },
+  plantTaskIconPlaceholder: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(45,71,57,0.2)',
+    marginRight: Spacing2026.xs,
+  },
+  plantTaskArrow: {
+    marginTop: 2,
+  },
+  // Dropdown styles
+  plantTaskDropdown: {
+    backgroundColor: Colors2026.bg,
+    borderRadius: Radius2026.md,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    marginTop: Spacing2026.sm,
+    padding: Spacing2026.sm,
+  },
+  plantTaskDropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing2026.sm,
+    paddingVertical: Spacing2026.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors2026.border,
+  },
+  plantTaskDropdownItemPressed: {
+    backgroundColor: 'rgba(45,157,79,0.08)',
+  },
+  taskContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  taskPlantLink: {
+    // Link styling
+  },
+  taskPlantText: {
+    fontSize: Typography2026.small.fontSize,
+    fontWeight: '700',
+    color: Colors2026.primary,
+  },
+  taskTitle: {
+    flex: 1,
+    fontSize: Typography2026.caption.fontSize,
+    color: Colors2026.text,
   },
 });

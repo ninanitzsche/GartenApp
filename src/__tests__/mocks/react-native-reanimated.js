@@ -1,12 +1,22 @@
 /**
  * Mock for react-native-reanimated
  */
+const FadeIn = {
+  duration: jest.fn().mockReturnValue({})
+};
+
+const FadeOut = {
+  duration: jest.fn().mockReturnValue({})
+};
+
 module.exports = {
   default: {
     createAnimatedComponent: (Component) => Component,
     View: 'Animated.View',
     Text: 'Animated.Text',
     ScrollView: 'Animated.ScrollView',
+    FadeIn,
+    FadeOut,
   },
   createAnimatedComponent: (Component) => Component,
   useSharedValue: jest.fn(() => ({ value: 0 })),
@@ -20,4 +30,6 @@ module.exports = {
   View: 'Animated.View',
   Text: 'Animated.Text',
   ScrollView: 'Animated.ScrollView',
+  FadeIn,
+  FadeOut,
 };

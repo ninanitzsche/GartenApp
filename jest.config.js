@@ -16,6 +16,7 @@ module.exports = {
   moduleNameMapper: {
     '^react-native$': '<rootDir>/src/__tests__/mocks/reactNative.js',
     '^react-native-reanimated$': '<rootDir>/src/__tests__/mocks/react-native-reanimated.js',
+    '^lucide-react-native$': '<rootDir>/src/__tests__/mocks/lucide-react-native.js',
     '^expo-blur$': '<rootDir>/src/__tests__/mocks/expo-blur.js',
     '@expo/vector-icons': '<rootDir>/src/__tests__/mocks/expoVectorIcons.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
