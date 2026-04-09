@@ -26,8 +26,10 @@ import { TaskListItem } from '../types/task';
 import { fetchBed, fetchBedPlants, unlinkBedFromPlant } from '../services/bedService';
 import { uploadPhotoForBed, setBedCoverPhoto } from '../services/photoBedService';
 import { fetchTasksByBed, toggleTaskCompletion } from '../services/taskService';
+import { getCompanionSuggestions } from '../services/companionPlantingService';
 import EmptyState from '../components/ui/EmptyState';
 import GlassCard from '../components/ui/GlassCard';
+import CompanionCard from '../components/plant/CompanionCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
 
@@ -216,6 +218,15 @@ export default function BedDetailScreen({ navigation, route }: Props) {
             <Text style={styles.addButtonText}>Hinzufügen</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Companion Planting Info */}
+        {plants.length > 0 && plants.length <= 5 && (
+          <CompanionCard
+            plantName={plants[0].name}
+            goodCompanions={getCompanionSuggestions(plants[0].name).good}
+            badCompanions={getCompanionSuggestions(plants[0].name).bad}
+          />
+        )}
 
         {plants.length > 0 ? (
           plants.map((plant) => {
