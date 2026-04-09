@@ -20,7 +20,8 @@
     "link:knowledge": "node scripts/link-knowledge-to-tasks.js",
     "link:plants": "node scripts/link-knowledge-to-plants.js",
     "extract-knowledge": "npx ts-node scripts/extract-pdf-knowledge.ts",
-    "extract-knowledge:dry": "npx ts-node scripts/extract-pdf-knowledge.ts -- --dry"
+    "extract-knowledge:dry": "npx ts-node scripts/extract-pdf-knowledge.ts -- --dry",
+    "generate-knowledge": "npx ts-node scripts/generate-knowledge.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
