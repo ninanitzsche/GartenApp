@@ -29,7 +29,9 @@ import PlantMetaSection from '../components/plant/PlantMetaSection';
 import HarvestPrediction from '../components/plant/HarvestPrediction';
 import PlantTasksCard from '../components/plant/PlantTasksCard';
 import { usePlantDetail } from '../hooks/usePlantDetail';
+import { usePlantKnowledge } from '../hooks/usePlantKnowledge';
 import AIPhotoPicker from '../components/AIPhotoPicker';
+import PlantKnowledgeCard from '../components/plant/PlantKnowledgeCard';
 import { PlantIdentificationResult } from '../types/ai';
 
 type PlantDetailRouteProp = RouteProp<RootStackParamList, 'PlantDetail'>;
@@ -43,6 +45,8 @@ export default function PlantDetailScreen() {
   const [aiPickerVisible, setAIPickerVisible] = useState(false);
 
   const { plant, photos, harvestTotals, tasks, healthChecks, loading, refreshing, handleRefresh, refetch } = usePlantDetail(plantId);
+  const { getKnowledgeForPlant } = usePlantKnowledge();
+  const plantKnowledge = plant ? getKnowledgeForPlant(plant.name) : undefined;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -208,6 +212,13 @@ export default function PlantDetailScreen() {
 
         {/* KI Pflege-Info — now 5 separate sections */}
         {plant.openai_care && <PlantCareCard care={plant.openai_care} delay={60} />}
+
+        {/* Plant Knowledge (from generated data) */}
+        {plantKnowledge && (
+          <View style={styles.section}>
+            <PlantKnowledgeCard knowledge={plantKnowledge} />
+          </View>
+        )}
 
         {/* Aufgaben */}
         <PlantTasksCard tasks={tasks} onTaskUpdate={refetch} delay={120} />
