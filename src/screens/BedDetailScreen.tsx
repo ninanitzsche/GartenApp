@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
+  Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -30,6 +31,11 @@ import { getCompanionSuggestions } from '../services/companionPlantingService';
 import EmptyState from '../components/ui/EmptyState';
 import GlassCard from '../components/ui/GlassCard';
 import CompanionCard from '../components/plant/CompanionCard';
+import GildeSelector from '../components/gilde/GildeSelector';
+import GildeCard from '../components/gilde/GildeCard';
+import { useGilden } from '../hooks/useGilden';
+import { addGildeToBed, removeGildeFromBed, fetchBeetGilden } from '../services/gildeService';
+import { Gilde } from '../types/gilde';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
 
@@ -41,6 +47,22 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const { gilden } = useGilden();
+  const [showGildeSelector, setShowGildeSelector] = useState(false);
+  const [beetGilden, setBeetGilden] = useState<Gilde[]>([]);
+
+  useEffect(() => {
+    const loadBeetGilden = async () => {
+      try {
+        const loaded = await fetchBeetGilden(bedId);
+        setBeetGilden(loaded);
+      } catch (e) {
+        console.error('Error loading beet gilden:', e);
+      }
+    };
+    loadBeetGilden();
+  }, [bedId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -217,6 +239,10 @@ export default function BedDetailScreen({ navigation, route }: Props) {
             <MaterialIcons name="add" size={20} color={Colors2026.primary} />
             <Text style={styles.addButtonText}>Hinzufügen</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.gildeButton} onPress={() => setShowGildeSelector(true)}>
+            <MaterialIcons name="group" size={20} color={Colors2026.primary} />
+            <Text style={styles.addButtonText}>Gilde</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Companion Planting Info */}
@@ -345,7 +371,60 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         )}
       </View>
 
+      {beetGilden.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Gilden</Text>
+            <View style={styles.sectionBadge}>
+              <Text style={styles.sectionBadgeText}>{beetGilden.length}</Text>
+            </View>
+          </View>
+          {beetGilden.map(gilde => (
+            <GildeCard 
+              key={gilde.id} 
+              gilde={gilde} 
+              onRemove={() => {
+                Alert.alert(
+                  'Gilde entfernen',
+                  'Möchten Sie diese Gilde wirklich vom Beet entfernen?',
+                  [
+                    { text: 'Abbrechen', onPress: () => {}, style: 'cancel' },
+                    {
+                      text: 'Entfernen',
+                      onPress: async () => {
+                        try {
+                          await removeGildeFromBed(bedId, gilde.id);
+                          setBeetGilden(beetGilden.filter(g => g.id !== gilde.id));
+                        } catch (e) {
+                          console.error('Error removing gilde:', e);
+                        }
+                      },
+                      style: 'destructive',
+                    },
+                  ]
+                );
+              }}
+            />
+          ))}
+        </View>
+      )}
+
       <View style={styles.bottomSpacer} />
+      
+      <GildeSelector
+        visible={showGildeSelector}
+        gilden={gilden}
+        onSelect={async (gilde) => {
+          try {
+            await addGildeToBed(bedId, gilde.id);
+            setBeetGilden([...beetGilden, gilde]);
+          } catch (e) {
+            console.error('Error adding gilde:', e);
+          }
+          setShowGildeSelector(false);
+        }}
+        onClose={() => setShowGildeSelector(false)}
+      />
     </ScrollView>
   );
 }
@@ -492,6 +571,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Colors2026.primary,
+  },
+  gildeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius2026.round,
+    backgroundColor: Colors2026.primary + '15',
+    marginLeft: Spacing2026.sm,
   },
 
   // Plant Card
