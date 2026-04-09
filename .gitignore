@@ -40,3 +40,12 @@ yarn-error.*
 /ios
 /android
 .env
+
+# PDF processing
+docs/pdfs/processed/
+
+# Coverage reports
+coverage/
+
+# Archived/deleted content
+.archive/
