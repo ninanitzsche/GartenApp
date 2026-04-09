@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 
 const AI_PROXY_URL = process.env.EXPO_PUBLIC_SUPABASE_URL 
   ? `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-proxy`
@@ -119,16 +119,19 @@ export async function processPdf(
   }
 
   const pdfBuffer = fs.readFileSync(pdfPath);
-  const pdfData = await pdfParse(pdfBuffer);
-  const text = pdfData.text;
+  const parser = new PDFParse({ data: pdfBuffer });
+  const textResult = await parser.getText();
+  const text = textResult.text;
 
-  console.log(`   Pages: ${pdfData.numpages}`);
+  console.log(`   Pages: ${textResult.total}`);
   console.log(`   Text length: ${text.length} chars`);
 
   const extracted = await extractKnowledgeFromText(text, filename);
   
   console.log(`   ✅ Extracted ${extracted.articles.length} articles`);
   console.log(`   ✅ Extracted knowledge for ${extracted.plantKnowledge.length} plants`);
+
+  await parser.destroy();
 
   return {
     filename,
@@ -192,6 +195,4 @@ export async function main() {
   console.log('\n✨ Done!');
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
+main().catch(console.error);
