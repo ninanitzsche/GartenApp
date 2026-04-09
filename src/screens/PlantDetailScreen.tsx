@@ -30,8 +30,10 @@ import HarvestPrediction from '../components/plant/HarvestPrediction';
 import PlantTasksCard from '../components/plant/PlantTasksCard';
 import { usePlantDetail } from '../hooks/usePlantDetail';
 import { usePlantKnowledge } from '../hooks/usePlantKnowledge';
+import { generateCareTasksFromKnowledge } from '../services/plantCareTaskService';
 import AIPhotoPicker from '../components/AIPhotoPicker';
 import PlantKnowledgeCard from '../components/plant/PlantKnowledgeCard';
+import CareTaskCard from '../components/plant/CareTaskCard';
 import { PlantIdentificationResult } from '../types/ai';
 
 type PlantDetailRouteProp = RouteProp<RootStackParamList, 'PlantDetail'>;
@@ -47,6 +49,7 @@ export default function PlantDetailScreen() {
   const { plant, photos, harvestTotals, tasks, healthChecks, loading, refreshing, handleRefresh, refetch } = usePlantDetail(plantId);
   const { getKnowledgeForPlant } = usePlantKnowledge();
   const plantKnowledge = plant ? getKnowledgeForPlant(plant.name) : undefined;
+  const careTasks = plant ? generateCareTasksFromKnowledge(plant.name) : [];
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -217,6 +220,13 @@ export default function PlantDetailScreen() {
         {plantKnowledge && (
           <View style={styles.section}>
             <PlantKnowledgeCard knowledge={plantKnowledge} />
+          </View>
+        )}
+
+        {/* Care Tasks from Knowledge */}
+        {careTasks.length > 0 && (
+          <View style={styles.section}>
+            <CareTaskCard tasks={careTasks} />
           </View>
         )}
 
