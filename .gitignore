@@ -49,3 +49,4 @@ coverage/
 
 # Archived/deleted content
 .archive/
+.worktrees/
