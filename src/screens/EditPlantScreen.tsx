@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { RootStackParamList } from '../types/navigation';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../theme/designSystemV2';
@@ -21,6 +22,10 @@ import { fetchPlant, updatePlant, deletePlant } from '../services/plantService';
 import GlassInput from '../components/ui/GlassInput';
 import GlassCard from '../components/ui/GlassCard';
 import AnimatedButton from '../components/ui/AnimatedButton';
+import CoverImagePicker from '../components/ui/CoverImagePicker';
+import PhotoGallery from '../components/ui/PhotoGallery';
+import { Photo } from '../types/photo';
+import { fetchPhotosForPlant, setPlantCoverPhoto, uploadPhotoForPlant, unlinkPhotoFromPlant } from '../services/photoPlantService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditPlant'>;
 
@@ -51,6 +56,11 @@ export default function EditPlantScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [plant, setPlant] = useState<any>(null);
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+  const [savingPhoto, setSavingPhoto] = useState(false);
 
   useEffect(() => {
     loadPlant();
@@ -60,6 +70,8 @@ export default function EditPlantScreen({ navigation, route }: Props) {
     try {
       const plant = await fetchPlant(plantId);
       if (plant) {
+        setPlant(plant);
+        setCoverPhoto(plant.cover_photo_url || null);
         setFormData({
           name: plant.name || '',
           latin_name: plant.latin_name || '',
@@ -81,6 +93,28 @@ export default function EditPlantScreen({ navigation, route }: Props) {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (plantId) {
+      loadPhotos();
+    }
+  }, [plantId, plant]);
+
+  const loadPhotos = async () => {
+    if (!plantId) return;
+    setLoadingPhotos(true);
+    try {
+      const plantPhotos = await fetchPhotosForPlant(plantId);
+      setPhotos(plantPhotos);
+      if (plant?.cover_photo_url) {
+        setCoverPhoto(plant.cover_photo_url);
+      }
+    } catch (e) {
+      console.warn('Fehler beim Laden:', e);
+    } finally {
+      setLoadingPhotos(false);
     }
   };
 
@@ -328,6 +362,57 @@ export default function EditPlantScreen({ navigation, route }: Props) {
               icon={<MaterialIcons name="notes" size={22} color={Colors2026.primary} />}
             />
           </Animated.View>
+        </GlassCard>
+
+        <GlassCard style={styles.formCard}>
+          <Text style={styles.sectionLabel}>Titelbild</Text>
+          {savingPhoto ? (
+            <ActivityIndicator />
+          ) : (
+            <CoverImagePicker
+              imageUrl={coverPhoto}
+              onChangeImage={async (uri) => {
+                if (!plantId || !uri) return;
+                setSavingPhoto(true);
+                try {
+                  const path = await uploadPhotoForPlant(plantId, uri);
+                  await setPlantCoverPhoto(plantId, path);
+                  setCoverPhoto(uri);
+                } catch (e) {
+                  Alert.alert('Fehler', 'Bild konnte nicht gespeichert werden');
+                } finally {
+                  setSavingPhoto(false);
+                }
+              }}
+            />
+          )}
+        </GlassCard>
+
+        <GlassCard style={styles.formCard}>
+          <Text style={styles.sectionLabel}>Galerie</Text>
+          {loadingPhotos ? (
+            <ActivityIndicator />
+          ) : (
+            <PhotoGallery
+              photos={photos}
+              onAddPhoto={async () => {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  quality: 0.8,
+                });
+                if (!result.canceled && result.assets[0] && plantId) {
+                  const path = await uploadPhotoForPlant(plantId, result.assets[0].uri);
+                  setPhotos([...photos, { id: 'new', photo_url: path } as Photo]);
+                }
+              }}
+              onRemovePhoto={async (photoId) => {
+                if (plantId) {
+                  await unlinkPhotoFromPlant(photoId, plantId);
+                  setPhotos(photos.filter(p => p.id !== photoId));
+                }
+              }}
+            />
+          )}
         </GlassCard>
 
         <Animated.View style={styles.buttonContainer} entering={FadeInDown.duration(400).delay(550)}>
