@@ -22,8 +22,12 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
 import AnimatedButton from '../components/ui/AnimatedButton';
+import PhotoGallery from '../components/ui/PhotoGallery';
 import { BedFormData, BED_SHAPES, BED_COLORS } from '../types/bed';
 import { fetchBed, updateBed, deleteBed } from '../services/bedService';
+import { fetchPhotosForBed, uploadPhotoForBed, unlinkPhotoFromBed } from '../services/photoBedService';
+import { Photo } from '../types/photo';
+import * as ImagePicker from 'expo-image-picker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditBed'>;
 
@@ -31,8 +35,6 @@ export default function EditBedScreen({ navigation, route }: Props) {
   const { bedId } = route.params;
   const [formData, setFormData] = useState<BedFormData>({
     name: '',
-    position_x: 50,
-    position_y: 50,
     width: 20,
     height: 15,
     color: '#4CAF50',
@@ -43,9 +45,12 @@ export default function EditBedScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [bedPhotos, setBedPhotos] = useState<Photo[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
 
   useEffect(() => {
     loadBed();
+    loadPhotos();
   }, [bedId]);
 
   const loadBed = async () => {
@@ -54,8 +59,6 @@ export default function EditBedScreen({ navigation, route }: Props) {
       if (bed) {
         setFormData({
           name: bed.name || '',
-          position_x: bed.position_x || 50,
-          position_y: bed.position_y || 50,
           width: bed.width || 20,
           height: bed.height || 15,
           color: bed.color || '#4CAF50',
@@ -69,6 +72,18 @@ export default function EditBedScreen({ navigation, route }: Props) {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPhotos = async () => {
+    setLoadingPhotos(true);
+    try {
+      const photos = await fetchPhotosForBed(bedId);
+      setBedPhotos(photos);
+    } catch (e) {
+      console.warn('Fehler:', e);
+    } finally {
+      setLoadingPhotos(false);
     }
   };
 
@@ -159,34 +174,6 @@ export default function EditBedScreen({ navigation, route }: Props) {
           editable={!saving && !deleting}
         />
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-      </View>
-
-      {/* Position X */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Position X: {formData.position_x.toFixed(0)}%</Text>
-        <Slider
-          style={styles.slider}
-          value={formData.position_x}
-          onValueChange={(val) => setFormData({ ...formData, position_x: val })}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          disabled={saving || deleting}
-        />
-      </View>
-
-      {/* Position Y */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Position Y: {formData.position_y.toFixed(0)}%</Text>
-        <Slider
-          style={styles.slider}
-          value={formData.position_y}
-          onValueChange={(val) => setFormData({ ...formData, position_y: val })}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          disabled={saving || deleting}
-        />
       </View>
 
       {/* Width */}
@@ -291,6 +278,28 @@ export default function EditBedScreen({ navigation, route }: Props) {
           editable={!saving && !deleting}
         />
       </View>
+
+      {/* Galerie */}
+      <GlassCard style={styles.section}>
+        <Text style={styles.label}>Galerie</Text>
+        <PhotoGallery
+          photos={bedPhotos}
+          onAddPhoto={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              const path = await uploadPhotoForBed(bedId, result.assets[0].uri);
+              setBedPhotos([...bedPhotos, { id: 'new', photo_url: path } as Photo]);
+            }
+          }}
+          onRemovePhoto={async (photoId) => {
+            await unlinkPhotoFromBed(photoId, bedId);
+            setBedPhotos(bedPhotos.filter(p => p.id !== photoId));
+          }}
+        />
+      </GlassCard>
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
