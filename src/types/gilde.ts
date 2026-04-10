@@ -18,6 +18,13 @@ export interface Gilde {
   created_at?: string;
 }
 
+export interface GildeMatch {
+  gilde: Gilde;
+  matchScore: number;
+  matchingPlants: string[];
+  missingPlants: string[];
+}
+
 export interface GildeRating {
   id: string;
   bed_id: string;
