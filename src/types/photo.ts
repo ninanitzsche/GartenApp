@@ -31,6 +31,11 @@ export interface PhotoPlant {
   photos?: Photo; // For joined queries
 }
 
+export interface PhotoGilde {
+  photo_id: string;
+  gilde_id: string;
+}
+
 export interface PhotoBed {
   photo_id: string;
   bed_id: string;

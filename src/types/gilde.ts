@@ -6,6 +6,7 @@ export interface GildePlant {
 
 export interface Gilde {
   id: string;
+  cover_photo_url?: string;
   number?: number;
   name: string;
   concept: string;
@@ -17,7 +18,22 @@ export interface Gilde {
   created_at?: string;
 }
 
+export interface GildeRating {
+  id: string;
+  bed_id: string;
+  gilde_id: string;
+  rating: number;
+  comment?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface BeetGilde {
   bed_id: string;
   gilde_id: string;
+}
+
+export interface BeetGildeWithRating extends BeetGilde {
+  rating?: GildeRating;
+  gilde?: Gilde;
 }
