@@ -26,9 +26,12 @@ import { Photo } from '../types/photo';
 import { fetchGildeById, createGilde, updateGilde, deleteGilde } from '../services/gildeService';
 import { fetchPhotosForGilde, setGildeCoverPhoto, uploadPhotoForGilde, unlinkPhotoFromGilde } from '../services/photoGildeService';
 import { useBeets } from '../hooks/useBeets';
+import { useGilden } from '../hooks/useGilden';
+import { SYSTEM_GILDEN } from '../data/system-gilden';
 import { fetchBedPlants } from '../services/bedService';
 import { fetchPlants } from '../services/plantService';
 import { Plant } from '../types/plant';
+import PlantToggleRow from '../components/gilde/PlantToggleRow';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeEdit'>;
 
@@ -52,12 +55,15 @@ export default function GildeEditScreen({ navigation, route }: Props) {
   const [savingPhoto, setSavingPhoto] = useState(false);
 
   const { beets, loading: loadingBeets } = useBeets();
+  const { gilden: allGilden } = useGilden();
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const [beetPflanzen, setBeetPflanzen] = useState<Plant[]>([]);
   const [allePflanzen, setAllePflanzen] = useState<Plant[]>([]);
   const [loadingPflanzen, setLoadingPflanzen] = useState(false);
   const [showBeetPicker, setShowBeetPicker] = useState(false);
   const [showPlantPicker, setShowPlantPicker] = useState<number | null>(null);
+  const [toggleMode, setToggleMode] = useState(false);
+  const [pflanzenZugeordnet, setPflanzenZugeordnet] = useState<string[]>([]);
 
   useEffect(() => {
     if (isEditing && gildeId) {
@@ -103,6 +109,20 @@ export default function GildeEditScreen({ navigation, route }: Props) {
 
   const loadGilde = async () => {
     if (!gildeId) return;
+    
+    // Check if it's a system gilde first
+    const systemGilde = SYSTEM_GILDEN.find(g => g.id === gildeId);
+    if (systemGilde) {
+      setName(systemGilde.name);
+      setConcept(systemGilde.concept || '');
+      setStandort(systemGilde.standort || '');
+      setPlants(systemGilde.plants || []);
+      setTips(systemGilde.tips || []);
+      setGilde(systemGilde);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const gilde = await fetchGildeById(gildeId);
       if (gilde) {
@@ -151,14 +171,46 @@ export default function GildeEditScreen({ navigation, route }: Props) {
   };
 
   const getPrioritizedPlants = (): Plant[] => {
-    const beetIds = new Set(beetPflanzen.map(p => p.id));
-    const otherPlants = allePflanzen.filter(p => !beetIds.has(p.id));
-    return [...beetPflanzen, ...otherPlants];
+    // 1. Meine eigenen Pflanzen aus dem Inventar (allePflanzen) - zuerst
+    // 2. Beet-Pflanzen (die noch nicht im Inventar sind)
+    // 3. Alle anderen
+    
+    return allePflanzen;
   };
 
   const selectPlant = (plantName: string, index: number) => {
     updatePlant(index, 'name', plantName);
     setShowPlantPicker(null);
+  };
+
+  const togglePflanze = (plantName: string) => {
+    if (pflanzenZugeordnet.includes(plantName)) {
+      setPflanzenZugeordnet(pflanzenZugeordnet.filter(p => p !== plantName));
+      setPlants(plants.filter(p => p.name !== plantName));
+    } else {
+      setPflanzenZugeordnet([...pflanzenZugeordnet, plantName]);
+      setPlants([...plants, { name: plantName, role: '' }]);
+    }
+  };
+
+  const isZugeordnet = (plantName: string) => pflanzenZugeordnet.includes(plantName);
+
+  const movePlantUp = (index: number) => {
+    if (index === 0) return;
+    const updated = [...plants];
+    const temp = updated[index];
+    updated[index] = updated[index - 1];
+    updated[index - 1] = temp;
+    setPlants(updated);
+  };
+
+  const movePlantDown = (index: number) => {
+    if (index === plants.length - 1) return;
+    const updated = [...plants];
+    const temp = updated[index];
+    updated[index] = updated[index + 1];
+    updated[index + 1] = temp;
+    setPlants(updated);
   };
 
   const validateForm = (): boolean => {
@@ -367,45 +419,109 @@ export default function GildeEditScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {plants.map((plant, index) => (
-            <View key={index} style={styles.plantRow}>
-              <View style={styles.plantInputs}>
-                <TouchableOpacity
-                  style={styles.plantInput}
-                  onPress={() => setShowPlantPicker(showPlantPicker === index ? null : index)}
-                >
-                  <Text style={[styles.plantInputText, !plant.name && styles.placeholderText]}>
-                    {plant.name || 'Pflanze auswählen'}
-                  </Text>
-                </TouchableOpacity>
-                <TextInput
-                  style={styles.roleInput}
-                  value={plant.role}
-                  onChangeText={(v) => updatePlant(index, 'role', v)}
-                  placeholder="Rolle"
-                  placeholderTextColor={Colors2026.textMuted}
-                />
-              </View>
-              <TouchableOpacity onPress={() => removePlant(index)}>
-                <MaterialIcons name="remove-circle" size={24} color={Colors2026.status.error} />
-              </TouchableOpacity>
-              {showPlantPicker === index && (
-                <View style={styles.plantPickerContainer}>
-                  {getPrioritizedPlants().map((p) => (
-                    <TouchableOpacity
-                      key={p.id}
-                      style={styles.plantPickerItem}
-                      onPress={() => selectPlant(p.name, index)}
-                    >
-                      <Text style={styles.plantPickerItemText}>{p.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
+          <View style={styles.toggleModeContainer}>
+            <TouchableOpacity
+              style={[styles.toggleModeButton, !toggleMode && styles.toggleModeButtonActive]}
+              onPress={() => setToggleMode(false)}
+            >
+              <Text style={[styles.toggleModeText, !toggleMode && styles.toggleModeTextActive]}>
+                Liste
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleModeButton, toggleMode && styles.toggleModeButtonActive]}
+              onPress={() => setToggleMode(true)}
+            >
+              <Text style={[styles.toggleModeText, toggleMode && styles.toggleModeTextActive]}>
+                Toggle
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          {plants.length === 0 && (
+          {/* Beet-Pflanzen wenn Toggle-Modus */}
+          {toggleMode && selectedBedId && beetPflanzen.length > 0 ? (
+            <View style={styles.plantSection}>
+              <Text style={styles.sectionLabel}>Aus Beet</Text>
+              {beetPflanzen.map((plant, index) => (
+                <PlantToggleRow
+                  key={plant.id}
+                  plantName={plant.name}
+                  role={plants.find(p => p.name === plant.name)?.role || ''}
+                  isZugeordnet={isZugeordnet(plant.name)}
+                  onToggle={() => togglePflanze(plant.name)}
+                  onRoleChange={(role: string) => {
+                    const idx = plants.findIndex(p => p.name === plant.name);
+                    if (idx >= 0) {
+                      const updated = [...plants];
+                      updated[idx] = { ...updated[idx], role };
+                      setPlants(updated);
+                    }
+                  }}
+                  onMoveUp={() => movePlantUp(index)}
+                  onMoveDown={() => movePlantDown(index)}
+                  showReorder={isEditing}
+                />
+              ))}
+            </View>
+          ) : (
+            /* Existing list code - keep the existing plants.map for non-toggle mode */
+            plants.map((plant, index) => (
+              <View key={index} style={styles.plantRow}>
+                <View style={styles.plantInputs}>
+                  <TouchableOpacity
+                    style={styles.plantInput}
+                    onPress={() => setShowPlantPicker(showPlantPicker === index ? null : index)}
+                  >
+                    <Text style={[styles.plantInputText, !plant.name && styles.placeholderText]}>
+                      {plant.name || 'Pflanze auswählen'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.roleInput}
+                    value={plant.role}
+                    onChangeText={(v) => updatePlant(index, 'role', v)}
+                    placeholder="Rolle"
+                    placeholderTextColor={Colors2026.textMuted}
+                  />
+                </View>
+                <TouchableOpacity onPress={() => removePlant(index)}>
+                  <MaterialIcons name="remove-circle" size={24} color={Colors2026.status.error} />
+                </TouchableOpacity>
+                {showPlantPicker === index && (
+                  <View style={styles.plantPickerContainer}>
+                    {getPrioritizedPlants().map((p) => (
+                      <TouchableOpacity
+                        key={p.id}
+                        style={styles.plantPickerItem}
+                        onPress={() => selectPlant(p.name, index)}
+                      >
+                        <Text style={styles.plantPickerItemText}>{p.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))
+          )}
+
+          {/* Fallback: Im Inventar suchen */}
+          {(!selectedBedId || (toggleMode && selectedBedId && beetPflanzen.length > 0)) && (
+            <TouchableOpacity 
+              style={styles.fallbackButton} 
+              onPress={() => {
+                if (toggleMode) {
+                  setShowPlantPicker(0);
+                } else {
+                  setShowPlantPicker(showPlantPicker);
+                }
+              }}
+            >
+              <MaterialIcons name="search" size={20} color={Colors2026.primary} />
+              <Text style={styles.fallbackButtonText}>Im Inventar suchen</Text>
+            </TouchableOpacity>
+          )}
+
+          {plants.length === 0 && toggleMode && (
             <Text style={styles.emptyText}>Noch keine Pflanzen hinzugefügt.</Text>
           )}
         </GlassCard>
@@ -728,6 +844,51 @@ const styles = StyleSheet.create({
   pickerItemTextSelected: {
     color: Colors2026.primary,
     fontWeight: '600',
+  },
+  fallbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing2026.md,
+    marginTop: Spacing2026.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors2026.border,
+    gap: Spacing2026.sm,
+  },
+  fallbackButtonText: {
+    ...Typography2026.body,
+    color: Colors2026.primary,
+  },
+  toggleModeContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    padding: 2,
+  },
+  toggleModeButton: {
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.sm - 2,
+  },
+  toggleModeButtonActive: {
+    backgroundColor: Colors2026.primary + '20',
+  },
+  toggleModeText: {
+    ...Typography2026.small,
+    color: Colors2026.textMuted,
+  },
+  toggleModeTextActive: {
+    color: Colors2026.primary,
+    fontWeight: '600',
+  },
+  sectionLabel: {
+    ...Typography2026.caption,
+    color: Colors2026.textSecondary,
+    marginTop: Spacing2026.sm,
+    marginBottom: Spacing2026.xs,
+  },
+  plantSection: {
+    marginBottom: Spacing2026.sm,
   },
   bottomSpacer: {
     height: 50,
