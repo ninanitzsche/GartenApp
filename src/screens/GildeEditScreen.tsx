@@ -25,6 +25,10 @@ import { Gilde, GildePlant } from '../types/gilde';
 import { Photo } from '../types/photo';
 import { fetchGildeById, createGilde, updateGilde, deleteGilde } from '../services/gildeService';
 import { fetchPhotosForGilde, setGildeCoverPhoto, uploadPhotoForGilde, unlinkPhotoFromGilde } from '../services/photoGildeService';
+import { useBeets } from '../hooks/useBeets';
+import { fetchBedPlants } from '../services/bedService';
+import { fetchPlants } from '../services/plantService';
+import { Plant } from '../types/plant';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeEdit'>;
 
@@ -47,6 +51,14 @@ export default function GildeEditScreen({ navigation, route }: Props) {
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [savingPhoto, setSavingPhoto] = useState(false);
 
+  const { beets, loading: loadingBeets } = useBeets();
+  const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
+  const [beetPflanzen, setBeetPflanzen] = useState<Plant[]>([]);
+  const [allePflanzen, setAllePflanzen] = useState<Plant[]>([]);
+  const [loadingPflanzen, setLoadingPflanzen] = useState(false);
+  const [showBeetPicker, setShowBeetPicker] = useState(false);
+  const [showPlantPicker, setShowPlantPicker] = useState<number | null>(null);
+
   useEffect(() => {
     if (isEditing && gildeId) {
       loadGilde();
@@ -58,6 +70,20 @@ export default function GildeEditScreen({ navigation, route }: Props) {
       loadPhotos();
     }
   }, [gildeId, gilde]);
+
+  useEffect(() => {
+    loadAllPlants();
+  }, []);
+
+  useEffect(() => {
+    if (selectedBedId) {
+      loadBeetPflanzen(selectedBedId);
+      const bed = beets.find(b => b.id === selectedBedId);
+      if (bed?.notes) {
+        setStandort(bed.notes);
+      }
+    }
+  }, [selectedBedId, beets]);
 
   const loadPhotos = async () => {
     if (!gildeId) return;
@@ -94,6 +120,45 @@ export default function GildeEditScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAllPlants = async () => {
+    setLoadingPflanzen(true);
+    try {
+      const pflanzen = await fetchPlants();
+      setAllePflanzen(pflanzen);
+    } catch (e) {
+      console.warn('Error loading plants:', e);
+    } finally {
+      setLoadingPflanzen(false);
+    }
+  };
+
+  const loadBeetPflanzen = async (bedId: string) => {
+    try {
+      const pflanzen = await fetchBedPlants(bedId);
+      setBeetPflanzen(pflanzen);
+    } catch (e) {
+      console.warn('Error loading beet plants:', e);
+    }
+  };
+
+  const handleBedChange = (bedId: string | null) => {
+    setSelectedBedId(bedId);
+    if (!bedId) {
+      setBeetPflanzen([]);
+    }
+  };
+
+  const getPrioritizedPlants = (): Plant[] => {
+    const beetIds = new Set(beetPflanzen.map(p => p.id));
+    const otherPlants = allePflanzen.filter(p => !beetIds.has(p.id));
+    return [...beetPflanzen, ...otherPlants];
+  };
+
+  const selectPlant = (plantName: string, index: number) => {
+    updatePlant(index, 'name', plantName);
+    setShowPlantPicker(null);
   };
 
   const validateForm = (): boolean => {
@@ -236,6 +301,55 @@ export default function GildeEditScreen({ navigation, route }: Props) {
             numberOfLines={2}
           />
 
+          <Text style={styles.label}>Beet</Text>
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={() => setShowBeetPicker(!showBeetPicker)}
+          >
+            <Text style={styles.pickerButtonText}>
+              {selectedBedId
+                ? beets.find(b => b.id === selectedBedId)?.name || 'Beet auswählen'
+                : 'Beet auswählen'}
+            </Text>
+            <MaterialIcons name="arrow-drop-down" size={24} color={Colors2026.text} />
+          </TouchableOpacity>
+
+          {showBeetPicker && (
+            <View style={styles.pickerContainer}>
+              <TouchableOpacity
+                style={styles.pickerItem}
+                onPress={() => {
+                  handleBedChange(null);
+                  setShowBeetPicker(false);
+                }}
+              >
+                <Text style={styles.pickerItemText}>Kein Beet</Text>
+              </TouchableOpacity>
+              {beets.map((bed) => (
+                <TouchableOpacity
+                  key={bed.id}
+                  style={[
+                    styles.pickerItem,
+                    selectedBedId === bed.id && styles.pickerItemSelected,
+                  ]}
+                  onPress={() => {
+                    handleBedChange(bed.id);
+                    setShowBeetPicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      selectedBedId === bed.id && styles.pickerItemTextSelected,
+                    ]}
+                  >
+                    {bed.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           <Text style={styles.label}>Standort</Text>
           <GlassInput
             value={standort}
@@ -256,13 +370,14 @@ export default function GildeEditScreen({ navigation, route }: Props) {
           {plants.map((plant, index) => (
             <View key={index} style={styles.plantRow}>
               <View style={styles.plantInputs}>
-                <TextInput
+                <TouchableOpacity
                   style={styles.plantInput}
-                  value={plant.name}
-                  onChangeText={(v) => updatePlant(index, 'name', v)}
-                  placeholder="Pflanzenname"
-                  placeholderTextColor={Colors2026.textMuted}
-                />
+                  onPress={() => setShowPlantPicker(showPlantPicker === index ? null : index)}
+                >
+                  <Text style={[styles.plantInputText, !plant.name && styles.placeholderText]}>
+                    {plant.name || 'Pflanze auswählen'}
+                  </Text>
+                </TouchableOpacity>
                 <TextInput
                   style={styles.roleInput}
                   value={plant.role}
@@ -274,6 +389,19 @@ export default function GildeEditScreen({ navigation, route }: Props) {
               <TouchableOpacity onPress={() => removePlant(index)}>
                 <MaterialIcons name="remove-circle" size={24} color={Colors2026.status.error} />
               </TouchableOpacity>
+              {showPlantPicker === index && (
+                <View style={styles.plantPickerContainer}>
+                  {getPrioritizedPlants().map((p) => (
+                    <TouchableOpacity
+                      key={p.id}
+                      style={styles.plantPickerItem}
+                      onPress={() => selectPlant(p.name, index)}
+                    >
+                      <Text style={styles.plantPickerItemText}>{p.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           ))}
 
@@ -468,6 +596,39 @@ const styles = StyleSheet.create({
     borderRadius: Radius2026.sm,
     padding: Spacing2026.sm,
   },
+  plantInputText: {
+    ...Typography2026.body,
+    color: Colors2026.text,
+  },
+  placeholderText: {
+    color: Colors2026.textMuted,
+  },
+  plantPickerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 60,
+    top: 50,
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    maxHeight: 200,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  plantPickerItem: {
+    padding: Spacing2026.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors2026.border,
+  },
+  plantPickerItemText: {
+    ...Typography2026.body,
+    color: Colors2026.text,
+  },
   roleInput: {
     flex: 1,
     ...Typography2026.body,
@@ -528,6 +689,44 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     ...Typography2026.body,
     color: Colors2026.status.error,
+    fontWeight: '600',
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    padding: Spacing2026.sm,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+  },
+  pickerButtonText: {
+    ...Typography2026.body,
+    color: Colors2026.text,
+  },
+  pickerContainer: {
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    borderWidth: 1,
+    borderColor: Colors2026.border,
+    marginTop: Spacing2026.xs,
+    maxHeight: 200,
+  },
+  pickerItem: {
+    padding: Spacing2026.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors2026.border,
+  },
+  pickerItemSelected: {
+    backgroundColor: Colors2026.primary + '20',
+  },
+  pickerItemText: {
+    ...Typography2026.body,
+    color: Colors2026.text,
+  },
+  pickerItemTextSelected: {
+    color: Colors2026.primary,
     fontWeight: '600',
   },
   bottomSpacer: {
