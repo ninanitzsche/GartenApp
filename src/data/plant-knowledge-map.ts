@@ -2600,3 +2600,14 @@ export const PLANT_KNOWLEDGE_MAP: PlantKnowledgeEntry[] = [
     }
   }
 ];
+
+export function getGoodCompanions(plantName: string): { name: string; benefit: string }[] {
+  const plant = PLANT_KNOWLEDGE_MAP.find(p => 
+    p.plantName.toLowerCase() === plantName.toLowerCase()
+  );
+  if (!plant?.extractedInfo?.companions) return [];
+  
+  return plant.extractedInfo.companions
+    .filter(c => c.type === 'good')
+    .map(c => ({ name: c.plant, benefit: '+' }));
+}
