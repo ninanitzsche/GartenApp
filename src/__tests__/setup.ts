@@ -90,6 +90,13 @@ jest.mock('../services/supabase', () => ({
   },
 }));
 
+// Mock react-navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+  useRoute: () => ({ params: {} }),
+  NavigationContainer: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Suppress console errors in tests (optional - can be removed if needed)
 const originalError = console.error;
 beforeAll(() => {

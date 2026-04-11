@@ -57,6 +57,10 @@ export type RootStackParamList = {
   BedDetail: { bedId: string };
   AddBed: undefined;
   EditBed: { bedId: string };
+  GildeList: undefined;
+  GildeDetail: { gildeId: string };
+  GildeEdit: { gildeId?: string; bedId?: string; templatePlants?: string[] };
+  GildeTemplate: { bedId?: string };
 
   // More Menu
   MoreMenu: undefined;

@@ -16,6 +16,9 @@ import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import BedDetailScreen from '../screens/BedDetailScreen';
 import AddBedScreen from '../screens/AddBedScreen';
 import EditBedScreen from '../screens/EditBedScreen';
+import GildeListScreen from '../screens/GildeListScreen';
+import GildeEditScreen from '../screens/GildeEditScreen';
+import GildeTemplateScreen from '../screens/GildeTemplateScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -80,6 +83,36 @@ export default function GardenStackNavigator() {
         component={EditBedScreen}
         options={{
           title: 'Beet bearbeiten',
+        }}
+      />
+      <Stack.Screen
+        name="GildeList"
+        component={GildeListScreen}
+        options={{
+          title: 'Gilden',
+        }}
+      />
+      <Stack.Screen
+        name="GildeDetail"
+        component={GildeEditScreen}
+        options={{
+          title: 'Gilde',
+        }}
+      />
+      <Stack.Screen
+        name="GildeEdit"
+        component={GildeEditScreen}
+        options={{
+          title: 'Gilde bearbeiten',
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="GildeTemplate"
+        component={GildeTemplateScreen}
+        options={{
+          title: 'Gilde auswählen',
+          presentation: 'modal',
         }}
       />
     </Stack.Navigator>
