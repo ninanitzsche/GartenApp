@@ -3,7 +3,7 @@
  * Cleaner layout, pull-to-refresh, dynamic FAB, merged Steckbrief
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Pressable,
 } from 'react-native';
-import { Leaf, Edit, Sprout, ChevronLeft, Snowflake, MapPin, Sparkles, Camera as CameraIcon, Camera } from 'lucide-react-native';
+import { Leaf, Edit, Sprout, ChevronLeft, Snowflake, MapPin, Sparkles, Camera as CameraIcon, Camera, Users } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -30,6 +30,7 @@ import HarvestPrediction from '../components/plant/HarvestPrediction';
 import PlantTasksCard from '../components/plant/PlantTasksCard';
 import { usePlantDetail } from '../hooks/usePlantDetail';
 import { usePlantKnowledge } from '../hooks/usePlantKnowledge';
+import { useGilden } from '../hooks/useGilden';
 import { generateCareTasksFromKnowledge } from '../services/plantCareTaskService';
 import AIPhotoPicker from '../components/AIPhotoPicker';
 import PlantKnowledgeCard from '../components/plant/PlantKnowledgeCard';
@@ -49,7 +50,15 @@ export default function PlantDetailScreen() {
   const { plant, photos, harvestTotals, tasks, healthChecks, loading, refreshing, handleRefresh, refetch } = usePlantDetail(plantId);
   const { getKnowledgeForPlant } = usePlantKnowledge();
   const plantKnowledge = plant ? getKnowledgeForPlant(plant.name) : undefined;
+  const { gilden } = useGilden();
   const careTasks = plant ? generateCareTasksFromKnowledge(plant.name) : [];
+
+  const gildenWithPlant = useMemo(() => {
+    if (!plant?.name) return [];
+    return gilden.filter(g => 
+      g.plants?.some(p => p.name.toLowerCase() === plant.name.toLowerCase())
+    );
+  }, [gilden, plant?.name]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -130,6 +139,14 @@ export default function PlantDetailScreen() {
             {plant.quantity && plant.quantity > 1 && (
               <View style={styles.infoChip}>
                 <Text style={styles.infoText}>{plant.quantity}x</Text>
+              </View>
+            )}
+            {gildenWithPlant.length > 0 && (
+              <View style={styles.infoChip}>
+                <Users size={14} color={Colors2026.textMuted} />
+                <Text style={styles.infoText}>
+                  {gildenWithPlant.map(g => g.name).join(', ')}
+                </Text>
               </View>
             )}
           </View>
