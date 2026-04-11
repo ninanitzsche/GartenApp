@@ -32,6 +32,9 @@ import { fetchBedPlants } from '../services/bedService';
 import { fetchPlants } from '../services/plantService';
 import { Plant } from '../types/plant';
 import PlantToggleRow from '../components/gilde/PlantToggleRow';
+import CompanionSuggestion from '../components/gilde/CompanionSuggestion';
+import PlantSearchWithToptip from '../components/gilde/PlantSearchWithToptip';
+import BulkActionBar from '../components/gilde/BulkActionBar';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeEdit'>;
 
