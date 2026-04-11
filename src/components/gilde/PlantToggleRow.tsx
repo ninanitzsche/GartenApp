@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../../theme/designSystemV2';
+import { PLANT_ROLES } from '../../data/plant-roles';
 
 interface PlantToggleRowProps {
   plantName: string;
@@ -24,6 +25,8 @@ export default function PlantToggleRow({
   onMoveDown,
   showReorder = false,
 }: PlantToggleRowProps) {
+  const [showRolePicker, setShowRolePicker] = useState(false);
+
   return (
     <View style={[styles.container, isZugeordnet && styles.containerActive]}>
       <TouchableOpacity
@@ -42,13 +45,34 @@ export default function PlantToggleRow({
           {plantName}
         </Text>
         {isZugeordnet && (
-          <TextInput
-            style={styles.roleInput}
-            value={role}
-            onChangeText={onRoleChange}
-            placeholder="Rolle"
-            placeholderTextColor={Colors2026.textMuted}
-          />
+          <>
+            <TouchableOpacity 
+              style={styles.roleButton}
+              onPress={() => setShowRolePicker(!showRolePicker)}
+            >
+              <Text style={[styles.roleText, !role && styles.rolePlaceholder]}>
+                {role || 'Rolle wählen...'}
+              </Text>
+              <MaterialIcons name="arrow-drop-down" size={20} color={Colors2026.textMuted} />
+            </TouchableOpacity>
+
+            {showRolePicker && (
+              <View style={styles.rolePicker}>
+                {PLANT_ROLES.map(r => (
+                  <TouchableOpacity
+                    key={r}
+                    style={styles.roleOption}
+                    onPress={() => {
+                      onRoleChange(r);
+                      setShowRolePicker(false);
+                    }}
+                  >
+                    <Text style={styles.roleOptionText}>{r}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </>
         )}
       </View>
 
@@ -95,13 +119,40 @@ const styles = StyleSheet.create({
     color: Colors2026.text,
     fontWeight: '500',
   },
-  roleInput: {
-    ...Typography2026.small,
-    color: Colors2026.text,
+  roleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors2026.surface,
     borderRadius: Radius2026.sm,
     padding: Spacing2026.xs,
     marginTop: Spacing2026.xs,
+  },
+  roleText: {
+    ...Typography2026.small,
+    color: Colors2026.text,
+    flex: 1,
+  },
+  rolePlaceholder: {
+    color: Colors2026.textMuted,
+  },
+  rolePicker: {
+    backgroundColor: Colors2026.surface,
+    borderRadius: Radius2026.sm,
+    marginTop: Spacing2026.xs,
+    padding: Spacing2026.xs,
+    position: 'absolute',
+    top: 40,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    elevation: 5,
+  },
+  roleOption: {
+    padding: Spacing2026.sm,
+  },
+  roleOptionText: {
+    ...Typography2026.body,
+    color: Colors2026.text,
   },
   reorderButtons: {
     flexDirection: 'column',
