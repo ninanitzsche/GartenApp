@@ -1,17 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../../theme/designSystemV2';
 import GlassCard from '../ui/GlassCard';
 import { Gilde } from '../../types/gilde';
 
 interface GildeCardProps {
   gilde: Gilde;
+  matchScore?: number;
   onPress?: () => void;
+  onRemove?: () => void;
 }
 
-export default function GildeCard({ gilde, onPress }: GildeCardProps) {
+export default function GildeCard({ gilde, matchScore, onPress, onRemove }: GildeCardProps) {
+  const Container = onPress ? TouchableOpacity : View;
   return (
-    <GlassCard style={styles.container}>
+    <Container onPress={onPress} activeOpacity={0.7} style={styles.container}>
       <View style={styles.header}>
         {gilde.number && (
           <View style={styles.numberBadge}>
@@ -22,19 +26,29 @@ export default function GildeCard({ gilde, onPress }: GildeCardProps) {
           <Text style={styles.name}>{gilde.name}</Text>
           <Text style={styles.concept}>{gilde.concept}</Text>
         </View>
+        {onRemove && (
+          <TouchableOpacity onPress={onRemove} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <MaterialIcons name="close" size={20} color={Colors2026.textMuted} />
+          </TouchableOpacity>
+        )}
       </View>
       
       <View style={styles.plantCount}>
         <Text style={styles.plantCountText}>
           {gilde.plants.length} Pflanzen
         </Text>
+        {matchScore !== undefined && matchScore > 0 && (
+          <View style={styles.scoreBadge}>
+            <Text style={styles.scoreText}>{matchScore}%</Text>
+          </View>
+        )}
         {gilde.is_system && (
           <View style={styles.systemBadge}>
             <Text style={styles.systemText}>System</Text>
           </View>
         )}
       </View>
-    </GlassCard>
+    </Container>
   );
 }
 
@@ -91,5 +105,16 @@ const styles = StyleSheet.create({
   systemText: {
     ...Typography2026.small,
     color: Colors2026.textSecondary,
+  },
+  scoreBadge: {
+    backgroundColor: Colors2026.status.success + '20',
+    paddingHorizontal: Spacing2026.xs,
+    paddingVertical: 2,
+    borderRadius: Radius2026.sm,
+  },
+  scoreText: {
+    ...Typography2026.small,
+    color: Colors2026.status.success,
+    fontWeight: '700',
   },
 });

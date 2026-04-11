@@ -23,7 +23,7 @@ import CoverImagePicker from '../components/ui/CoverImagePicker';
 import PhotoGallery from '../components/ui/PhotoGallery';
 import { Gilde, GildePlant } from '../types/gilde';
 import { Photo } from '../types/photo';
-import { fetchGildeById, createGilde, updateGilde, deleteGilde } from '../services/gildeService';
+import { fetchGildeById, createGilde, updateGilde, deleteGilde, addGildeToBed } from '../services/gildeService';
 import { fetchPhotosForGilde, setGildeCoverPhoto, uploadPhotoForGilde, unlinkPhotoFromGilde } from '../services/photoGildeService';
 import { useBeets } from '../hooks/useBeets';
 import { useGilden } from '../hooks/useGilden';
@@ -36,7 +36,7 @@ import PlantToggleRow from '../components/gilde/PlantToggleRow';
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeEdit'>;
 
 export default function GildeEditScreen({ navigation, route }: Props) {
-  const { gildeId } = route.params || {};
+  const { gildeId, bedId: initialBedId, templatePlants } = route.params || {};
   const isEditing = !!gildeId;
 
   const [name, setName] = useState('');
@@ -70,6 +70,20 @@ export default function GildeEditScreen({ navigation, route }: Props) {
       loadGilde();
     }
   }, [gildeId]);
+
+  useEffect(() => {
+    if (initialBedId && beets.length > 0) {
+      setSelectedBedId(initialBedId);
+    }
+  }, [initialBedId, beets]);
+
+  useEffect(() => {
+    if (templatePlants && templatePlants.length > 0 && !isEditing) {
+      setPlants(templatePlants.map(name => ({ name, role: '' })));
+    }
+  }, [templatePlants, isEditing]);
+
+  
 
   useEffect(() => {
     if (gildeId) {
@@ -243,7 +257,10 @@ export default function GildeEditScreen({ navigation, route }: Props) {
         await updateGilde(gildeId, gildeData);
         Alert.alert('Erfolg', 'Gilde aktualisiert.');
       } else {
-        await createGilde(gildeData as any);
+        const newGilde = await createGilde(gildeData as any);
+        if (selectedBedId) {
+          await addGildeToBed(selectedBedId, newGilde.id);
+        }
         Alert.alert('Erfolg', 'Gilde erstellt.');
       }
       navigation.goBack();

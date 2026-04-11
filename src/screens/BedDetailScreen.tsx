@@ -33,9 +33,11 @@ import GlassCard from '../components/ui/GlassCard';
 import CompanionCard from '../components/plant/CompanionCard';
 import GildeSelector from '../components/gilde/GildeSelector';
 import GildeCard from '../components/gilde/GildeCard';
+import GildeRating from '../components/gilde/GildeRating';
 import { useGilden } from '../hooks/useGilden';
-import { addGildeToBed, removeGildeFromBed, fetchBeetGilden } from '../services/gildeService';
-import { Gilde } from '../types/gilde';
+import { addGildeToBed, removeGildeFromBed, fetchBeetGilden, upsertRating, fetchRating } from '../services/gildeService';
+import { calculateMatchScore } from '../services/gildeMatchService';
+import { Gilde, GildeRating as GildeRatingType } from '../types/gilde';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BedDetail'>;
 
@@ -51,22 +53,37 @@ export default function BedDetailScreen({ navigation, route }: Props) {
   const { gilden } = useGilden();
   const [showGildeSelector, setShowGildeSelector] = useState(false);
   const [beetGilden, setBeetGilden] = useState<Gilde[]>([]);
+  const [gildeRatings, setGildeRatings] = useState<Record<string, GildeRatingType>>({});
+
+  const loadBeetGilden = useCallback(async () => {
+    try {
+      const loaded = await fetchBeetGilden(bedId);
+      setBeetGilden(loaded);
+
+      const ratings: Record<string, GildeRatingType> = {};
+      for (const gilde of loaded) {
+        try {
+          const rating = await fetchRating(bedId, gilde.id);
+          if (rating) {
+            ratings[gilde.id] = rating;
+          }
+        } catch (e) {
+        }
+      }
+      setGildeRatings(ratings);
+    } catch (e) {
+      console.error('Error loading beet gilden:', e);
+    }
+  }, [bedId]);
 
   useEffect(() => {
-    const loadBeetGilden = async () => {
-      try {
-        const loaded = await fetchBeetGilden(bedId);
-        setBeetGilden(loaded);
-      } catch (e) {
-        console.error('Error loading beet gilden:', e);
-      }
-    };
     loadBeetGilden();
-  }, [bedId]);
+  }, [bedId, loadBeetGilden]);
 
   useFocusEffect(
     useCallback(() => {
       loadData();
+      loadBeetGilden();
     }, [bedId])
   );
 
@@ -227,7 +244,54 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      {/* Plants Section */}
+      {/* Gilden Section - FIRST */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Gilden</Text>
+          <View style={styles.sectionBadge}>
+            <Text style={styles.sectionBadgeText}>{beetGilden.length}</Text>
+          </View>
+          <View style={styles.spacer} />
+          <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('GildeTemplate', { bedId })}>
+            <MaterialIcons name="add" size={20} color={Colors2026.primary} />
+            <Text style={styles.addButtonText}>Neu</Text>
+          </TouchableOpacity>
+        </View>
+
+        {beetGilden.length > 0 ? (
+          <View style={styles.gildeGrid}>
+            {beetGilden.map(gilde => {
+              const score = plants.length > 0
+                ? calculateMatchScore(plants.map(p => p.name), gilde)
+                : 0;
+              return (
+                <GildeCard
+                  key={gilde.id}
+                  gilde={gilde}
+                  matchScore={score}
+                  onPress={() => navigation.navigate('GildeDetail', { gildeId: gilde.id })}
+                  onRemove={() => {
+                    Alert.alert('Gilde entfernen', ` "${gilde.name}" von Beet entfernen?`, [
+                      { text: 'Abbrechen', style: 'cancel' },
+                      { text: 'Entfernen', style: 'destructive', onPress: () => {
+                        setBeetGilden(beetGilden.filter(g => g.id !== gilde.id));
+                      }},
+                    ]);
+                  }}
+                />
+              );
+            })}
+          </View>
+        ) : (
+          <View style={styles.emptySection}>
+            <MaterialIcons name="group-work" size={48} color={Colors2026.textMuted} />
+            <Text style={styles.emptyTitle}>Keine Gilden</Text>
+            <Text style={styles.emptySubtitle}>Füge eine Gilde hinzu, um Synergien zu nutzen.</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Plants Section - SECOND */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Pflanzen</Text>
@@ -238,10 +302,6 @@ export default function BedDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity style={styles.addButton} onPress={handleAddPlant}>
             <MaterialIcons name="add" size={20} color={Colors2026.primary} />
             <Text style={styles.addButtonText}>Hinzufügen</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.gildeButton} onPress={() => setShowGildeSelector(true)}>
-            <MaterialIcons name="group" size={20} color={Colors2026.primary} />
-            <Text style={styles.addButtonText}>Gilde</Text>
           </TouchableOpacity>
         </View>
 
@@ -371,53 +431,18 @@ export default function BedDetailScreen({ navigation, route }: Props) {
         )}
       </View>
 
-      {beetGilden.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Gilden</Text>
-            <View style={styles.sectionBadge}>
-              <Text style={styles.sectionBadgeText}>{beetGilden.length}</Text>
-            </View>
-          </View>
-          {beetGilden.map(gilde => (
-            <GildeCard 
-              key={gilde.id} 
-              gilde={gilde} 
-              onRemove={() => {
-                Alert.alert(
-                  'Gilde entfernen',
-                  'Möchten Sie diese Gilde wirklich vom Beet entfernen?',
-                  [
-                    { text: 'Abbrechen', onPress: () => {}, style: 'cancel' },
-                    {
-                      text: 'Entfernen',
-                      onPress: async () => {
-                        try {
-                          await removeGildeFromBed(bedId, gilde.id);
-                          setBeetGilden(beetGilden.filter(g => g.id !== gilde.id));
-                        } catch (e) {
-                          console.error('Error removing gilde:', e);
-                        }
-                      },
-                      style: 'destructive',
-                    },
-                  ]
-                );
-              }}
-            />
-          ))}
-        </View>
-      )}
+      
 
       <View style={styles.bottomSpacer} />
       
       <GildeSelector
         visible={showGildeSelector}
         gilden={gilden}
+        bedPlantNames={plants.map(p => p.name)}
         onSelect={async (gilde) => {
           try {
             await addGildeToBed(bedId, gilde.id);
-            setBeetGilden([...beetGilden, gilde]);
+            loadBeetGilden();
           } catch (e) {
             console.error('Error adding gilde:', e);
           }
