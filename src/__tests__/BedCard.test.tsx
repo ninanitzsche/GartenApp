@@ -9,8 +9,6 @@ test('BedCard zeigt keine Dimensionsangaben', () => {
     width: 20,
     height: 15,
     color: '#4CAF50',
-    position_x: 0,
-    position_y: 0,
     shape: 'rectangle',
     notes: undefined,
     garden_id: '1',

@@ -8,11 +8,12 @@ import { Gilde } from '../../types/gilde';
 interface GildeCardProps {
   gilde: Gilde;
   matchScore?: number;
+  bedPlantNames?: string[];
   onPress?: () => void;
   onRemove?: () => void;
 }
 
-export default function GildeCard({ gilde, matchScore, onPress, onRemove }: GildeCardProps) {
+export default function GildeCard({ gilde, matchScore, bedPlantNames, onPress, onRemove }: GildeCardProps) {
   const Container = onPress ? TouchableOpacity : View;
   return (
     <Container onPress={onPress} activeOpacity={0.7} style={styles.container}>
@@ -35,7 +36,7 @@ export default function GildeCard({ gilde, matchScore, onPress, onRemove }: Gild
       
       <View style={styles.plantCount}>
         <Text style={styles.plantCountText}>
-          {gilde.plants.length} Pflanzen
+          {gilde.plants?.length || 0} Pflanzen
         </Text>
         {matchScore !== undefined && matchScore > 0 && (
           <View style={styles.scoreBadge}>
@@ -48,6 +49,18 @@ export default function GildeCard({ gilde, matchScore, onPress, onRemove }: Gild
           </View>
         )}
       </View>
+
+      {bedPlantNames && bedPlantNames.length > 0 && (
+        <View style={styles.bedPlants}>
+          {gilde.plants?.filter(p => 
+            bedPlantNames.some(bp => bp.toLowerCase().includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(bp.toLowerCase()))
+          ).map(p => (
+            <View key={p.name} style={styles.bedPlantChip}>
+              <Text style={styles.bedPlantText}>✓ {p.name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </Container>
   );
 }
@@ -116,5 +129,21 @@ const styles = StyleSheet.create({
     ...Typography2026.small,
     color: Colors2026.status.success,
     fontWeight: '700',
+  },
+  bedPlants: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing2026.xs,
+    marginTop: Spacing2026.sm,
+  },
+  bedPlantChip: {
+    backgroundColor: Colors2026.status.success + '20',
+    paddingHorizontal: Spacing2026.xs,
+    paddingVertical: 2,
+    borderRadius: Radius2026.sm,
+  },
+  bedPlantText: {
+    ...Typography2026.small,
+    color: Colors2026.status.success,
   },
 });

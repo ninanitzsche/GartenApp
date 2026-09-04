@@ -1,23 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Colors2026, Spacing2026, Radius2026, Typography2026 } from '../../theme/designSystemV2';
 import { Gilde } from '../../types/gilde';
 import GildeCard from './GildeCard';
+import { getSuggestedGilden } from '../../services/gildeService';
 
 interface GildeSelectorProps {
   gilden: Gilde[];
   onSelect: (gilde: Gilde) => void;
   visible?: boolean;
   onClose?: () => void;
+  bedPlantNames?: string[];
 }
 
-export default function GildeSelector({ gilden, onSelect, visible = true, onClose }: GildeSelectorProps) {
+export default function GildeSelector({ 
+  gilden, 
+  onSelect, 
+  visible = true, 
+  onClose,
+  bedPlantNames = [],
+}: GildeSelectorProps) {
   const [search, setSearch] = useState('');
 
-  const filteredGilden = gilden.filter(gilde =>
-    gilde.name.toLowerCase().includes(search.toLowerCase()) ||
-    gilde.concept.toLowerCase().includes(search.toLowerCase())
-  );
+  const { suggestions, regular } = useMemo(() => {
+    if (!search && bedPlantNames.length > 0) {
+      const suggested = getSuggestedGilden(gilden, bedPlantNames);
+      return {
+        suggestions: suggested,
+        regular: [] as { gilde: Gilde; matchScore: number; matchingPlants: string[] }[],
+      };
+    }
+
+    const filtered = gilden.filter(gilde =>
+      gilde.name.toLowerCase().includes(search.toLowerCase()) ||
+      gilde.concept.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return { suggestions: [], regular: filtered };
+  }, [gilden, search, bedPlantNames]);
 
   const handleSelect = (gilde: Gilde) => {
     onSelect(gilde);
@@ -44,17 +64,49 @@ export default function GildeSelector({ gilden, onSelect, visible = true, onClos
           onChangeText={setSearch}
         />
 
-        <View style={styles.listContainer}>
-          {filteredGilden.map((gilde) => (
-            <TouchableOpacity 
-              key={gilde.id} 
-              onPress={() => handleSelect(gilde)} 
-              style={styles.gildeItem}
-            >
-              <GildeCard gilde={gilde} />
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ScrollView style={styles.scrollContainer}>
+          {suggestions.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Vorschläge für dein Beet</Text>
+              <Text style={styles.sectionSubtitle}>
+                Basierend auf: {bedPlantNames.slice(0, 3).join(', ')}
+                {bedPlantNames.length > 3 && '...'}
+              </Text>
+              {suggestions.map(({ gilde, matchScore, matchingPlants }) => (
+                <TouchableOpacity 
+                  key={gilde.id} 
+                  onPress={() => handleSelect(gilde)}
+                  style={styles.gildeItem}
+                >
+                  <GildeCard gilde={gilde} />
+                  <View style={styles.matchBadge}>
+                    <Text style={styles.matchText}>
+                      {matchScore}% Match ({matchingPlants.length} Pflanzen)
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.section}>
+            {suggestions.length > 0 && (
+              <Text style={styles.sectionTitle}>Alle Gilden</Text>
+            )}
+            {(regular.length > 0 ? regular : gilden).map((item) => {
+              const gilde = 'gilde' in item ? item.gilde : item;
+              return (
+                <TouchableOpacity 
+                  key={gilde.id} 
+                  onPress={() => handleSelect(gilde)}
+                  style={styles.gildeItem}
+                >
+                  <GildeCard gilde={gilde} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -75,7 +127,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors2026.divider,
   },
   title: {
-    ...Typography2026.h3,
+    ...Typography2026.title,
     color: Colors2026.text,
   },
   closeText: {
@@ -90,16 +142,41 @@ const styles = StyleSheet.create({
     color: Colors2026.text,
     fontSize: 16,
   },
-  gildeItem: {
-    marginHorizontal: Spacing2026.md,
-  },
   separator: {
     height: Spacing2026.sm,
   },
-  listContent: {
-    paddingBottom: Spacing2026.xl,
-  },
-  listContainer: {
+  scrollContainer: {
     flex: 1,
+  },
+  section: {
+    paddingHorizontal: Spacing2026.md,
+    paddingBottom: Spacing2026.lg,
+  },
+  sectionTitle: {
+    ...Typography2026.title,
+    color: Colors2026.text,
+    marginBottom: Spacing2026.xs,
+  },
+  sectionSubtitle: {
+    ...Typography2026.caption,
+    color: Colors2026.textMuted,
+    marginBottom: Spacing2026.md,
+  },
+  gildeItem: {
+    marginBottom: Spacing2026.sm,
+  },
+  matchBadge: {
+    backgroundColor: Colors2026.primary + '20',
+    paddingHorizontal: Spacing2026.sm,
+    paddingVertical: Spacing2026.xs,
+    borderRadius: Radius2026.sm,
+    marginTop: -Spacing2026.sm,
+    marginLeft: Spacing2026.md,
+    alignSelf: 'flex-start',
+  },
+  matchText: {
+    ...Typography2026.small,
+    color: Colors2026.primary,
+    fontWeight: '600',
   },
 });

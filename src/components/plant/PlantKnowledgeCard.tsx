@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     padding: Spacing2026.md,
   },
   title: {
-    ...Typography2026.h3,
+    ...Typography2026.title,
     color: Colors2026.text,
     marginBottom: Spacing2026.md,
   },

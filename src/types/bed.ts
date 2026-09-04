@@ -6,8 +6,6 @@ export interface Bed {
   user_id: string;
   garden_id?: string;
   name: string;
-  position_x: number;
-  position_y: number;
   width: number;
   height: number;
   color?: string;

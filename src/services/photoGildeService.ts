@@ -73,13 +73,21 @@ export async function unlinkPhotoFromGilde(photoId: string, gildeId: string): Pr
 /**
  * Set a photo as the cover image for a gilde
  */
-export async function setGildeCoverPhoto(gildeId: string, photoUrl: string): Promise<void> {
+export async function setGildeCoverPhoto(gildeId: string, photoUrl: string): Promise<string> {
+  // Get public URL for storage path, or use local URI directly
+  let publicUrl = photoUrl;
+  if (!photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
+    const { data } = supabase.storage.from('plant-photos').getPublicUrl(photoUrl);
+    publicUrl = data.publicUrl;
+  }
+  
   const { error } = await supabase
     .from('gilden')
-    .update({ cover_photo_url: photoUrl })
+    .update({ cover_photo_url: publicUrl })
     .eq('id', gildeId);
 
   if (error) throw error;
+  return publicUrl;
 }
 
 /**

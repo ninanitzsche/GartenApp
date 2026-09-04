@@ -10,6 +10,10 @@ jest.mock('../../hooks/useBeets', () => ({
   useBeets: () => ({ beets: [], loading: false }),
 }));
 
+jest.mock('../../services/bedService', () => ({
+  fetchBedPlants: jest.fn().mockResolvedValue([]),
+}));
+
 describe('GildeTemplateScreen', () => {
   it('renders loading state', () => {
     render(

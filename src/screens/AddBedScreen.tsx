@@ -13,7 +13,6 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigation';
@@ -31,8 +30,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddBed'>;
 export default function AddBedScreen({ navigation }: Props) {
   const [formData, setFormData] = useState<BedFormData>({
     name: '',
-    position_x: 50,
-    position_y: 50,
     width: 20,
     height: 15,
     color: '#4CAF50',
@@ -103,34 +100,6 @@ export default function AddBedScreen({ navigation }: Props) {
           editable={!saving}
         />
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-      </View>
-
-      {/* Position X */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Position X: {formData.position_x.toFixed(0)}%</Text>
-        <Slider
-          style={styles.slider}
-          value={formData.position_x}
-          onValueChange={(val) => setFormData({ ...formData, position_x: val })}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          disabled={saving}
-        />
-      </View>
-
-      {/* Position Y */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Position Y: {formData.position_y.toFixed(0)}%</Text>
-        <Slider
-          style={styles.slider}
-          value={formData.position_y}
-          onValueChange={(val) => setFormData({ ...formData, position_y: val })}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          disabled={saving}
-        />
       </View>
 
       {/* Width */}

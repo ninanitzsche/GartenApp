@@ -20,10 +20,6 @@ CREATE TABLE IF NOT EXISTS public.beds (
   garden_id UUID REFERENCES public.gardens(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
 
-  -- Position (x, y in percentage 0-100 for responsive layout)
-  position_x DECIMAL(5,2) DEFAULT 50,
-  position_y DECIMAL(5,2) DEFAULT 50,
-
   -- Size (width, height in percentage)
   width DECIMAL(5,2) DEFAULT 20,
   height DECIMAL(5,2) DEFAULT 15,

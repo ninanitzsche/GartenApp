@@ -28,13 +28,15 @@ import { fetchPhotosForGilde, setGildeCoverPhoto, uploadPhotoForGilde, unlinkPho
 import { useBeets } from '../hooks/useBeets';
 import { useGilden } from '../hooks/useGilden';
 import { SYSTEM_GILDEN } from '../data/system-gilden';
-import { fetchBedPlants } from '../services/bedService';
+import { getGoodCompanions } from '../data/plant-knowledge-map';
+import { fetchBedPlants, linkBedToPlant } from '../services/bedService';
 import { fetchPlants } from '../services/plantService';
 import { Plant } from '../types/plant';
 import PlantToggleRow from '../components/gilde/PlantToggleRow';
 import CompanionSuggestion from '../components/gilde/CompanionSuggestion';
 import PlantSearchWithToptip from '../components/gilde/PlantSearchWithToptip';
 import BulkActionBar from '../components/gilde/BulkActionBar';
+import GildeRecommendationRow, { RecommendationState } from '../components/gilde/GildeRecommendationRow';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeEdit'>;
 
@@ -211,6 +213,32 @@ export default function GildeEditScreen({ navigation, route }: Props) {
   };
 
   const isZugeordnet = (plantName: string) => pflanzenZugeordnet.includes(plantName);
+
+  const handleAddToBed = async (plantName: string) => {
+    if (!selectedBedId) {
+      Alert.alert('Fehler', 'Bitte zuerst ein Beet auswählen.');
+      return;
+    }
+    const plant = allePflanzen.find(p => p.name === plantName);
+    if (!plant) {
+      Alert.alert('Fehler', `${plantName} nicht im Inventar gefunden.`);
+      return;
+    }
+    try {
+      await linkBedToPlant(selectedBedId, plant.id);
+      await loadBeetPflanzen(selectedBedId);
+      if (!pflanzenZugeordnet.includes(plantName)) {
+        togglePflanze(plantName);
+      }
+    } catch (e) {
+      console.warn('Error adding plant to bed:', e);
+      Alert.alert('Fehler', `${plantName} konnte nicht zum Beet hinzugefügt werden.`);
+    }
+  };
+
+  const handleCreateNew = (plantName: string) => {
+    navigation.navigate('AddPlant', { prefillName: plantName });
+  };
 
   const movePlantUp = (index: number) => {
     if (index === 0) return;
@@ -460,29 +488,139 @@ export default function GildeEditScreen({ navigation, route }: Props) {
 
           {/* Beet-Pflanzen wenn Toggle-Modus */}
           {toggleMode && selectedBedId && beetPflanzen.length > 0 ? (
-            <View style={styles.plantSection}>
-              <Text style={styles.sectionLabel}>Aus Beet</Text>
-              {beetPflanzen.map((plant, index) => (
-                <PlantToggleRow
-                  key={plant.id}
-                  plantName={plant.name}
-                  role={plants.find(p => p.name === plant.name)?.role || ''}
-                  isZugeordnet={isZugeordnet(plant.name)}
-                  onToggle={() => togglePflanze(plant.name)}
-                  onRoleChange={(role: string) => {
-                    const idx = plants.findIndex(p => p.name === plant.name);
-                    if (idx >= 0) {
-                      const updated = [...plants];
-                      updated[idx] = { ...updated[idx], role };
-                      setPlants(updated);
+            <>
+              {/* Empfehlungen Section */}
+              {gilde?.plants && gilde.plants.length > 0 && (
+                <View style={styles.plantSection}>
+                  <Text style={styles.sectionLabel}>💡 Empfohlene Pflanzen</Text>
+                  {gilde.plants.map(gPlant => {
+                    const inBeet = beetPflanzen.some(p => p.name === gPlant.name);
+                    const inInventory = allePflanzen.some(p => p.name === gPlant.name);
+                    const isAssigned = pflanzenZugeordnet.includes(gPlant.name);
+                    
+                    let state: RecommendationState;
+                    if (inBeet && isAssigned) {
+                      state = 'in_beet_assigned';
+                    } else if (inBeet && !isAssigned) {
+                      state = 'in_beet_not_assigned';
+                    } else if (inInventory && !inBeet) {
+                      state = 'in_inventory';
+                    } else {
+                      state = 'not_in_inventory';
                     }
-                  }}
-                  onMoveUp={() => movePlantUp(index)}
-                  onMoveDown={() => movePlantDown(index)}
-                  showReorder={isEditing}
-                />
-              ))}
+
+                    return (
+                      <GildeRecommendationRow
+                        key={gPlant.name}
+                        plantName={gPlant.name}
+                        state={state}
+                        gildeName={gilde.name}
+                        onAddToGilde={() => {
+                          if (!pflanzenZugeordnet.includes(gPlant.name)) {
+                            togglePflanze(gPlant.name);
+                          }
+                        }}
+                        onAddToBed={() => handleAddToBed(gPlant.name)}
+                        onCreateNew={() => handleCreateNew(gPlant.name)}
+                      />
+                    );
+                  })}
+                </View>
+              )}
+
+              <View style={styles.plantSection}>
+                <View style={styles.plantSectionHeader}>
+                  <Text style={styles.sectionLabel}>Aus Beet</Text>
+                <Text style={styles.plantCountLabel}>
+                  {pflanzenZugeordnet.length} von {beetPflanzen.length} zugeordnet
+                </Text>
+              </View>
+              <BulkActionBar
+                onSelectAll={() => beetPflanzen.forEach(p => {
+                  if (!pflanzenZugeordnet.includes(p.name)) {
+                    togglePflanze(p.name);
+                  }
+                })}
+                onDeselectAll={() => {
+                  setPflanzenZugeordnet([]);
+                  setPlants([]);
+                }}
+                count={pflanzenZugeordnet.length}
+              />
+              {(() => {
+                const gildePlantNames = gilde?.plants?.map(p => p.name) || [];
+                const sortedPflanzen = [...beetPflanzen].sort((a, b) => {
+                  const aInGilde = gildePlantNames.includes(a.name);
+                  const bInGilde = gildePlantNames.includes(b.name);
+                  if (aInGilde && !bInGilde) return -1;
+                  if (!aInGilde && bInGilde) return 1;
+                  return 0;
+                });
+                return sortedPflanzen.map((plant, index) => {
+                  const recommendation = gildePlantNames.includes(plant.name) ? 'Gilde-Pflanze' : undefined;
+                const plantRole = plants?.find(p => p?.name === plant.name)?.role || '';
+                const plantIndex = plants?.findIndex(p => p?.name === plant.name) ?? -1;
+                return (
+                  <PlantToggleRow
+                    key={plant.id}
+                    plantName={plant.name}
+                    role={plantRole}
+                    isZugeordnet={isZugeordnet(plant.name)}
+                    onToggle={() => togglePflanze(plant.name)}
+                    onRoleChange={(role: string) => {
+                      const idx = plants?.findIndex(p => p?.name === plant.name) ?? -1;
+                      if (idx >= 0 && plants) {
+                        const updated = [...plants];
+                        updated[idx] = { ...updated[idx], role };
+                        setPlants(updated);
+                      }
+                    }}
+                    onMoveUp={() => {
+                      if (plantIndex > 0 && plants) {
+                        const updated = [...plants];
+                        const current = updated[plantIndex];
+                        updated[plantIndex] = updated[plantIndex - 1];
+                        updated[plantIndex - 1] = current;
+                        setPlants(updated);
+                      }
+                    }}
+                    onMoveDown={() => {
+                      if (plantIndex >= 0 && plantIndex < (plants?.length ?? 0) - 1 && plants) {
+                        const updated = [...plants];
+                        const current = updated[plantIndex];
+                        updated[plantIndex] = updated[plantIndex + 1];
+                        updated[plantIndex + 1] = current;
+                        setPlants(updated);
+                      }
+                    }}
+                    showReorder={toggleMode && isZugeordnet(plant.name) && (plants?.length ?? 0) > 1}
+                    recommendation={recommendation}
+                  />
+                );
+              });
+              })()}
+
+              {(() => {
+                const allCompanions = plants
+                  .filter(p => p.name)
+                  .flatMap(p => getGoodCompanions(p.name))
+                  .filter((c, i, arr) => arr.findIndex(a => a.name === c.name) === i)
+                  .filter(c => !plants.some(p => p.name === c.name));
+                if (allCompanions.length === 0) return null;
+                return (
+                  <CompanionSuggestion
+                    mainPlant="deine Gilde"
+                    suggestions={allCompanions}
+                    onSelect={(name) => {
+                      if (!plants.some(p => p.name === name)) {
+                        setPlants([...plants, { name, role: '' }]);
+                      }
+                    }}
+                  />
+                );
+              })()}
             </View>
+            </>
           ) : (
             /* Existing list code - keep the existing plants.map for non-toggle mode */
             plants.map((plant, index) => (
@@ -525,7 +663,18 @@ export default function GildeEditScreen({ navigation, route }: Props) {
           )}
 
           {/* Fallback: Im Inventar suchen */}
-          {(!selectedBedId || (toggleMode && selectedBedId && beetPflanzen.length > 0)) && (
+          {(!selectedBedId || (toggleMode && selectedBedId && beetPflanzen.length > 0)) && !toggleMode && (
+            <PlantSearchWithToptip
+              onSelectPlant={(name) => {
+                if (!plants.some(p => p.name === name)) {
+                  setPlants([...plants, { name, role: '' }]);
+                }
+              }}
+              existingPlants={plants.map(p => p.name)}
+              mainPlant={plants[0]?.name}
+            />
+          )}
+          {(!selectedBedId || (toggleMode && selectedBedId && beetPflanzen.length > 0)) && toggleMode && (
             <TouchableOpacity 
               style={styles.fallbackButton} 
               onPress={() => {
@@ -906,6 +1055,17 @@ const styles = StyleSheet.create({
     color: Colors2026.textSecondary,
     marginTop: Spacing2026.sm,
     marginBottom: Spacing2026.xs,
+  },
+  plantSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing2026.xs,
+  },
+  plantCountLabel: {
+    ...Typography2026.caption,
+    color: Colors2026.primary,
+    fontWeight: '600',
   },
   plantSection: {
     marginBottom: Spacing2026.sm,

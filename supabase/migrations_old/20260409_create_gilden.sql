@@ -19,6 +19,18 @@ CREATE TABLE IF NOT EXISTS beet_gilden (
   PRIMARY KEY (bed_id, gilde_id)
 );
 
+-- Gilde Bewertungen
+CREATE TABLE IF NOT EXISTS gilde_ratings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bed_id UUID REFERENCES beds(id) ON DELETE CASCADE,
+  gilde_id UUID REFERENCES gilden(id) ON DELETE CASCADE,
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (bed_id, gilde_id)
+);
+
 -- RLS Policies
 ALTER TABLE gilden ENABLE ROW LEVEL SECURITY;
 
@@ -37,6 +49,13 @@ CREATE POLICY "Users can delete own gilden" ON gilden
 ALTER TABLE beet_gilden ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage beet_gilden" ON beet_gilden
+  FOR ALL USING (
+    bed_id IN (SELECT id FROM beds WHERE user_id = auth.uid())
+  );
+
+ALTER TABLE gilde_ratings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage gilde_ratings" ON gilde_ratings
   FOR ALL USING (
     bed_id IN (SELECT id FROM beds WHERE user_id = auth.uid())
   );

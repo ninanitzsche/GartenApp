@@ -125,8 +125,6 @@ export default function GardenOverviewScreen({ navigation }: Props) {
 
         const bedData = {
           name: location,
-          position_x: 20 + colorIndex * 15,
-          position_y: 30 + Math.random() * 20,
           width: 20,
           height: 15,
           color: colors[colorIndex % colors.length],

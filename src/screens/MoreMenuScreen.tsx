@@ -8,7 +8,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings, RefreshCw } from 'lucide-react-native';
+import { User, ShoppingCart, Sprout, BookOpen, LogOut, ChevronRight, Settings, RefreshCw, Users } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { Colors2026, Spacing2026, Radius2026, Typography2026, Shadows2026 } from '../theme/designSystemV2';
 import { generateTasksForAllPlants } from '../services/taskGenerationService';
@@ -190,6 +190,11 @@ export default function MoreMenuScreen({ navigation }: Props) {
               icon={<RefreshCw size={20} color={Colors2026.primary} />}
               label="Pflanzendaten aktualisieren"
               onPress={handleRefreshPlantData}
+            />
+            <MenuItem
+              icon={<Users size={20} color={Colors2026.primary} />}
+              label="Gilden (Pflanzinseln)"
+              onPress={() => navigation.navigate('GildeList')}
             />
           </GlassCard>
         </View>

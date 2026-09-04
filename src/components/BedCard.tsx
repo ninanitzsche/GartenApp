@@ -39,7 +39,7 @@ export default function BedCard({
         </View>
         <View style={styles.titleContainer}>
           <Text style={styles.bedName}>{bed.name}</Text>
-          {bed.notes && <Text style={styles.notes} numberOfLines={1}>{bed.notes}</Text>}
+          {bed.notes ? <Text style={styles.notes} numberOfLines={1}>{bed.notes}</Text> : null}
         </View>
         <ChevronRight size={20} color={Colors2026.textMuted} />
       </View>
@@ -49,7 +49,7 @@ export default function BedCard({
           <View style={styles.detailRow}>
             <Sprout size={14} color={Colors2026.status.success} />
             <Text style={[styles.detailText, { color: Colors2026.status.success }]}>
-              {plantCount} {plantCount === 1 ? 'Pflanze' : 'Pflanzen'}
+              {plantCount + ' ' + (plantCount === 1 ? 'Pflanze' : 'Pflanzen')}
             </Text>
           </View>
         )}

@@ -13,6 +13,7 @@ interface PlantToggleRowProps {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   showReorder?: boolean;
+  recommendation?: string;
 }
 
 export default function PlantToggleRow({
@@ -24,6 +25,7 @@ export default function PlantToggleRow({
   onMoveUp,
   onMoveDown,
   showReorder = false,
+  recommendation,
 }: PlantToggleRowProps) {
   const [showRolePicker, setShowRolePicker] = useState(false);
 
@@ -41,9 +43,16 @@ export default function PlantToggleRow({
       </TouchableOpacity>
       
       <View style={styles.content}>
-        <Text style={[styles.plantName, isZugeordnet && styles.plantNameActive]}>
-          {plantName}
-        </Text>
+        <View style={styles.plantNameRow}>
+          <Text style={[styles.plantName, isZugeordnet && styles.plantNameActive]}>
+            {plantName}
+          </Text>
+          {recommendation && (
+            <View style={styles.recommendationBadge}>
+              <Text style={styles.recommendationText}>{recommendation}</Text>
+            </View>
+          )}
+        </View>
         {isZugeordnet && (
           <>
             <TouchableOpacity 
@@ -93,10 +102,10 @@ export default function PlantToggleRow({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: Spacing2026.sm,
     paddingHorizontal: Spacing2026.sm,
-    marginBottom: Spacing2026.xs,
+    marginBottom: Spacing2026.sm,
     borderRadius: Radius2026.sm,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -119,6 +128,22 @@ const styles = StyleSheet.create({
     color: Colors2026.text,
     fontWeight: '500',
   },
+  plantNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing2026.xs,
+  },
+  recommendationBadge: {
+    backgroundColor: Colors2026.status.success + '20',
+    paddingHorizontal: Spacing2026.xs,
+    paddingVertical: 2,
+    borderRadius: Radius2026.sm,
+  },
+  recommendationText: {
+    ...Typography2026.small,
+    color: Colors2026.status.success,
+  },
   roleButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -140,12 +165,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius2026.sm,
     marginTop: Spacing2026.xs,
     padding: Spacing2026.xs,
-    position: 'absolute',
-    top: 40,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: Colors2026.divider,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   roleOption: {
     padding: Spacing2026.sm,

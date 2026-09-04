@@ -36,8 +36,6 @@ describe('bedService', () => {
           user_id: mockUser.id,
           garden_id: mockGardenId,
           name: 'Hochbeet 1',
-          position_x: 20,
-          position_y: 30,
           width: 25,
           height: 20,
           color: '#4CAF50',
@@ -66,8 +64,6 @@ describe('bedService', () => {
           user_id: mockUser.id,
           garden_id: mockGardenId,
           name: 'Beet 1',
-          position_x: 50,
-          position_y: 50,
           width: 30,
           height: 25,
           color: '#8D6E63',
@@ -112,8 +108,6 @@ describe('bedService', () => {
         user_id: mockUser.id,
         garden_id: mockGardenId,
         name: 'Test Beet',
-        position_x: 25,
-        position_y: 35,
         width: 20,
         height: 15,
         color: '#2196F3',
@@ -138,8 +132,6 @@ describe('bedService', () => {
     it('should create a new bed', async () => {
       const bedData: BedFormData = {
         name: 'Neues Beet',
-        position_x: 50,
-        position_y: 50,
         width: 30,
         height: 20,
         color: '#FF9800',
@@ -181,8 +173,6 @@ describe('bedService', () => {
       const bedId = 'bed-1';
       const updates: BedFormData = {
         name: 'Aktualisiertes Beet',
-        position_x: 40,
-        position_y: 45,
         width: 25,
         height: 18,
       };
@@ -205,7 +195,7 @@ describe('bedService', () => {
 
       const result = await updateBed(bedId, updates);
       expect(result.name).toBe('Aktualisiertes Beet');
-      expect(result.position_x).toBe(40);
+      expect(result.width).toBe(25);
     });
   });
 

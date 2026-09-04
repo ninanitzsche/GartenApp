@@ -16,6 +16,7 @@ import { fetchGilden } from '../services/gildeService';
 import { SYSTEM_GILDEN } from '../data/system-gilden';
 import { calculateGildeMatches } from '../services/gildeMatchService';
 import GildeMatchCard from '../components/gilde/GildeMatchCard';
+import { fetchBedPlants } from '../services/bedService';
 import { useBeets } from '../hooks/useBeets';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GildeTemplate'>;
@@ -38,8 +39,12 @@ export default function GildeTemplateScreen({ navigation, route }: Props) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const userGilden = await fetchGilden();
+      const [userGilden, plants] = await Promise.all([
+        fetchGilden(),
+        bedId ? fetchBedPlants(bedId) : Promise.resolve([]),
+      ]);
       setGilden(userGilden);
+      setBedPlants(plants.map(p => p.name));
     } catch (e) {
       console.error('Error loading data:', e);
     } finally {

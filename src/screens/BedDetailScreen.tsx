@@ -269,6 +269,7 @@ export default function BedDetailScreen({ navigation, route }: Props) {
                   key={gilde.id}
                   gilde={gilde}
                   matchScore={score}
+                  bedPlantNames={plants.map(p => p.name)}
                   onPress={() => navigation.navigate('GildeDetail', { gildeId: gilde.id })}
                   onRemove={() => {
                     Alert.alert('Gilde entfernen', ` "${gilde.name}" von Beet entfernen?`, [
